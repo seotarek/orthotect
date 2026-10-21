@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- 3. Bidirectional (BiDi) & Language Management ---
   const bidiDict = {
     en: {
-      brandDesc: "Skill Studio & Gate Engine",
+      brandDesc: "Skill Studio & Gate Engine v1.4.0",
       navSkills: "Skills & Doctrine",
       navGates: "Gate Simulator",
       navFsm: "FSM & Components",
@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
       navDashboard: "Telemetry",
       navCompetitors: "Teardown",
       navManifesto: "Manifesto",
-      heroBadge: "The Google-Scale Standard for Autonomous Coding Agents",
+      heroBadge: "v1.4.0 • The Google-Scale Standard for Autonomous Coding Agents",
       heroTitle: "Deterministic Interface Engineering & Runtime Gates for AI",
       heroSub: "Stop trusting probabilistic UI code. Orthotect enforces mathematical WCAG AAA contrast, 100% CSS logical properties, formal state machines, and zero layout shift in sub-400ms parallel gates.",
       proofGates: "Deterministic Gates",
@@ -218,7 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
       docsModalSaveLabel: "Save Configuration"
     },
     ar: {
-      brandDesc: "استوديو المهارات ومحرك البوابات",
+      brandDesc: "استوديو المهارات ومحرك البوابات v1.4.0",
       navSkills: "المهارات والمبادئ",
       navGates: "محاكي البوابات",
       navFsm: "آلات الحالة والمكونات",
@@ -226,7 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
       navDashboard: "لوحة القياس",
       navCompetitors: "تشريح المنافسين",
       navManifesto: "البيان التأسيسي",
-      heroBadge: "المعمارية الهندسية القياسية للوكلاء البرمجيين الذاتيين",
+      heroBadge: "v1.4.0 • المعمارية الهندسية القياسية للوكلاء البرمجيين الذاتيين",
       heroTitle: "هندسة الواجهات الحتمية وبوابات الفحص الصارمة لكود الذكاء الاصطناعي",
       heroSub: "توقف عن قبول كود الواجهات العشوائي. يفرض أورثوتكت تباين WCAG AAA الرياضي، وخواص CSS المنطقية 100%، وآلات الحالة المنتهية FSM، وانعدام الـ Layout Shift في بوابات متوازية تحت 400ms.",
       proofGates: "بوابات فحص حتمية",
