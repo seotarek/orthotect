@@ -30,10 +30,12 @@ function calculateMaxDomDepth(htmlContent) {
     'link', 'meta', 'param', 'source', 'track', 'wbr'
   ]);
   
-  // Clean comments and doctype
+  // Clean comments, doctype, and internal script/style contents
   const cleaned = htmlContent
     .replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/<!doctype[^>]*>/gi, '');
+    .replace(/<!doctype[^>]*>/gi, '')
+    .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gi, '')
+    .replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi, '');
 
   const tagRegex = /<(\/)?([a-z0-9-]+)(\s+[^>]*)?(\/)?>/gi;
   let maxDepth = 0;

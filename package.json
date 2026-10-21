@@ -36,6 +36,24 @@
     "core-web-vitals"
   ],
   "author": "Orthotect Architecture Team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seotarek/orthotect.git"
+  },
+  "bugs": {
+    "url": "https://github.com/seotarek/orthotect/issues"
+  },
+  "homepage": "https://github.com/seotarek/orthotect#readme",
+  "files": [
+    "bin",
+    "core",
+    "gates",
+    "skills",
+    "examples",
+    "AGENTS.md",
+    "LICENSE",
+    "README.md"
+  ],
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0",

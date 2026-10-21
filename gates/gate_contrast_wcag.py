@@ -43,14 +43,24 @@ def resolve_ref(val, primitives):
 
 def find_target_tokens(target_path):
     target_abs = os.path.abspath(target_path)
-    
-    # STRICT: Only search within the target path itself. ZERO fallback to external directories.
+    root_pkg = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+    def is_inside(target, parent):
+        try:
+            return os.path.commonpath([target, parent]) == parent
+        except ValueError:
+            return False
+
+    is_self = (target_abs == root_pkg or is_inside(target_abs, os.path.join(root_pkg, 'examples')))
+
     candidates = [
         target_abs,
         os.path.join(target_abs, 'core', 'tokens'),
         os.path.join(target_abs, 'tokens'),
         os.path.join(target_abs, '.orthotect', 'tokens')
     ]
+    if is_self:
+        candidates.append(os.path.join(root_pkg, 'core', 'tokens'))
 
     for c in candidates:
         p_file = os.path.join(c, 'primitives.json')

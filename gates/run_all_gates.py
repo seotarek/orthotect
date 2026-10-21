@@ -9,6 +9,16 @@ import subprocess
 import time
 import os
 
+from concurrent.futures import ThreadPoolExecutor
+
+def run_single_gate(gate_spec, root_dir):
+    name, cmd = gate_spec
+    t0 = time.time()
+    res = subprocess.run(cmd, capture_output=True, text=True, cwd=root_dir)
+    dur = (time.time() - t0) * 1000
+    passed = (res.returncode == 0)
+    return (name, passed, dur, res.stdout, res.stderr)
+
 def main():
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     
@@ -34,18 +44,14 @@ def main():
         ("DOM & Layout-Shift Budget", ["node", os.path.join(root_dir, "gates", "gate_cwv_budget.mjs"), target_dir])
     ]
 
-    results = []
     overall_start = time.time()
-    all_passed = True
 
-    for name, cmd in gates:
-        t0 = time.time()
-        res = subprocess.run(cmd, capture_output=True, text=True, cwd=root_dir)
-        dur = (time.time() - t0) * 1000
-        passed = (res.returncode == 0)
-        if not passed:
-            all_passed = False
-        results.append((name, passed, dur, res.stdout, res.stderr))
+    # Execute gates concurrently for maximum performance
+    with ThreadPoolExecutor(max_workers=len(gates)) as executor:
+        futures = [executor.submit(run_single_gate, g, root_dir) for g in gates]
+        results = [f.result() for f in futures]
+
+    all_passed = all(r[1] for r in results)
 
     print(f"{'GATE NAME':<38} {'STATUS':<10} {'TIME':>10}")
     print("─" * 63)
@@ -54,7 +60,7 @@ def main():
         print(f"{name:<38} {status_str:<10} {dur:>8.1f}ms")
     print("─" * 63)
     total_dur = (time.time() - overall_start) * 1000
-    print(f"Total Verification Time: {total_dur:.1f}ms\n")
+    print(f"Total Verification Time (Parallel): {total_dur:.1f}ms\n")
 
     if all_passed:
         print("🎉 ALL GATES PASSED! Build certified for enterprise production.\n")
