@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+"""
+Orthotect Master Gate Orchestrator
+Executes all objective quality gates sequentially and prints an executive
+engineering scorecard. Exits with 0 ONLY if all gates pass.
+"""
+import sys
+import subprocess
+import time
+import os
+
+GATES = [
+    ("WCAG 2.2 Mathematical Contrast", ["python3", "gates/gate_contrast_wcag.py"]),
+    ("True BiDi & Logical Properties", ["python3", "gates/gate_bidi_logical.py", "examples"]),
+    ("Finite State Machine Integrity", ["python3", "gates/gate_fsm_integrity.py"]),
+    ("Anti-Slop Architectural Guardian", ["python3", "gates/gate_no_slop.py", "examples"]),
+    ("Core Web Vitals Structural Budget", ["node", "gates/gate_cwv_budget.mjs", "examples"])
+]
+
+def main():
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    os.chdir(root_dir)
+
+    print("\n╔═══════════════════════════════════════════════════════════════╗")
+    print("║            ORTHOTECT DETERMINISTIC QUALITY GATES              ║")
+    print("║         Google-Scale Interface Engineering Protocol           ║")
+    print("╚═══════════════════════════════════════════════════════════════╝\n")
+
+    results = []
+    overall_start = time.time()
+    all_passed = True
+
+    for name, cmd in GATES:
+        t0 = time.time()
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        dur = (time.time() - t0) * 1000
+        passed = (res.returncode == 0)
+        if not passed:
+            all_passed = False
+        results.append((name, passed, dur, res.stdout, res.stderr))
+
+    print(f"{'GATE NAME':<38} {'STATUS':<10} {'TIME':>10}")
+    print("─" * 63)
+    for name, passed, dur, out, err in results:
+        status_str = "✅ PASS" if passed else "❌ FAIL"
+        print(f"{name:<38} {status_str:<10} {dur:>8.1f}ms")
+    print("─" * 63)
+    total_dur = (time.time() - overall_start) * 1000
+    print(f"Total Verification Time: {total_dur:.1f}ms\n")
+
+    if all_passed:
+        print("🎉 ALL GATES PASSED! Build certified for enterprise production.\n")
+        sys.exit(0)
+    else:
+        print("🚨 BUILD FAILED! One or more objective quality gates failed.\n")
+        # Print failure outputs
+        for name, passed, dur, out, err in results:
+            if not passed:
+                print(f"\n--- Details for failed gate: {name} ---")
+                print(out)
+                if err:
+                    print(err)
+        sys.exit(1)
+
+if __name__ == '__main__':
+    main()

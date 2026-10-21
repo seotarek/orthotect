@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orthotect Enterprise Console Showcase</title>
+  <link rel="stylesheet" href="tokens.css">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: var(--ot-font-sans);
+      background-color: var(--ot-surface-canvas);
+      color: var(--ot-content-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color var(--ot-motion-snappy), color var(--ot-motion-snappy);
+    }
+    /* Layout using strict CSS Logical Properties */
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .top-bar {
+      height: 64px;
+      background-color: var(--ot-surface-panel);
+      border-block-end: 1px solid var(--ot-border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-inline: var(--ot-space-6);
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: var(--ot-space-3);
+    }
+    .brand-logo {
+      width: 28px;
+      height: 28px;
+      fill: var(--ot-action-primary);
+    }
+    .brand-title {
+      font-size: 1.125rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .controls-group {
+      display: flex;
+      align-items: center;
+      gap: var(--ot-space-3);
+    }
+    .main-content {
+      flex: 1;
+      padding: var(--ot-space-6);
+      max-width: 1280px;
+      width: 100%;
+      margin-inline: auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--ot-space-6);
+    }
+    .hero-stat {
+      background-color: var(--ot-surface-panel);
+      border: 1px solid var(--ot-border-subtle);
+      border-radius: var(--ot-radius-lg);
+      padding: var(--ot-space-6);
+      display: flex;
+      flex-direction: column;
+      gap: var(--ot-space-2);
+    }
+    .hero-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--ot-content-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .hero-figure {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--ot-content-primary);
+      letter-spacing: -0.03em;
+    }
+    .grid-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--ot-space-4);
+    }
+    .card {
+      background-color: var(--ot-surface-panel);
+      border: 1px solid var(--ot-border-subtle);
+      border-radius: var(--ot-radius-md);
+      padding: var(--ot-space-4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--ot-space-2);
+    }
+    .card-title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--ot-content-secondary);
+    }
+    .card-val {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    /* Buttons with Finite State Machine styles */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--ot-space-2);
+      padding-block: var(--ot-space-2);
+      padding-inline: var(--ot-space-4);
+      min-height: 44px; /* Fitts Law compliance */
+      min-width: 44px;
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: var(--ot-radius-md);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: background-color var(--ot-motion-snappy), transform var(--ot-motion-snappy);
+    }
+    .btn:active {
+      transform: scale(0.98);
+    }
+    .btn-primary {
+      background-color: var(--ot-action-primary);
+      color: var(--ot-content-inverse);
+    }
+    .btn-primary:hover {
+      background-color: var(--ot-action-primary-hover);
+    }
+    .btn-secondary {
+      background-color: var(--ot-surface-subtle);
+      color: var(--ot-content-primary);
+      border-color: var(--ot-border-subtle);
+    }
+    .btn-danger {
+      background-color: var(--ot-action-danger);
+      color: var(--ot-content-inverse);
+    }
+    /* Table with Direction-Neutral Layout */
+    .table-container {
+      background-color: var(--ot-surface-panel);
+      border: 1px solid var(--ot-border-subtle);
+      border-radius: var(--ot-radius-lg);
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: start; /* Logical property */
+    }
+    th, td {
+      padding-block: var(--ot-space-3);
+      padding-inline: var(--ot-space-4);
+      border-block-end: 1px solid var(--ot-border-subtle);
+      font-size: 0.875rem;
+    }
+    th {
+      font-weight: 600;
+      color: var(--ot-content-secondary);
+      background-color: var(--ot-surface-subtle);
+    }
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .is-loading .spinner {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="top-bar">
+      <div class="brand-group">
+        <svg class="brand-logo" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+        </svg>
+        <span class="brand-title">Orthotect Console</span>
+      </div>
+      <div class="controls-group">
+        <button class="btn btn-secondary" id="toggle-bidi" aria-label="Toggle Direction">
+          Switch to <span id="bidi-target">RTL (العربية)</span>
+        </button>
+        <button class="btn btn-secondary" id="toggle-theme" aria-label="Toggle Theme">
+          Toggle Dark Mode
+        </button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <section class="hero-stat" aria-labelledby="revenue-heading">
+        <div class="hero-label" id="revenue-heading">Net Recurring Yield</div>
+        <div class="hero-figure">$4,850,210.00</div>
+        <p style="color: var(--ot-content-secondary); font-size: 0.875rem;">
+          Verified across 12 region shards with zero latency drift.
+        </p>
+      </section>
+
+      <section class="grid-stats">
+        <div class="card">
+          <span class="card-title">Active Shards</span>
+          <span class="card-val">1,024</span>
+        </div>
+        <div class="card">
+          <span class="card-title">P99 Latency</span>
+          <span class="card-val">14.2ms</span>
+        </div>
+        <div class="card">
+          <span class="card-title">FSM State Drift</span>
+          <span class="card-val" style="color: var(--ot-color-success-500);">0.00%</span>
+        </div>
+      </section>
+
+      <div style="display: flex; gap: var(--ot-space-3); flex-wrap: wrap;">
+        <button class="btn btn-primary" id="btn-deploy">
+          <span class="spinner" aria-hidden="true"></span>
+          <span class="btn-label">Deploy Service</span>
+        </button>
+        <button class="btn btn-danger" id="btn-rollback">
+          Rollback Release
+        </button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Node Cluster</th>
+              <th>Region</th>
+              <th>Health</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>cluster-alpha-01</td>
+              <td>us-east-1</td>
+              <td>Optimal</td>
+              <td>Active</td>
+            </tr>
+            <tr>
+              <td>cluster-eu-west-02</td>
+              <td>eu-west-1</td>
+              <td>Optimal</td>
+              <td>Active</td>
+            </tr>
+            <tr>
+              <td>cluster-me-central-01</td>
+              <td>me-central-1</td>
+              <td>Optimal</td>
+              <td>Active</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Theme toggle
+    const themeBtn = document.getElementById('toggle-theme');
+    themeBtn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+    });
+
+    // BiDi toggle
+    const bidiBtn = document.getElementById('toggle-bidi');
+    const bidiLabel = document.getElementById('bidi-target');
+    bidiBtn.addEventListener('click', () => {
+      const currentDir = document.documentElement.getAttribute('dir');
+      if (currentDir === 'rtl') {
+        document.documentElement.setAttribute('dir', 'ltr');
+        bidiLabel.textContent = 'RTL (العربية)';
+      } else {
+        document.documentElement.setAttribute('dir', 'rtl');
+        bidiLabel.textContent = 'LTR (English)';
+      }
+    });
+
+    // Button FSM Demo
+    const deployBtn = document.getElementById('btn-deploy');
+    const label = deployBtn.querySelector('.btn-label');
+    deployBtn.addEventListener('click', () => {
+      if (deployBtn.classList.contains('is-loading')) return;
+      deployBtn.classList.add('is-loading');
+      label.textContent = 'Deploying...';
+      setTimeout(() => {
+        deployBtn.classList.remove('is-loading');
+        label.textContent = 'Deployed!';
+        setTimeout(() => {
+          label.textContent = 'Deploy Service';
+        }, 1500);
+      }, 1200);
+    });
+  </script>
+</body>
+</html>

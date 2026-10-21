@@ -1,0 +1,43 @@
+{
+  "name": "orthotect",
+  "version": "1.0.0",
+  "description": "The Deterministic Interface Engineering & Runtime Gate Architecture for AI Coding Agents.",
+  "main": "bin/orthotect.js",
+  "bin": {
+    "orthotect": "bin/orthotect.js"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "python3 gates/run_all_gates.py",
+    "gate:all": "python3 gates/run_all_gates.py",
+    "gate:bidi": "python3 gates/gate_bidi_logical.py",
+    "gate:contrast": "python3 gates/gate_contrast_wcag.py",
+    "gate:fsm": "python3 gates/gate_fsm_integrity.py",
+    "gate:slop": "python3 gates/gate_no_slop.py",
+    "gate:cwv": "node gates/gate_cwv_budget.mjs"
+  },
+  "keywords": [
+    "design-system",
+    "design-tokens",
+    "dtcg",
+    "ai-agents",
+    "agent-skills",
+    "antigravity",
+    "claude-code",
+    "cursor",
+    "codex",
+    "fsm",
+    "state-machine",
+    "wcag",
+    "bidi",
+    "rtl",
+    "frontend-engineering",
+    "core-web-vitals"
+  ],
+  "author": "Orthotect Architecture Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "python": ">=3.9.0"
+  }
+}
