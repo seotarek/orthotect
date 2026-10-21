@@ -1,0 +1,25 @@
+{
+  "fittsLaw": {
+    "minimumTouchTarget": "44px",
+    "minimumDesktopTarget": "32px",
+    "compactTarget": "28px",
+    "safeMarginBetweenTargets": "8px"
+  },
+  "cognitiveDensity": {
+    "comfortable": {
+      "lineHeight": 1.6,
+      "gapScale": "1.25",
+      "fontScaleRatio": 1.25
+    },
+    "compact": {
+      "lineHeight": 1.4,
+      "gapScale": "0.85",
+      "fontScaleRatio": 1.2
+    }
+  },
+  "millersLaw": {
+    "maxPrimaryNavItems": 7,
+    "maxFormFieldsPerStep": 6,
+    "maxStatCardsPerRow": 4
+  }
+}

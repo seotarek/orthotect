@@ -19,11 +19,53 @@ if (!fs.existsSync(targetDir)) {
 let checkedFiles = 0;
 let errors = [];
 
+/**
+ * Sequential stream-based DOM depth calculator.
+ * Accurately parses minified single-line HTML, nested multi-line HTML,
+ * and correctly handles void elements (<br>, <img>, <input>, <meta>, etc.).
+ */
+function calculateMaxDomDepth(htmlContent) {
+  const voidTags = new Set([
+    'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 
+    'link', 'meta', 'param', 'source', 'track', 'wbr'
+  ]);
+  
+  // Clean comments and doctype
+  const cleaned = htmlContent
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<!doctype[^>]*>/gi, '');
+
+  const tagRegex = /<(\/)?([a-z0-9-]+)(\s+[^>]*)?(\/)?>/gi;
+  let maxDepth = 0;
+  let currentDepth = 0;
+  let match;
+
+  while ((match = tagRegex.exec(cleaned)) !== null) {
+    const isClosing = Boolean(match[1]);
+    const tagName = match[2].toLowerCase();
+    const isSelfClosing = Boolean(match[4]);
+
+    if (voidTags.has(tagName) || isSelfClosing) {
+      continue;
+    }
+
+    if (isClosing) {
+      if (currentDepth > 0) currentDepth--;
+    } else {
+      currentDepth++;
+      if (currentDepth > maxDepth) maxDepth = currentDepth;
+    }
+  }
+
+  return maxDepth;
+}
+
 function checkHtmlFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8');
   checkedFiles++;
 
-  // 1. Unconstrained <img> tags without width/height or aspect-ratio (causes CLS)
+  // 1. Strict image dimension check:
+  // Requires BOTH width and height attributes (so browser can calculate aspect-ratio) OR explicit CSS aspect-ratio.
   const imgRegex = /<img\s+([^>]*?)>/gi;
   let match;
   while ((match = imgRegex.exec(content)) !== null) {
@@ -31,8 +73,10 @@ function checkHtmlFile(filePath) {
     const hasWidth = /\bwidth\s*=/i.test(attrs);
     const hasHeight = /\bheight\s*=/i.test(attrs);
     const hasAspect = /aspect-ratio/i.test(attrs);
-    if (!hasWidth && !hasHeight && !hasAspect) {
-      errors.push(`${filePath}: <img> tag lacks explicit width/height or aspect-ratio (triggers CLS layout shift).`);
+    const hasBothDimensions = hasWidth && hasHeight;
+
+    if (!hasBothDimensions && !hasAspect) {
+      errors.push(`${filePath}: <img> tag lacks complete dimensions (requires BOTH width and height attributes, or an explicit aspect-ratio to prevent CLS layout shift).`);
     }
   }
 
@@ -54,17 +98,8 @@ function checkHtmlFile(filePath) {
     }
   }
 
-  // 3. DOM nesting depth limit (< 32 levels)
-  const lines = content.split('\n');
-  let maxDepth = 0;
-  let currentDepth = 0;
-  for (const line of lines) {
-    const opens = (line.match(/<[a-z0-9]+(\s+[^>]*)?>/gi) || []).filter(tag => !tag.startsWith('</') && !tag.endsWith('/>') && !/<(br|hr|img|input|link|meta)/i.test(tag)).length;
-    const closes = (line.match(/<\/[a-z0-9]+>/gi) || []).length;
-    currentDepth += opens - closes;
-    if (currentDepth > maxDepth) maxDepth = currentDepth;
-  }
-
+  // 3. DOM nesting depth limit (< 32 levels) using stream parser
+  const maxDepth = calculateMaxDomDepth(content);
   if (maxDepth > 32) {
     errors.push(`${filePath}: Excessive DOM depth of ${maxDepth} levels (Budget max is 32).`);
   }

@@ -7,6 +7,7 @@ import shutil
 class TestOrthotectE2E(unittest.TestCase):
     def setUp(self):
         self.root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        self.cli_path = os.path.join(self.root_dir, 'bin', 'orthotect.js')
         self.temp_dir = tempfile.mkdtemp(prefix='orthotect_test_')
 
     def tearDown(self):
@@ -14,7 +15,7 @@ class TestOrthotectE2E(unittest.TestCase):
 
     def test_e2e_init_scaffolds_real_files(self):
         """Verifies that 'orthotect init' creates real tokens, FSM, and AGENTS.md."""
-        res = subprocess.run(['node', os.path.join(self.root_dir, 'bin', 'orthotect.js'), 'init', self.temp_dir],
+        res = subprocess.run(['node', self.cli_path, 'init', self.temp_dir],
                              capture_output=True, text=True)
         self.assertEqual(res.returncode, 0)
         self.assertTrue(os.path.exists(os.path.join(self.temp_dir, 'core', 'tokens', 'primitives.json')))
@@ -26,46 +27,88 @@ class TestOrthotectE2E(unittest.TestCase):
         """Negative test: 'orthotect verify' must REJECT an empty directory with code 1."""
         empty_dir = os.path.join(self.temp_dir, 'empty_proj')
         os.makedirs(empty_dir, exist_ok=True)
-        res = subprocess.run(['node', os.path.join(self.root_dir, 'bin', 'orthotect.js'), 'verify', empty_dir],
+        res = subprocess.run(['node', self.cli_path, 'verify', empty_dir],
+                             capture_output=True, text=True)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("REJECT", res.stdout)
+
+    def test_e2e_verify_rejects_examples_backup_directory(self):
+        """Negative test: 'examples-backup' without tokens/FSM must FAIL via CLI verify (no path confusion)."""
+        backup_dir = os.path.join(self.temp_dir, 'examples-backup')
+        os.makedirs(backup_dir, exist_ok=True)
+        with open(os.path.join(backup_dir, 'index.html'), 'w') as f:
+            f.write("<!DOCTYPE html><html><head><title>Backup</title></head><body><h1>Backup</h1></body></html>")
+        res = subprocess.run(['node', self.cli_path, 'verify', backup_dir],
                              capture_output=True, text=True)
         self.assertNotEqual(res.returncode, 0)
         self.assertIn("REJECT", res.stdout)
 
     def test_e2e_verify_rejects_missing_tokens(self):
-        """Negative test: A project with HTML/CSS but missing tokens must fail contrast check."""
+        """Negative test: CLI verify must reject project missing tokens."""
         proj_dir = os.path.join(self.temp_dir, 'no_tokens_proj')
         os.makedirs(proj_dir, exist_ok=True)
         with open(os.path.join(proj_dir, 'index.html'), 'w') as f:
             f.write("<!DOCTYPE html><html><head></head><body><h1>Hello</h1></body></html>")
-        res = subprocess.run(['python3', os.path.join(self.root_dir, 'gates', 'gate_contrast_wcag.py'), proj_dir],
+        res = subprocess.run(['node', self.cli_path, 'verify', proj_dir],
                              capture_output=True, text=True)
         self.assertNotEqual(res.returncode, 0)
-        self.assertIn("Missing required Design Token files", res.stdout)
+        self.assertIn("REJECT", res.stdout)
 
     def test_e2e_verify_rejects_missing_fsm(self):
-        """Negative test: A project missing FSM specifications must fail FSM gate."""
+        """Negative test: CLI verify must reject project missing FSM specifications."""
         proj_dir = os.path.join(self.temp_dir, 'no_fsm_proj')
-        os.makedirs(proj_dir, exist_ok=True)
-        res = subprocess.run(['python3', os.path.join(self.root_dir, 'gates', 'gate_fsm_integrity.py'), proj_dir],
+        subprocess.run(['node', self.cli_path, 'init', proj_dir], capture_output=True)
+        shutil.rmtree(os.path.join(proj_dir, 'core', 'fsm'))
+        with open(os.path.join(proj_dir, 'index.html'), 'w') as f:
+            f.write("<!DOCTYPE html><html><head></head><body><h1>Hello</h1></body></html>")
+        res = subprocess.run(['node', self.cli_path, 'verify', proj_dir],
                              capture_output=True, text=True)
         self.assertNotEqual(res.returncode, 0)
-        self.assertIn("Missing required FSM specifications", res.stdout)
+        self.assertIn("REJECT", res.stdout)
 
     def test_e2e_verify_rejects_physical_css(self):
-        """Negative test: A project with physical CSS margin-left must fail BiDi gate."""
-        proj_dir = os.path.join(self.temp_dir, 'physical_css_proj')
-        os.makedirs(proj_dir, exist_ok=True)
+        """Negative test: CLI verify must reject project with physical CSS margin-left."""
+        proj_dir = os.path.join(self.temp_dir, 'bad_css_proj')
+        subprocess.run(['node', self.cli_path, 'init', proj_dir], capture_output=True)
+        with open(os.path.join(proj_dir, 'index.html'), 'w') as f:
+            f.write("<!DOCTYPE html><html><head></head><body><div class=\"card\">Hello</div></body></html>")
         with open(os.path.join(proj_dir, 'style.css'), 'w') as f:
             f.write(".card { margin-left: 16px; }")
-        res = subprocess.run(['python3', os.path.join(self.root_dir, 'gates', 'gate_bidi_logical.py'), proj_dir],
+        res = subprocess.run(['node', self.cli_path, 'verify', proj_dir],
                              capture_output=True, text=True)
         self.assertNotEqual(res.returncode, 0)
         self.assertIn("Physical direction properties found", res.stdout)
 
+    def test_e2e_verify_rejects_image_without_both_dimensions(self):
+        """Negative test: <img> with only width (no height, no aspect-ratio) must be rejected."""
+        proj_dir = os.path.join(self.temp_dir, 'bad_img_proj')
+        subprocess.run(['node', self.cli_path, 'init', proj_dir], capture_output=True)
+        with open(os.path.join(proj_dir, 'index.html'), 'w') as f:
+            f.write('''<!DOCTYPE html><html><head></head><body><img src="foo.png" width="300"></body></html>''')
+        res = subprocess.run(['node', self.cli_path, 'verify', proj_dir],
+                             capture_output=True, text=True)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("lacks complete dimensions", res.stdout)
+
+    def test_e2e_verify_detects_deep_minified_html(self):
+        """Negative test: Minified single-line HTML with >32 levels of nesting must be rejected."""
+        proj_dir = os.path.join(self.temp_dir, 'deep_html_proj')
+        subprocess.run(['node', self.cli_path, 'init', proj_dir], capture_output=True)
+        # Create single line with 35 nested divs
+        opens = "<div>" * 35
+        closes = "</div>" * 35
+        minified = f"<!DOCTYPE html><html><head></head><body>{opens}Deep{closes}</body></html>"
+        with open(os.path.join(proj_dir, 'index.html'), 'w') as f:
+            f.write(minified)
+        res = subprocess.run(['node', self.cli_path, 'verify', proj_dir],
+                             capture_output=True, text=True)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Excessive DOM depth", res.stdout)
+
     def test_e2e_verify_passes_on_golden_showcase(self):
         """Positive test: The verified golden showcase must pass 100% of gates."""
         showcase_dir = os.path.join(self.root_dir, 'examples', 'golden-showcase')
-        res = subprocess.run(['node', os.path.join(self.root_dir, 'bin', 'orthotect.js'), 'verify', showcase_dir],
+        res = subprocess.run(['node', self.cli_path, 'verify', showcase_dir],
                              capture_output=True, text=True)
         self.assertEqual(res.returncode, 0)
         self.assertIn("ALL GATES PASSED", res.stdout)

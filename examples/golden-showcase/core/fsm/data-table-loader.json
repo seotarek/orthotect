@@ -1,0 +1,56 @@
+{
+  "name": "OrthotectDataTableFSM",
+  "initialState": "uninitialized",
+  "states": {
+    "uninitialized": {
+      "on": {
+        "INIT": "skeletonLoading"
+      }
+    },
+    "skeletonLoading": {
+      "description": "Preserves exact table dimensions with animated skeleton pulses to prevent CLS layout shift.",
+      "on": {
+        "DATA_LOADED": "ready",
+        "EMPTY_RESULT": "emptyState",
+        "LOAD_FAILED": "errorState"
+      }
+    },
+    "ready": {
+      "on": {
+        "SORT": "sortingOptimistic",
+        "PAGE_CHANGE": "pageTransition",
+        "FILTER": "filtering"
+      }
+    },
+    "sortingOptimistic": {
+      "on": {
+        "SORT_COMPLETE": "ready"
+      }
+    },
+    "pageTransition": {
+      "on": {
+        "PAGE_LOADED": "ready"
+      }
+    },
+    "emptyState": {
+      "description": "Clear actionable empty message with icon and action to create first record.",
+      "on": {
+        "CREATE_ITEM": "ready",
+        "RESET_FILTER": "ready"
+      }
+    },
+    "errorState": {
+      "description": "Inline error banner with precise retry button; preserves table header structure.",
+      "on": {
+        "RETRY": "skeletonLoading"
+      }
+    },
+    "filtering": {
+      "description": "Applying debounce filter query to dataset.",
+      "on": {
+        "FILTER_COMPLETE": "ready",
+        "FILTER_FAILED": "errorState"
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "physics": {
+    "snappy": {
+      "stiffness": 500,
+      "damping": 32,
+      "mass": 1,
+      "cssFallback": "220ms cubic-bezier(0.2, 0.0, 0, 1.0)"
+    },
+    "standard": {
+      "stiffness": 380,
+      "damping": 28,
+      "mass": 1,
+      "cssFallback": "300ms cubic-bezier(0.2, 0.0, 0, 1.0)"
+    },
+    "expressive": {
+      "stiffness": 260,
+      "damping": 22,
+      "mass": 1,
+      "cssFallback": "450ms cubic-bezier(0.16, 1, 0.3, 1)"
+    }
+  },
+  "policy": {
+    "reducedMotion": "0ms !important"
+  }
+}

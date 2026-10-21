@@ -1,0 +1,145 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "theme": {
+    "light": {
+      "surface": {
+        "canvas": {
+          "$value": "{color.neutral.50}",
+          "$type": "color"
+        },
+        "panel": {
+          "$value": "{color.neutral.0}",
+          "$type": "color"
+        },
+        "subtle": {
+          "$value": "{color.neutral.100}",
+          "$type": "color"
+        },
+        "elevated": {
+          "$value": "{color.neutral.0}",
+          "$type": "color"
+        }
+      },
+      "content": {
+        "primary": {
+          "$value": "{color.neutral.900}",
+          "$type": "color"
+        },
+        "secondary": {
+          "$value": "{color.neutral.600}",
+          "$type": "color"
+        },
+        "tertiary": {
+          "$value": "{color.neutral.400}",
+          "$type": "color"
+        },
+        "inverse": {
+          "$value": "{color.neutral.0}",
+          "$type": "color"
+        }
+      },
+      "border": {
+        "subtle": {
+          "$value": "{color.neutral.200}",
+          "$type": "color"
+        },
+        "strong": {
+          "$value": "{color.neutral.600}",
+          "$type": "color"
+        },
+        "focus": {
+          "$value": "{color.brand.600}",
+          "$type": "color"
+        }
+      },
+      "action": {
+        "primary": {
+          "$value": "{color.brand.600}",
+          "$type": "color"
+        },
+        "primaryHover": {
+          "$value": "{color.brand.700}",
+          "$type": "color"
+        },
+        "danger": {
+          "$value": "{color.danger.600}",
+          "$type": "color"
+        },
+        "dangerHover": {
+          "$value": "{color.danger.700}",
+          "$type": "color"
+        }
+      }
+    },
+    "dark": {
+      "surface": {
+        "canvas": {
+          "$value": "{color.neutral.950}",
+          "$type": "color"
+        },
+        "panel": {
+          "$value": "{color.neutral.900}",
+          "$type": "color"
+        },
+        "subtle": {
+          "$value": "{color.neutral.800}",
+          "$type": "color"
+        },
+        "elevated": {
+          "$value": "{color.neutral.800}",
+          "$type": "color"
+        }
+      },
+      "content": {
+        "primary": {
+          "$value": "{color.neutral.50}",
+          "$type": "color"
+        },
+        "secondary": {
+          "$value": "{color.neutral.400}",
+          "$type": "color"
+        },
+        "tertiary": {
+          "$value": "{color.neutral.500}",
+          "$type": "color"
+        },
+        "inverse": {
+          "$value": "{color.neutral.0}",
+          "$type": "color"
+        }
+      },
+      "border": {
+        "subtle": {
+          "$value": "{color.neutral.800}",
+          "$type": "color"
+        },
+        "strong": {
+          "$value": "{color.neutral.400}",
+          "$type": "color"
+        },
+        "focus": {
+          "$value": "{color.brand.500}",
+          "$type": "color"
+        }
+      },
+      "action": {
+        "primary": {
+          "$value": "{color.brand.500}",
+          "$type": "color"
+        },
+        "primaryHover": {
+          "$value": "{color.brand.600}",
+          "$type": "color"
+        },
+        "danger": {
+          "$value": "{color.danger.500}",
+          "$type": "color"
+        },
+        "dangerHover": {
+          "$value": "{color.danger.600}",
+          "$type": "color"
+        }
+      }
+    }
+  }
+}

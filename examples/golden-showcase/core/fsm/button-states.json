@@ -1,0 +1,65 @@
+{
+  "name": "OrthotectButtonFSM",
+  "initialState": "idle",
+  "states": {
+    "idle": {
+      "on": {
+        "POINTER_ENTER": "hover",
+        "FOCUS": "focusVisible",
+        "CLICK": "loading",
+        "DISABLE": "disabled"
+      }
+    },
+    "hover": {
+      "on": {
+        "POINTER_LEAVE": "idle",
+        "PRESS": "pressed"
+      }
+    },
+    "focusVisible": {
+      "on": {
+        "BLUR": "idle",
+        "KEY_PRESS": "loading"
+      }
+    },
+    "pressed": {
+      "on": {
+        "RELEASE": "loading",
+        "CANCEL": "idle"
+      }
+    },
+    "loading": {
+      "description": "Async execution underway. Action locked against double-submission. Spinner replaces or flanks label without dimming contrast.",
+      "allowClick": false,
+      "on": {
+        "RESOLVE_SUCCESS": "successFeedback",
+        "REJECT_ERROR": "errorFeedback"
+      }
+    },
+    "successFeedback": {
+      "description": "Brief confirmation state (spring animation checkmark). Auto-transitions back to idle.",
+      "durationMs": 1400,
+      "on": {
+        "TIMEOUT": "idle"
+      }
+    },
+    "errorFeedback": {
+      "description": "Error shake/red indicator. Displays retry cue and re-arms button.",
+      "on": {
+        "RETRY": "loading",
+        "RESET": "idle"
+      }
+    },
+    "disabled": {
+      "description": "Explicitly inactive. Requires aria-disabled with explanatory tooltip if reason is non-obvious.",
+      "on": {
+        "ENABLE": "idle"
+      }
+    }
+  },
+  "invariants": [
+    "loading state MUST NEVER use opacity dimming like disabled",
+    "destructive button action MUST ALWAYS require danger semantic token",
+    "target size MUST satisfy minimum 44px on touch or 32px on pointer devices"
+  ]
+}

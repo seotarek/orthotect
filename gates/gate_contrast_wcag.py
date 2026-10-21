@@ -43,21 +43,14 @@ def resolve_ref(val, primitives):
 
 def find_target_tokens(target_path):
     target_abs = os.path.abspath(target_path)
-    root_pkg = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     
-    # Check if target is explicitly within Orthotect package self
-    is_self = (target_abs == root_pkg or target_abs.startswith(os.path.join(root_pkg, 'examples')))
-
+    # STRICT: Only search within the target path itself. ZERO fallback to external directories.
     candidates = [
         target_abs,
         os.path.join(target_abs, 'core', 'tokens'),
         os.path.join(target_abs, 'tokens'),
         os.path.join(target_abs, '.orthotect', 'tokens')
     ]
-    
-    # ONLY allow package root fallback if target IS the package itself
-    if is_self:
-        candidates.append(os.path.join(root_pkg, 'core', 'tokens'))
 
     for c in candidates:
         p_file = os.path.join(c, 'primitives.json')
@@ -78,7 +71,7 @@ def main():
     if not prim_file or not sem_file:
         print(f"❌ [REJECT] Missing required Design Token files in target: {target_path}")
         print("   Orthotect requires both 'primitives.json' and 'semantics.json' in core/tokens/.")
-        print("   (Run 'npx orthotect init <path>' to scaffold the standard tokens).")
+        print("   (Run 'npx orthotect init <path>' to scaffold standard tokens).")
         sys.exit(1)
 
     try:

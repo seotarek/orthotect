@@ -86,20 +86,17 @@ def check_fsm_file(fpath):
 
 def find_target_fsm_dir(target_path):
     target_abs = os.path.abspath(target_path)
-    root_pkg = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    is_self = (target_abs == root_pkg or target_abs.startswith(os.path.join(root_pkg, 'examples')))
-
+    
+    # STRICT: Only search within the target path itself. ZERO fallback to external directories.
     candidates = [
         target_abs,
         os.path.join(target_abs, 'core', 'fsm'),
         os.path.join(target_abs, 'fsm'),
         os.path.join(target_abs, '.orthotect', 'fsm')
     ]
-    if is_self:
-        candidates.append(os.path.join(root_pkg, 'core', 'fsm'))
 
     for c in candidates:
-        if os.path.exists(c):
+        if os.path.exists(c) and os.path.isdir(c):
             json_files = [f for f in os.listdir(c) if f.endswith('.json')]
             if json_files:
                 return c, json_files
