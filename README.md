@@ -3,30 +3,37 @@
 ### The Deterministic Interface Engineering & Runtime Gate Architecture for AI Coding Agents
 
 [![Version](https://img.shields.io/badge/version-1.2.0-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.2.0)
+[![Live Showcase](https://img.shields.io/badge/Live_Showcase-GitHub_Pages-0ea5e9?style=for-the-badge)](https://seotarek.github.io/orthotect/)
 [![CI Status](https://github.com/seotarek/orthotect/actions/workflows/ci.yml/badge.svg)](https://github.com/seotarek/orthotect/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)](LICENSE)
-[![WCAG 2.2 AAA/AA](https://img.shields.io/badge/WCAG-2.2_AAA→AA-a855f7?style=for-the-badge)](#)
+[![WCAG 2.2 AAA](https://img.shields.io/badge/WCAG-2.2_AAA→AA-a855f7?style=for-the-badge)](#)
 [![Gates: 100% Deterministic](https://img.shields.io/badge/Quality_Gates-Deterministic-14b8a6?style=for-the-badge)](#)
 [![BiDi: 100% Logical](https://img.shields.io/badge/BiDi-True_RTL/LTR-f97316?style=for-the-badge)](#)
 
-Orthotect is an enterprise-grade interface engineering kit built to enforce **Google-caliber architectural rigor** onto autonomous coding agents (Antigravity, Cursor, Claude Code, Codex). 
+> **Live Interactive Showcase & Playground:** [https://seotarek.github.io/orthotect/](https://seotarek.github.io/orthotect/)  
+> **Engineering Whitepapers:** [Competitor Teardown (COMPETITORS.md)](COMPETITORS.md) | [The 7 Laws Manifesto (MANIFESTO.md)](MANIFESTO.md)
 
-Unlike superficial prompt libraries that merely request "good design", Orthotect provides a **mathematical token foundation**, **Finite State Machine (FSM) graph reachability**, and **objective quality gates** that fail the build with exit code 1 if standards are breached.
+Orthotect is an enterprise-grade interface engineering kit built to enforce **Google-caliber architectural rigor** onto autonomous coding agents (Antigravity, Cursor, Claude Code, Codex, Grok). 
+
+Unlike superficial prompt libraries that merely request "good design", Orthotect provides a **mathematical token foundation**, **Finite State Machine (FSM) graph reachability**, and **objective quality gates** that fail the build with `exit 1` if standards are breached.
 
 ---
 
 ## ⚡ Why Orthotect Outperforms Competitors
 
-| Feature | Competitor Toolkits (e.g. XIAS / taste-skill) | 🏛️ Orthotect Architecture |
-|---|---|---|
-| **CLI Verification** | Runs gates only on package internal fixtures | **Target-Aware & Zero-Fallback:** Inspects user project directory (`orthotect verify <dir>`) with strict path boundaries and real exit codes |
-| **CLI Initialization** | Simulated console messages | **Real File Scaffolding:** Copies tokens, FSM specs, and `AGENTS.md` directly into target repository |
-| **State Engineering** | Static UI snapshots (Hover/Active) | **Finite State Machines (FSM)** with graph reachability, double-submission locks & async error recovery |
-| **BiDi / RTL Support** | Superficial `dir="rtl"` attribute | **100% CSS Logical Properties** (`margin-inline`, `padding-inline`, `border-inline`, `inset-inline`) |
-| **Layout Shift Budget** | None or unverified assertions | **Structural Layout-Shift (CLS) Budget** enforcing reserved media dimensions (`width` + `height` or `aspect-ratio`) and stream-based DOM nesting limits |
-| **Motion Engineering** | Generic `0.2s ease` transitions | **Spring Physics Curves** (Stiffness, Damping, Mass) |
-| **Cognitive Ergonomics** | Arbitrary card layouts | **Fitts' Law** touch targets (≥44px) & **Miller's 7±2 Law** density constraints |
-| **Slop Prevention** | Subjective guidelines | **Lexical & Pattern Inspectors** that reject AI indigo-purple gradients, raw emoji icons, and untokenized styles |
+For an exhaustive technical breakdown, read our [Architectural Teardown Whitepaper](COMPETITORS.md).
+
+| Feature | Competitor Toolkits (e.g. XIAS / taste-skill) | Component Libraries (e.g. shadcn/ui) | 🏛️ Orthotect Architecture (Google-Scale) |
+|---|---|---|---|
+| **CLI Verification** | Runs gates only on package internal fixtures | Manual visual testing / storybook | **Target-Aware & Zero-Fallback:** Inspects user project directory (`orthotect verify <dir>`) with strict path boundaries and real exit codes |
+| **CLI Initialization** | Simulated console messages | Code copy-pasting | **Real File Scaffolding:** Copies tokens, FSM specs, and `AGENTS.md` directly into target repository (`orthotect init <dir>`) |
+| **State Engineering** | Static UI snapshots (Hover/Active) | Ad-hoc `isLoading` boolean flags | **Finite State Machines (FSM)** with graph reachability, double-submission race locks & async recovery |
+| **BiDi / RTL Support** | Superficial `dir="rtl"` attribute | Physical classes (`ml-*`, `pr-*`) | **100% CSS Logical Properties** (`margin-inline`, `padding-inline`, `border-inline`, `inset-inline`) |
+| **Layout Shift Budget** | None or unverified assertions | Dependent on developer discipline | **Structural Layout-Shift (CLS) Budget** enforcing reserved media dimensions (`width` + `height` or `aspect-ratio`) and stream-based DOM nesting limits |
+| **Motion Engineering** | Generic `0.2s ease` transitions | Hardcoded keyframes | **Spring Physics Curves** (Stiffness, Damping, Mass) |
+| **Cognitive Ergonomics** | Arbitrary card layouts | Component presets | **Fitts' Law** touch targets (≥44px) & **Miller's 7±2 Law** density constraints |
+| **Slop Prevention** | Subjective guidelines | None | **Lexical & Pattern Inspectors** that reject AI indigo-purple gradients, raw emoji icons, and untokenized styles |
+| **Design Tokens** | Inconsistent CSS variables | Custom Tailwind theme | **W3C DTCG 3-Tier Compiler** generating `:root` light and `[data-theme="dark"]` scopes |
 
 ---
 
@@ -38,6 +45,10 @@ orthotect/
 │   ├── compiler.py      # W3C DTCG Token Compiler (:root light and [data-theme="dark"])
 │   ├── tokens/          # W3C DTCG 3-Tier Design Tokens (Primitives, Semantics, Motion, Ergonomics)
 │   └── fsm/             # State Machine Specifications (Buttons, Data Tables, Modal Dialogs)
+├── docs/                # Interactive Showcase & In-Browser Gate Simulator (GitHub Pages)
+│   ├── index.html       # Bilingual (EN/AR) interactive documentation
+│   ├── styles.css       # 100% CSS Logical Properties & DTCG variables
+│   └── app.js           # Client-side optical contrast, BiDi AST, and FSM simulator
 ├── gates/               # Objective Deterministic Checkers (Python & Node.js)
 │   ├── gate_contrast_wcag.py     # Mathematical Relative Luminance (WCAG 2.2 AAA/AA)
 │   ├── gate_bidi_logical.py      # Strict Enforcement of CSS Logical Properties
@@ -60,12 +71,15 @@ orthotect/
 │   ├── test_slop.py              # AI purple gradient & raw emoji anti-pattern tests
 │   ├── test_compiler.py          # W3C DTCG CSS custom property compiler tests
 │   └── test_cli_e2e.py           # E2E CLI verification, boundary & negative rejection tests
-├── .github/workflows/   # Automated CI Pipeline
-│   └── ci.yml
+├── .github/workflows/   # Automated CI & GitHub Pages Deployment Pipelines
+│   ├── ci.yml                    # 39 Unit Tests & Full Gate Verification
+│   └── pages.yml                 # Automated GitHub Pages Deployment
 ├── agents/
 │   └── orthotect-auditor.md      # Adversarial Quality Auditor Role
 ├── CHANGELOG.md         # Full version history (v1.0.0 → v1.2.0)
 ├── CONTRIBUTING.md      # Enterprise engineering guidelines
+├── COMPETITORS.md       # Exhaustive architectural competitor teardown
+├── MANIFESTO.md         # The 7 Laws of Interface Engineering
 └── examples/
     └── golden-showcase/          # Reference Enterprise Console passing 100% of gates
 ```
@@ -130,13 +144,15 @@ npm test
 
 ## 📜 The 7 Non-Negotiable Laws
 
+Read the complete manifesto in [MANIFESTO.md](MANIFESTO.md).
+
 1. **Verification Protocol:** Never declare a metric or contrast score without running deterministic gates on target files.
 2. **Directional Neutrality:** Physical directions (`left`, `right`) are banned; CSS Logical Properties are mandatory.
-3. **FSM Completeness:** Every interactive control must implement explicit async states with graph reachability.
-4. **Spring Physics:** Motion must use calibrated mass, damping, and stiffness springs.
-5. **Strict Intent Tokens:** Actions must map strictly to their semantic intent tokens.
-6. **Cognitive Ergonomics:** Respect Fitts' Law (min 44px touch) and Miller's 7±2 Information Density limits.
-7. **Zero AI Slop:** Banned raw emoji icons in controls, banned generic indigo-purple gradients, zero untokenized styles.
+3. **Mathematical Contrast:** Primary typography and controls must satisfy WCAG 2.2 AAA (7:1) or AA (4.5:1) relative luminance equations.
+4. **FSM Completeness:** Every interactive control must implement explicit async states with graph reachability and double-click race condition guards.
+5. **Layout Stability:** Media assets must allocate dimensions before render; DOM nesting must not exceed 32 nodes.
+6. **Token Purity:** Hardcoded styling values are banned; all properties resolve to W3C DTCG 3-tier tokens.
+7. **Anti-Slop:** Banned raw emoji icons in controls, banned generic indigo-purple gradients, zero untokenized styles.
 
 ---
 

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orthotect — Deterministic Interface Engineering & Runtime Gate Architecture</title>
+  <meta name="description" content="The deterministic interface engineering and runtime gate architecture for AI coding agents. Sub-400ms parallel gates for WCAG AAA, True BiDi, FSM integrity, and zero layout shift." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2338bdf8%22/><text y=%2268%22 x=%2224%22 font-size=%2254%22 font-family=%22monospace%22 font-weight=%22bold%22 fill=%22%23090c10%22>O</text></svg>">
+</head>
+<body>
+
+  <!-- Top Sticky Header -->
+  <header class="site-header" role="banner">
+    <div class="container nav-wrap">
+      <a href="#" class="brand-group" aria-label="Orthotect Home">
+        <div class="brand-icon" aria-hidden="true">O</div>
+        <span class="brand-name">Orthotect</span>
+        <span class="brand-badge" id="brandDesc">Runtime Gate Engine: ACTIVE</span>
+      </a>
+
+      <nav aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="#simulator" class="nav-link" id="navGates">Gate Simulator</a></li>
+          <li><a href="#fsm" class="nav-link" id="navFsm">FSM Explorer</a></li>
+          <li><a href="#tokens" class="nav-link" id="navTokens">Design Tokens</a></li>
+          <li><a href="#matrix" class="nav-link" id="navCompetitors">Teardown</a></li>
+          <li><a href="https://github.com/seotarek/orthotect/blob/main/MANIFESTO.md" target="_blank" rel="noopener" class="nav-link" id="navManifesto">Manifesto</a></li>
+        </ul>
+      </nav>
+
+      <div class="control-group">
+        <button id="themeToggleBtn" class="btn-ctrl" aria-label="Toggle Color Theme">🌙 Dark</button>
+        <button id="bidiToggleBtn" class="btn-ctrl" aria-label="Toggle Language and Direction">🌐 العربية</button>
+        <a href="https://github.com/seotarek/orthotect" target="_blank" rel="noopener" class="btn-ctrl" style="text-decoration: none;" aria-label="GitHub Repository">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main>
+    <section class="hero-section">
+      <div class="container">
+        <div class="hero-pill">
+          <span class="status-dot"></span>
+          <span id="heroBadge">The Google-Scale Standard for Autonomous Coding Agents</span>
+        </div>
+
+        <h1 class="hero-title" id="heroTitle">
+          Deterministic Interface Engineering & <span class="hero-gradient-text">Runtime Gates for AI</span>
+        </h1>
+
+        <p class="hero-subtitle" id="heroSub">
+          Stop trusting probabilistic UI code. Orthotect enforces mathematical WCAG AAA contrast, 100% CSS logical properties, formal state machines, and zero layout shift in sub-400ms parallel gates.
+        </p>
+
+        <!-- CLI Quickstart Box -->
+        <div class="cli-box" role="region" aria-label="Terminal Quickstart">
+          <div class="cli-tabs" role="tablist">
+            <button class="cli-tab active" data-cmd="init" role="tab" aria-selected="true">init</button>
+            <button class="cli-tab" data-cmd="verify" role="tab" aria-selected="false">verify</button>
+            <button class="cli-tab" data-cmd="compile" role="tab" aria-selected="false">compile:tokens</button>
+          </div>
+          <div class="cli-content">
+            <div style="display: flex; align-items: center; gap: 0.5rem; overflow: hidden;">
+              <span style="color: var(--ortho-text-muted);">$</span>
+              <code class="cli-command-text" id="cliCommandText">npx orthotect init</code>
+            </div>
+            <button class="cli-copy-btn" id="cliCopyBtn" aria-label="Copy Command">Copy</button>
+          </div>
+        </div>
+
+        <!-- Proof Bar -->
+        <div class="proof-grid" role="region" aria-label="Performance Benchmarks">
+          <div class="proof-card">
+            <div class="proof-val">5 / 5</div>
+            <div class="proof-lbl" id="proofGates">Deterministic Gates</div>
+          </div>
+          <div class="proof-card">
+            <div class="proof-val">39 / 39</div>
+            <div class="proof-lbl" id="proofTests">Unit Tests Passing</div>
+          </div>
+          <div class="proof-card">
+            <div class="proof-val">&lt; 400ms</div>
+            <div class="proof-lbl" id="proofLatency">Parallel Gate Latency</div>
+          </div>
+          <div class="proof-card">
+            <div class="proof-val">0</div>
+            <div class="proof-lbl" id="proofDeps">Dependencies (Zero Bloat)</div>
+          </div>
+          <div class="proof-card">
+            <div class="proof-val">100%</div>
+            <div class="proof-lbl" id="proofBidi">CSS Logical Properties</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 1: Live Gate Simulator Playground -->
+    <section id="simulator" class="playground-section">
+      <div class="container">
+        <div class="section-hdr">
+          <div class="section-pill">LIVE PLAYGROUND</div>
+          <h2 class="section-title" id="simTitle">Live In-Browser Gate Simulator</h2>
+          <p class="section-desc" id="simDesc">
+            Test arbitrary code against the 5 Orthotect quality gates in real time with optical and AST checks.
+          </p>
+        </div>
+
+        <div class="runner-container">
+          <!-- Editor Box -->
+          <div class="runner-editor-box">
+            <div class="box-header">
+              <span class="box-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                <span>Code Input</span>
+              </span>
+              <select id="sampleSelector" class="sample-selector" aria-label="Select Sample Preset">
+                <option value="golden">Gold Standard (All Gates Pass)</option>
+                <option value="bidi_fail">Fail: BiDi Physical Properties</option>
+                <option value="contrast_fail">Fail: WCAG Contrast Ratio</option>
+                <option value="cwv_fail">Fail: CWV Unbounded Media (CLS)</option>
+                <option value="slop_fail">Fail: AI Slop & Emojis</option>
+              </select>
+            </div>
+            <textarea id="codeEditor" class="code-editor" spellcheck="false" aria-label="Code Editor Input"></textarea>
+            <div class="runner-actions">
+              <span style="font-size: 0.75rem; color: var(--ortho-text-muted);">Interactive optical & regex evaluator</span>
+              <button id="runGatesBtn" class="btn-run">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span id="runBtn">Execute Deterministic Gates</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Output Console -->
+          <div class="runner-output-box">
+            <div class="box-header">
+              <span class="box-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <span>Runtime Gate Console</span>
+              </span>
+              <span style="font-size: 0.7rem; font-family: var(--font-mono); color: var(--ortho-success);">LIVE ENGINE</span>
+            </div>
+            <div id="outputConsole" class="output-console" role="region" aria-live="polite" aria-label="Gate Execution Log">
+              <div style="color: var(--ortho-text-muted);">Click "Execute Deterministic Gates" above to run verification...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Interactive FSM State Simulator -->
+    <section id="fsm" class="fsm-section">
+      <div class="container">
+        <div class="section-hdr">
+          <div class="section-pill">STATE MACHINE INTEGRITY</div>
+          <h2 class="section-title" id="fsmTitle">Interactive Finite State Machine Simulator</h2>
+          <p class="section-desc" id="fsmDesc">
+            Prevent UI state explosions, double submissions, and unhandled async edges via formal state graphs.
+          </p>
+        </div>
+
+        <div class="fsm-layout">
+          <!-- Controls Panel -->
+          <div class="fsm-controls-panel">
+            <div class="fsm-component-tabs">
+              <button class="fsm-comp-btn active" data-comp="button">Button FSM</button>
+              <button class="fsm-comp-btn" data-comp="modal">Modal FSM</button>
+              <button class="fsm-comp-btn" data-comp="table">Data Table FSM</button>
+            </div>
+
+            <div>
+              <div style="font-size: 0.8rem; font-weight: 600; margin-block-end: 0.5rem; color: var(--ortho-text-secondary);">
+                Active Triggers & Events
+              </div>
+              <div id="fsmTriggers" class="fsm-triggers">
+                <!-- Injected via JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Visual Canvas & Logs -->
+          <div class="fsm-viz-panel">
+            <div>
+              <div style="font-size: 0.8rem; font-weight: 600; margin-block-end: 0.5rem; color: var(--ortho-text-secondary);">
+                State Transition Graph
+              </div>
+              <div id="fsmCanvas" class="fsm-canvas">
+                <!-- Injected via JavaScript -->
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size: 0.8rem; font-weight: 600; margin-block-end: 0.5rem; color: var(--ortho-text-secondary);">
+                Deterministic Transition Audit Log
+              </div>
+              <div id="fsmLogView" class="fsm-log-view">
+                Ready for event simulation...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: W3C DTCG Token Inspector -->
+    <section id="tokens" class="tokens-section">
+      <div class="container">
+        <div class="section-hdr">
+          <div class="section-pill">W3C SPECIFICATION</div>
+          <h2 class="section-title" id="tokensTitle">W3C DTCG 3-Tier Design Tokens</h2>
+          <p class="section-desc" id="tokensDesc">
+            Hierarchical token architecture compiled natively to multi-theme CSS variables.
+          </p>
+        </div>
+
+        <div class="tokens-grid">
+          <!-- Tier 1: Primitives -->
+          <div class="token-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>Tier 1: Primitives</strong>
+              <span class="brand-badge">Physical Constants</span>
+            </div>
+            <div class="token-row">
+              <span class="token-key">color.blue.500</span>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <code style="font-size: 0.75rem;">#38bdf8</code>
+                <div class="token-swatch" style="background: #38bdf8;"></div>
+              </div>
+            </div>
+            <div class="token-row">
+              <span class="token-key">color.emerald.500</span>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <code style="font-size: 0.75rem;">#10b981</code>
+                <div class="token-swatch" style="background: #10b981;"></div>
+              </div>
+            </div>
+            <div class="token-row">
+              <span class="token-key">space.scale.4</span>
+              <code style="font-size: 0.75rem;">1.00rem (16px)</code>
+            </div>
+            <div class="token-row">
+              <span class="token-key">motion.spring.snappy</span>
+              <code style="font-size: 0.75rem;">stiffness: 400, damping: 28</code>
+            </div>
+          </div>
+
+          <!-- Tier 2: Semantics -->
+          <div class="token-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>Tier 2: Semantics</strong>
+              <span class="brand-badge">Intent Bindings</span>
+            </div>
+            <div class="token-row">
+              <span class="token-key">surface.canvas</span>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <code style="font-size: 0.75rem;">var(--ortho-canvas)</code>
+                <div class="token-swatch" style="background: var(--ortho-canvas);"></div>
+              </div>
+            </div>
+            <div class="token-row">
+              <span class="token-key">text.primary</span>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <code style="font-size: 0.75rem;">var(--ortho-text-primary)</code>
+                <div class="token-swatch" style="background: var(--ortho-text-primary);"></div>
+              </div>
+            </div>
+            <div class="token-row">
+              <span class="token-key">action.primary.bg</span>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <code style="font-size: 0.75rem;">var(--ortho-accent-cyan)</code>
+                <div class="token-swatch" style="background: var(--ortho-accent-cyan);"></div>
+              </div>
+            </div>
+            <div class="token-row">
+              <span class="token-key">feedback.success.bg</span>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <code style="font-size: 0.75rem;">var(--ortho-success-bg)</code>
+                <div class="token-swatch" style="background: var(--ortho-success);"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tier 3: Components & Export -->
+          <div class="token-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>Tier 3: Components</strong>
+              <span class="brand-badge">Native Compiler</span>
+            </div>
+            <div class="token-row">
+              <span class="token-key">button.primary.hover</span>
+              <code style="font-size: 0.75rem;">filter: brightness(1.15)</code>
+            </div>
+            <div class="token-row">
+              <span class="token-key">modal.backdrop.filter</span>
+              <code style="font-size: 0.75rem;">blur(12px)</code>
+            </div>
+            <div class="token-row">
+              <span class="token-key">table.row.border</span>
+              <code style="font-size: 0.75rem;">1px solid subtle</code>
+            </div>
+            <button id="copyTokensBtn" class="btn-ctrl" style="width: 100%; justify-content: center; margin-block-start: 0.5rem;">
+              <span>📋 Copy Compiled CSS Variables</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Competitor Matrix Table -->
+    <section id="matrix" class="matrix-section">
+      <div class="container">
+        <div class="section-hdr">
+          <div class="section-pill">ARCHITECTURAL BENCHMARK</div>
+          <h2 class="section-title" id="matrixTitle">Architectural Comparison Matrix</h2>
+          <p class="section-desc" id="matrixDesc">
+            How Orthotect fundamentally surpasses prompt-based collections and legacy component libraries.
+          </p>
+        </div>
+
+        <div class="table-wrap">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>Capability</th>
+                <th>Prompt Skills (XIAS, taste)</th>
+                <th>Component Libs (shadcn, MUI)</th>
+                <th>AI UI Generators (v0, Bolt)</th>
+                <th class="col-ortho">Orthotect Architecture</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Verification Model</strong></td>
+                <td>❌ None (Subjective text)</td>
+                <td>❌ Manual QA / Unit tests</td>
+                <td>❌ None (Black-box generation)</td>
+                <td class="col-ortho"><strong>✅ 5 Parallel Deterministic Gates (&lt;400ms)</strong></td>
+              </tr>
+              <tr>
+                <td><strong>Bidirectional Layouts (BiDi)</strong></td>
+                <td>⚠️ Unenforced markdown advice</td>
+                <td>❌ Physical classes (ml-*, pr-*)</td>
+                <td>❌ Broken in RTL modes</td>
+                <td class="col-ortho"><strong>✅ 100% Strict CSS Logical Properties</strong></td>
+              </tr>
+              <tr>
+                <td><strong>State Machine Integrity</strong></td>
+                <td>❌ Loose boolean flags (isLoading)</td>
+                <td>⚠️ Optional / Complex (XState)</td>
+                <td>❌ Unhandled async race bugs</td>
+                <td class="col-ortho"><strong>✅ Formal FSMs with BFS Reachability</strong></td>
+              </tr>
+              <tr>
+                <td><strong>WCAG 2.2 Accessibility</strong></td>
+                <td>⚠️ Prompt recommendations</td>
+                <td>⚠️ Radix primitives (breakable)</td>
+                <td>❌ Contrast failures frequent</td>
+                <td class="col-ortho"><strong>✅ Mathematical Luminance Matrix (AAA & AA)</strong></td>
+              </tr>
+              <tr>
+                <td><strong>Core Web Vitals Enforcement</strong></td>
+                <td>❌ None</td>
+                <td>❌ Manual dev responsibility</td>
+                <td>❌ High CLS from unbudgeted media</td>
+                <td class="col-ortho"><strong>✅ Stream DOM Budget & Media Bounding</strong></td>
+              </tr>
+              <tr>
+                <td><strong>External Dependencies</strong></td>
+                <td>Zero (Markdown only)</td>
+                <td>High (React, Radix, Tailwind)</td>
+                <td>Proprietary SaaS cloud</td>
+                <td class="col-ortho"><strong>Zero (Python 3 stdlib + Node built-ins)</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-links">
+        <a href="https://github.com/seotarek/orthotect" target="_blank" rel="noopener" class="footer-link">GitHub Repository</a>
+        <a href="https://github.com/seotarek/orthotect/blob/main/COMPETITORS.md" target="_blank" rel="noopener" class="footer-link">Competitor Teardown</a>
+        <a href="https://github.com/seotarek/orthotect/blob/main/MANIFESTO.md" target="_blank" rel="noopener" class="footer-link">The 7 Laws Manifesto</a>
+        <a href="https://github.com/seotarek/orthotect/blob/main/LICENSE" target="_blank" rel="noopener" class="footer-link">MIT License</a>
+      </div>
+      <div>
+        Orthotect &copy; 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok.
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Reporting Formats (`--json`, `--md`)**: `npx orthotect verify . --json` and `npx orthotect verify . --md` for automated CI scorecard summaries and bot reviews.
 - **Parallel Gate Orchestrator**: `run_all_gates.py` now leverages `ThreadPoolExecutor` to run all 5 gates concurrently, reducing verification latency by over 50%.
 - **39 Automated Unit & Integration Tests**: Comprehensive test suite covering all gates, CLI commands, compiler, and negative rejection scenarios.
+- **Interactive In-Browser Showcase (`docs/`)**: Zero-bloat, bilingual (English/Arabic) web application featuring live in-browser deterministic gate runner, interactive FSM state graph visualizer, and W3C DTCG token explorer deployed automatically to GitHub Pages.
+- **Architectural Teardown Whitepaper (`COMPETITORS.md`)**: Comprehensive competitive analysis comparing Orthotect against XIAS, prompt collections, shadcn/ui, v0, and Style Dictionary.
+- **The Orthotect Manifesto (`MANIFESTO.md`)**: The 7 Non-Negotiable Laws of High-Integrity Interface Engineering.
+- **GitHub Pages CI/CD Workflow (`.github/workflows/pages.yml`)**: Continuous deployment for the documentation and interactive showcase.
 
 ### Changed
 - **Zero-Fallback Path Boundaries**: Replaced string prefix checking with mathematical `os.path.commonpath` verification across both `gate_contrast_wcag.py` and `gate_fsm_integrity.py`. Sibling directories (`examples-backup`) are strictly rejected.

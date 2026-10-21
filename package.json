@@ -44,7 +44,7 @@
   "bugs": {
     "url": "https://github.com/seotarek/orthotect/issues"
   },
-  "homepage": "https://github.com/seotarek/orthotect#readme",
+  "homepage": "https://seotarek.github.io/orthotect/",
   "files": [
     "bin",
     "core",
@@ -55,7 +55,10 @@
     "LICENSE",
     "README.md",
     "CHANGELOG.md",
-    "CONTRIBUTING.md"
+    "CONTRIBUTING.md",
+    "docs",
+    "COMPETITORS.md",
+    "MANIFESTO.md"
   ],
   "license": "MIT",
   "engines": {
