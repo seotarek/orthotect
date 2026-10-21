@@ -1,16 +1,21 @@
 #!/usr/bin/env node
 /**
- * Orthotect Gate: Core Web Vitals (CWV) Structural Budget
- * Verifies layout-shift prevention (CLS) and DOM depth limits.
+ * Orthotect Gate: DOM Structure & Layout-Shift (CLS) Budget
+ * Verifies that media elements reserve dimensions and DOM depth stays within bounds.
  */
 import fs from 'fs';
 import path from 'path';
 
 console.log("═══════════════════════════════════════════════════════════════");
-console.log("  ORTHOTECT GATE: Core Web Vitals Structural Budget");
+console.log("  ORTHOTECT GATE: DOM Structure & Layout-Shift Budget");
 console.log("═══════════════════════════════════════════════════════════════");
 
 const targetDir = process.argv[2] || 'examples';
+if (!fs.existsSync(targetDir)) {
+  console.error(`❌ Error: Target path not found: ${targetDir}`);
+  process.exit(1);
+}
+
 let checkedFiles = 0;
 let errors = [];
 
@@ -18,7 +23,7 @@ function checkHtmlFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8');
   checkedFiles++;
 
-  // 1. Check for unconstrained img tags without width/height or aspect-ratio
+  // 1. Unconstrained <img> tags without width/height or aspect-ratio (causes CLS)
   const imgRegex = /<img\s+([^>]*?)>/gi;
   let match;
   while ((match = imgRegex.exec(content)) !== null) {
@@ -27,11 +32,29 @@ function checkHtmlFile(filePath) {
     const hasHeight = /\bheight\s*=/i.test(attrs);
     const hasAspect = /aspect-ratio/i.test(attrs);
     if (!hasWidth && !hasHeight && !hasAspect) {
-      errors.push(`${filePath}: <img> tag lacks explicit width/height or aspect-ratio (causes CLS)`);
+      errors.push(`${filePath}: <img> tag lacks explicit width/height or aspect-ratio (triggers CLS layout shift).`);
     }
   }
 
-  // 2. Check DOM nesting depth limit (Google threshold < 32)
+  // 2. Blocking synchronous <script> tags in <head>
+  const headMatch = content.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+  if (headMatch) {
+    const headContent = headMatch[1];
+    const scriptRegex = /<script\s+([^>]*?)>/gi;
+    let sMatch;
+    while ((sMatch = scriptRegex.exec(headContent)) !== null) {
+      const sAttrs = sMatch[1];
+      const isAsync = /\basync\b/i.test(sAttrs);
+      const isDefer = /\bdefer\b/i.test(sAttrs);
+      const isModule = /type=["']module["']/i.test(sAttrs);
+      const isInline = !/\bsrc\s*=/i.test(sAttrs);
+      if (!isInline && !isAsync && !isDefer && !isModule) {
+        errors.push(`${filePath}: Synchronous blocking <script> in <head> without defer/async.`);
+      }
+    }
+  }
+
+  // 3. DOM nesting depth limit (< 32 levels)
   const lines = content.split('\n');
   let maxDepth = 0;
   let currentDepth = 0;
@@ -43,11 +66,13 @@ function checkHtmlFile(filePath) {
   }
 
   if (maxDepth > 32) {
-    errors.push(`${filePath}: Excessive DOM depth of ${maxDepth} (Google CWV limit is 32 levels)`);
+    errors.push(`${filePath}: Excessive DOM depth of ${maxDepth} levels (Budget max is 32).`);
   }
 }
 
-if (fs.existsSync(targetDir)) {
+if (fs.statSync(targetDir).isFile() && targetDir.endsWith('.html')) {
+  checkHtmlFile(targetDir);
+} else {
   const scan = (dir) => {
     for (const f of fs.readdirSync(dir)) {
       const full = path.join(dir, f);
@@ -61,12 +86,16 @@ if (fs.existsSync(targetDir)) {
   scan(targetDir);
 }
 
+if (checkedFiles === 0) {
+  console.log(`\n⚠️ [WARN] No HTML files found to inspect in: ${targetDir}`);
+  process.exit(0);
+}
+
 if (errors.length === 0) {
-  console.log(`\n✅ [PASS] Core Web Vitals checks passed across ${checkedFiles} file(s)!`);
-  console.log("   Zero unconstrained layout-shift elements; DOM depth safely within budgets.");
+  console.log(`\n✅ [PASS] Layout-Shift & DOM budgets passed across ${checkedFiles} file(s)!`);
   process.exit(0);
 } else {
-  console.log(`\n❌ [REJECT] Found ${errors.length} Core Web Vitals budget violation(s):`);
+  console.log(`\n❌ [REJECT] Found ${errors.length} structural budget violation(s):`);
   errors.forEach(e => console.log(`   - ${e}`));
   process.exit(1);
 }

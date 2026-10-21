@@ -1,38 +1,46 @@
 #!/usr/bin/env python3
 """
 Orthotect Master Gate Orchestrator
-Executes all objective quality gates sequentially and prints an executive
-engineering scorecard. Exits with 0 ONLY if all gates pass.
+Executes all objective quality gates against a designated target directory.
+Exits with 0 ONLY if all gates pass.
 """
 import sys
 import subprocess
 import time
 import os
 
-GATES = [
-    ("WCAG 2.2 Mathematical Contrast", ["python3", "gates/gate_contrast_wcag.py"]),
-    ("True BiDi & Logical Properties", ["python3", "gates/gate_bidi_logical.py", "examples"]),
-    ("Finite State Machine Integrity", ["python3", "gates/gate_fsm_integrity.py"]),
-    ("Anti-Slop Architectural Guardian", ["python3", "gates/gate_no_slop.py", "examples"]),
-    ("Core Web Vitals Structural Budget", ["node", "gates/gate_cwv_budget.mjs", "examples"])
-]
-
 def main():
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    os.chdir(root_dir)
+    
+    # Target directory to verify
+    target_dir = sys.argv[1] if len(sys.argv) > 1 else os.path.join(root_dir, 'examples', 'golden-showcase')
+    target_dir = os.path.abspath(target_dir)
+
+    if not os.path.exists(target_dir):
+        print(f"❌ Error: Target directory does not exist: {target_dir}")
+        sys.exit(1)
 
     print("\n╔═══════════════════════════════════════════════════════════════╗")
     print("║            ORTHOTECT DETERMINISTIC QUALITY GATES              ║")
     print("║         Google-Scale Interface Engineering Protocol           ║")
-    print("╚═══════════════════════════════════════════════════════════════╝\n")
+    print("╚═══════════════════════════════════════════════════════════════╝")
+    print(f" Target Path: {target_dir}\n")
+
+    gates = [
+        ("WCAG 2.2 Mathematical Contrast", ["python3", os.path.join(root_dir, "gates", "gate_contrast_wcag.py"), target_dir]),
+        ("True BiDi & Logical Properties", ["python3", os.path.join(root_dir, "gates", "gate_bidi_logical.py"), target_dir]),
+        ("Finite State Machine Integrity", ["python3", os.path.join(root_dir, "gates", "gate_fsm_integrity.py"), target_dir]),
+        ("Anti-Slop Pattern Inspector", ["python3", os.path.join(root_dir, "gates", "gate_no_slop.py"), target_dir]),
+        ("DOM & Layout-Shift Budget", ["node", os.path.join(root_dir, "gates", "gate_cwv_budget.mjs"), target_dir])
+    ]
 
     results = []
     overall_start = time.time()
     all_passed = True
 
-    for name, cmd in GATES:
+    for name, cmd in gates:
         t0 = time.time()
-        res = subprocess.run(cmd, capture_output=True, text=True)
+        res = subprocess.run(cmd, capture_output=True, text=True, cwd=root_dir)
         dur = (time.time() - t0) * 1000
         passed = (res.returncode == 0)
         if not passed:
@@ -53,7 +61,6 @@ def main():
         sys.exit(0)
     else:
         print("🚨 BUILD FAILED! One or more objective quality gates failed.\n")
-        # Print failure outputs
         for name, passed, dur, out, err in results:
             if not passed:
                 print(f"\n--- Details for failed gate: {name} ---")

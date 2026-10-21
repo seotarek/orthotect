@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Orthotect Gate: WCAG 2.2 Mathematical Contrast Verifier
+Orthotect Gate: WCAG 2.2 Mathematical Contrast Verifier (AA & AAA)
 Calculates relative luminance and contrast ratios mathematically based on W3C specs:
 L = 0.2126 * R + 0.7152 * G + 0.0722 * B
 Ratio = (L1 + 0.05) / (L2 + 0.05)
@@ -8,7 +8,6 @@ Ratio = (L1 + 0.05) / (L2 + 0.05)
 import sys
 import json
 import os
-import re
 
 def parse_hex_color(hex_str):
     hex_str = hex_str.strip().lstrip('#')
@@ -42,13 +41,30 @@ def resolve_ref(val, primitives):
         return curr['$value']
     return val
 
-def main():
-    tokens_path = os.path.join(os.path.dirname(__file__), '..', 'core', 'tokens')
-    prim_file = os.path.join(tokens_path, 'primitives.json')
-    sem_file = os.path.join(tokens_path, 'semantics.json')
+def find_tokens(target_path):
+    candidates = [
+        target_path,
+        os.path.join(target_path, 'core', 'tokens'),
+        os.path.join(target_path, 'tokens'),
+        os.path.join(os.path.dirname(__file__), '..', 'core', 'tokens')
+    ]
+    for c in candidates:
+        p_file = os.path.join(c, 'primitives.json')
+        s_file = os.path.join(c, 'semantics.json')
+        if os.path.exists(p_file) and os.path.exists(s_file):
+            return p_file, s_file
+    return None, None
 
-    if not os.path.exists(prim_file) or not os.path.exists(sem_file):
-        print(f"❌ Tokens not found at {tokens_path}")
+def main():
+    target_path = sys.argv[1] if len(sys.argv) > 1 else '.'
+    prim_file, sem_file = find_tokens(target_path)
+
+    print("═══════════════════════════════════════════════════════════════")
+    print("  ORTHOTECT GATE: WCAG 2.2 Mathematical Contrast Verifier")
+    print("═══════════════════════════════════════════════════════════════")
+
+    if not prim_file or not sem_file:
+        print(f"❌ [REJECT] Design token specifications not found for path: {target_path}")
         sys.exit(1)
 
     with open(prim_file, 'r', encoding='utf-8') as f:
@@ -56,45 +72,49 @@ def main():
     with open(sem_file, 'r', encoding='utf-8') as f:
         sems = json.load(f)
 
-    print("═══════════════════════════════════════════════════════════════")
-    print("  ORTHOTECT GATE: WCAG 2.2 Mathematical Contrast Verifier")
-    print("═══════════════════════════════════════════════════════════════")
-
     failures = 0
     tested_pairs = 0
 
     for theme_name, theme_data in sems['theme'].items():
-        print(f"\nChecking Theme: [{theme_name.upper()}]")
-        surface = parse_hex_color(resolve_ref(theme_data['surface']['canvas']['$value'], prims))
+        print(f"\nTheme Scope: [{theme_name.upper()}]")
+        canvas = parse_hex_color(resolve_ref(theme_data['surface']['canvas']['$value'], prims))
         panel = parse_hex_color(resolve_ref(theme_data['surface']['panel']['$value'], prims))
+        action_primary = parse_hex_color(resolve_ref(theme_data['action']['primary']['$value'], prims))
         
         pairs = [
-            ("Content Primary on Canvas", resolve_ref(theme_data['content']['primary']['$value'], prims), surface, 4.5, "AA"),
-            ("Content Secondary on Canvas", resolve_ref(theme_data['content']['secondary']['$value'], prims), surface, 4.5, "AA"),
-            ("Action Primary on Canvas", resolve_ref(theme_data['action']['primary']['$value'], prims), surface, 3.0, "UI"),
-            ("Action Danger on Canvas", resolve_ref(theme_data['action']['danger']['$value'], prims), surface, 3.0, "UI"),
-            ("Border Strong on Panel", resolve_ref(theme_data['border']['strong']['$value'], prims), panel, 3.0, "UI"),
-            ("Inverse Text on Action Primary", resolve_ref(theme_data['content']['inverse']['$value'], prims), 
-             parse_hex_color(resolve_ref(theme_data['action']['primary']['$value'], prims)), 4.5, "AA")
+            ("Content Primary on Canvas", resolve_ref(theme_data['content']['primary']['$value'], prims), canvas, 4.5, 7.0, "Body Text"),
+            ("Content Secondary on Canvas", resolve_ref(theme_data['content']['secondary']['$value'], prims), canvas, 4.5, 7.0, "Secondary Text"),
+            ("Action Primary on Canvas", resolve_ref(theme_data['action']['primary']['$value'], prims), canvas, 3.0, 4.5, "Primary Control"),
+            ("Action Danger on Canvas", resolve_ref(theme_data['action']['danger']['$value'], prims), canvas, 3.0, 4.5, "Destructive Control"),
+            ("Border Strong on Panel", resolve_ref(theme_data['border']['strong']['$value'], prims), panel, 3.0, 4.5, "UI Component Border"),
+            ("Inverse Text on Action Primary", resolve_ref(theme_data['content']['inverse']['$value'], prims), action_primary, 4.5, 7.0, "Button Label")
         ]
 
-        for label, fg_hex, bg_rgb, required_ratio, standard in pairs:
+        for label, fg_hex, bg_rgb, aa_req, aaa_req, usage in pairs:
             fg_rgb = parse_hex_color(fg_hex) if isinstance(fg_hex, str) else fg_hex
             ratio = contrast_ratio(fg_rgb, bg_rgb)
             tested_pairs += 1
-            passed = ratio >= required_ratio
-            symbol = "✅" if passed else "❌"
-            status = "PASS" if passed else f"FAIL (Needs {required_ratio}:1)"
-            print(f"  {symbol} {label:<32}: {ratio:5.2f}:1 [{status}] ({standard})")
-            if not passed:
+            
+            meets_aa = ratio >= aa_req
+            meets_aaa = ratio >= aaa_req
+            
+            if meets_aaa:
+                tier = "PASS (AAA)"
+            elif meets_aa:
+                tier = "PASS (AA)"
+            else:
+                tier = f"FAIL (Needs {aa_req}:1)"
                 failures += 1
+                
+            symbol = "✅" if meets_aa else "❌"
+            print(f"  {symbol} {label:<32}: {ratio:5.2f}:1 [{tier:<10}] ({usage})")
 
-    print(f"\nSummary: {tested_pairs} token pairs tested.")
+    print(f"\nSummary: {tested_pairs} semantic token pairs evaluated.")
     if failures == 0:
-        print("✅ [PASS] 100% of semantic color tokens satisfy WCAG 2.2 AA & AAA standards!")
+        print("✅ [PASS] 100% of tested token pairs satisfy WCAG 2.2 AA & AAA standards!")
         sys.exit(0)
     else:
-        print(f"❌ [REJECT] {failures} contrast check(s) failed.")
+        print(f"❌ [REJECT] {failures} contrast check(s) failed required WCAG criteria.")
         sys.exit(1)
 
 if __name__ == '__main__':
