@@ -43,6 +43,20 @@ class TestOrthotectE2E(unittest.TestCase):
         self.assertNotEqual(res.returncode, 0)
         self.assertIn("REJECT", res.stdout)
 
+    def test_e2e_verify_rejects_sibling_backup_dir_with_tokens_but_missing_fsm(self):
+        """Negative test: 'examples-backup' with tokens present but FSM missing must FAIL (no silent fallback)."""
+        backup_dir = os.path.join(self.temp_dir, 'examples-backup-tokens')
+        # Scaffold tokens into the backup directory
+        subprocess.run(['node', self.cli_path, 'init', backup_dir], capture_output=True)
+        # Remove FSM models to isolate FSM gate check on sibling directory
+        shutil.rmtree(os.path.join(backup_dir, 'core', 'fsm'))
+        with open(os.path.join(backup_dir, 'index.html'), 'w') as f:
+            f.write("<!DOCTYPE html><html><head><title>Backup</title></head><body><h1>Backup</h1></body></html>")
+        res = subprocess.run(['node', self.cli_path, 'verify', backup_dir],
+                             capture_output=True, text=True)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Missing required FSM specifications in target", res.stdout)
+
     def test_e2e_verify_rejects_missing_tokens(self):
         """Negative test: CLI verify must reject project missing tokens."""
         proj_dir = os.path.join(self.temp_dir, 'no_tokens_proj')
@@ -85,6 +99,17 @@ class TestOrthotectE2E(unittest.TestCase):
         subprocess.run(['node', self.cli_path, 'init', proj_dir], capture_output=True)
         with open(os.path.join(proj_dir, 'index.html'), 'w') as f:
             f.write('''<!DOCTYPE html><html><head></head><body><img src="foo.png" width="300"></body></html>''')
+        res = subprocess.run(['node', self.cli_path, 'verify', proj_dir],
+                             capture_output=True, text=True)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("lacks complete dimensions", res.stdout)
+
+    def test_e2e_verify_rejects_aspect_ratio_in_class_name(self):
+        """Negative test: <img> with class='aspect-ratio-box' but without explicit style or width+height must be rejected."""
+        proj_dir = os.path.join(self.temp_dir, 'bad_class_img_proj')
+        subprocess.run(['node', self.cli_path, 'init', proj_dir], capture_output=True)
+        with open(os.path.join(proj_dir, 'index.html'), 'w') as f:
+            f.write('''<!DOCTYPE html><html><head></head><body><img src="foo.png" class="aspect-ratio-card"></body></html>''')
         res = subprocess.run(['node', self.cli_path, 'verify', proj_dir],
                              capture_output=True, text=True)
         self.assertNotEqual(res.returncode, 0)

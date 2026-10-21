@@ -51,7 +51,7 @@ orthotect/
 │   ├── orthotect-bidi            # Directional Neutrality & RTL Engineering
 │   ├── orthotect-dashboard       # High-Density Console Design
 │   └── orthotect-gates           # Gate Execution Workflows
-├── tests/               # Comprehensive Unit & Integration Test Suite (30 Tests)
+├── tests/               # Comprehensive Unit & Integration Test Suite (33 Tests)
 │   ├── test_contrast.py          # Relative luminance & contrast threshold unit tests
 │   ├── test_bidi.py              # BiDi logical scanner positive/negative tests
 │   ├── test_fsm.py               # FSM graph reachability and deadlock tests

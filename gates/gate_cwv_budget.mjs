@@ -67,18 +67,22 @@ function checkHtmlFile(filePath) {
   checkedFiles++;
 
   // 1. Strict image dimension check:
-  // Requires BOTH width and height attributes (so browser can calculate aspect-ratio) OR explicit CSS aspect-ratio.
+  // Requires BOTH width and height attributes (so browser can calculate aspect-ratio) OR explicit inline CSS aspect-ratio property.
   const imgRegex = /<img\s+([^>]*?)>/gi;
   let match;
   while ((match = imgRegex.exec(content)) !== null) {
     const attrs = match[1];
     const hasWidth = /\bwidth\s*=/i.test(attrs);
     const hasHeight = /\bheight\s*=/i.test(attrs);
-    const hasAspect = /aspect-ratio/i.test(attrs);
+    
+    // Strict aspect-ratio check: MUST be a declared CSS property in the style attribute (not a CSS class name like class="aspect-ratio-box")
+    const styleMatch = attrs.match(/\bstyle\s*=\s*["']([^"']*)["']/i);
+    const styleContent = styleMatch ? styleMatch[1] : '';
+    const hasAspect = /\baspect-ratio\s*:\s*[^;]+/i.test(styleContent);
     const hasBothDimensions = hasWidth && hasHeight;
 
     if (!hasBothDimensions && !hasAspect) {
-      errors.push(`${filePath}: <img> tag lacks complete dimensions (requires BOTH width and height attributes, or an explicit aspect-ratio to prevent CLS layout shift).`);
+      errors.push(`${filePath}: <img> tag lacks complete dimensions (requires BOTH width and height attributes, or an explicit inline CSS aspect-ratio property to prevent CLS layout shift).`);
     }
   }
 

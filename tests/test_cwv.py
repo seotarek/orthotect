@@ -49,6 +49,15 @@ class TestCWVBudgetGate(unittest.TestCase):
         self.assertEqual(res.returncode, 0)
         self.assertIn("PASS", res.stdout)
 
+    def test_aspect_ratio_in_class_name_fails(self):
+        """Negative test: aspect-ratio inside class attribute must NOT bypass dimensions check."""
+        html_file = os.path.join(self.temp_dir, 'index.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head></head><body><img src="logo.png" class="aspect-ratio-wrapper" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("lacks complete dimensions", res.stdout)
+
     def test_blocking_script_in_head_fails(self):
         html_file = os.path.join(self.temp_dir, 'index.html')
         with open(html_file, 'w') as f:
