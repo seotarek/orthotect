@@ -41,41 +41,61 @@ def resolve_ref(val, primitives):
         return curr['$value']
     return val
 
-def find_tokens(target_path):
+def find_target_tokens(target_path):
+    target_abs = os.path.abspath(target_path)
+    root_pkg = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    
+    # Check if target is explicitly within Orthotect package self
+    is_self = (target_abs == root_pkg or target_abs.startswith(os.path.join(root_pkg, 'examples')))
+
     candidates = [
-        target_path,
-        os.path.join(target_path, 'core', 'tokens'),
-        os.path.join(target_path, 'tokens'),
-        os.path.join(os.path.dirname(__file__), '..', 'core', 'tokens')
+        target_abs,
+        os.path.join(target_abs, 'core', 'tokens'),
+        os.path.join(target_abs, 'tokens'),
+        os.path.join(target_abs, '.orthotect', 'tokens')
     ]
+    
+    # ONLY allow package root fallback if target IS the package itself
+    if is_self:
+        candidates.append(os.path.join(root_pkg, 'core', 'tokens'))
+
     for c in candidates:
         p_file = os.path.join(c, 'primitives.json')
         s_file = os.path.join(c, 'semantics.json')
         if os.path.exists(p_file) and os.path.exists(s_file):
             return p_file, s_file
+            
     return None, None
 
 def main():
     target_path = sys.argv[1] if len(sys.argv) > 1 else '.'
-    prim_file, sem_file = find_tokens(target_path)
+    prim_file, sem_file = find_target_tokens(target_path)
 
     print("═══════════════════════════════════════════════════════════════")
     print("  ORTHOTECT GATE: WCAG 2.2 Mathematical Contrast Verifier")
     print("═══════════════════════════════════════════════════════════════")
 
     if not prim_file or not sem_file:
-        print(f"❌ [REJECT] Design token specifications not found for path: {target_path}")
+        print(f"❌ [REJECT] Missing required Design Token files in target: {target_path}")
+        print("   Orthotect requires both 'primitives.json' and 'semantics.json' in core/tokens/.")
+        print("   (Run 'npx orthotect init <path>' to scaffold the standard tokens).")
         sys.exit(1)
 
-    with open(prim_file, 'r', encoding='utf-8') as f:
-        prims = json.load(f)
-    with open(sem_file, 'r', encoding='utf-8') as f:
-        sems = json.load(f)
+    try:
+        with open(prim_file, 'r', encoding='utf-8') as f:
+            prims = json.load(f)
+        with open(sem_file, 'r', encoding='utf-8') as f:
+            sems = json.load(f)
+    except Exception as e:
+        print(f"❌ [REJECT] Failed to parse design token JSON: {e}")
+        sys.exit(1)
 
     failures = 0
     tested_pairs = 0
+    passed_aaa = 0
+    passed_aa = 0
 
-    for theme_name, theme_data in sems['theme'].items():
+    for theme_name, theme_data in sems.get('theme', {}).items():
         print(f"\nTheme Scope: [{theme_name.upper()}]")
         canvas = parse_hex_color(resolve_ref(theme_data['surface']['canvas']['$value'], prims))
         panel = parse_hex_color(resolve_ref(theme_data['surface']['panel']['$value'], prims))
@@ -100,8 +120,11 @@ def main():
             
             if meets_aaa:
                 tier = "PASS (AAA)"
+                passed_aaa += 1
+                passed_aa += 1
             elif meets_aa:
                 tier = "PASS (AA)"
+                passed_aa += 1
             else:
                 tier = f"FAIL (Needs {aa_req}:1)"
                 failures += 1
@@ -110,11 +133,12 @@ def main():
             print(f"  {symbol} {label:<32}: {ratio:5.2f}:1 [{tier:<10}] ({usage})")
 
     print(f"\nSummary: {tested_pairs} semantic token pairs evaluated.")
-    if failures == 0:
-        print("✅ [PASS] 100% of tested token pairs satisfy WCAG 2.2 AA & AAA standards!")
+    if failures == 0 and tested_pairs > 0:
+        print(f"✅ [PASS] 100% of tested token pairs meet mandatory WCAG 2.2 AA standards ({passed_aa}/{tested_pairs}).")
+        print(f"   Enhanced Tier: {passed_aaa}/{tested_pairs} pairs achieved full WCAG 2.2 AAA.")
         sys.exit(0)
     else:
-        print(f"❌ [REJECT] {failures} contrast check(s) failed required WCAG criteria.")
+        print(f"❌ [REJECT] {failures} contrast check(s) failed mandatory WCAG 2.2 AA criteria.")
         sys.exit(1)
 
 if __name__ == '__main__':

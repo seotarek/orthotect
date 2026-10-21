@@ -35,7 +35,7 @@ def scan_file(filepath):
 def main():
     target_dir = sys.argv[1] if len(sys.argv) > 1 else 'examples'
     if not os.path.exists(target_dir):
-        print(f"❌ Error: Target path not found: {target_dir}")
+        print(f"❌ [REJECT] Target path not found: {target_dir}")
         sys.exit(1)
 
     print("═══════════════════════════════════════════════════════════════")
@@ -68,8 +68,9 @@ def main():
             total_slop += len(findings)
 
     if scanned_files == 0:
-        print(f"\n⚠️ [WARN] No files matched extensions in: {target_dir}")
-        sys.exit(0)
+        print(f"\n❌ [REJECT] No source code files found to inspect in: {target_dir}")
+        print("   Orthotect requires verifiable frontend source files.")
+        sys.exit(1)
 
     if total_slop == 0:
         print(f"\n✅ [PASS] No AI Slop detected across {scanned_files} file(s)!")

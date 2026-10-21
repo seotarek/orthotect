@@ -45,7 +45,7 @@ def scan_file(filepath):
 def main():
     target_dir = sys.argv[1] if len(sys.argv) > 1 else 'examples'
     if not os.path.exists(target_dir):
-        print(f"❌ Error: Target path not found: {target_dir}")
+        print(f"❌ [REJECT] Target path not found: {target_dir}")
         sys.exit(1)
 
     print("═══════════════════════════════════════════════════════════════")
@@ -78,8 +78,9 @@ def main():
             total_violations += len(viols)
 
     if total_files == 0:
-        print(f"\n⚠️ [WARN] No style/markup files found to scan in: {target_dir}")
-        sys.exit(0)
+        print(f"\n❌ [REJECT] No styling or markup files (.css, .scss, .html, .jsx, .tsx, .vue, .svelte) found in: {target_dir}")
+        print("   Orthotect cannot certify BiDi compliance on an empty project.")
+        sys.exit(1)
 
     if total_violations == 0:
         print(f"\n✅ [PASS] BiDi Logical Check Passed! Scanned {total_files} file(s).")

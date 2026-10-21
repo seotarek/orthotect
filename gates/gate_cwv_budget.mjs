@@ -12,7 +12,7 @@ console.log("══════════════════════�
 
 const targetDir = process.argv[2] || 'examples';
 if (!fs.existsSync(targetDir)) {
-  console.error(`❌ Error: Target path not found: ${targetDir}`);
+  console.error(`❌ [REJECT] Target path not found: ${targetDir}`);
   process.exit(1);
 }
 
@@ -87,8 +87,9 @@ if (fs.statSync(targetDir).isFile() && targetDir.endsWith('.html')) {
 }
 
 if (checkedFiles === 0) {
-  console.log(`\n⚠️ [WARN] No HTML files found to inspect in: ${targetDir}`);
-  process.exit(0);
+  console.log(`\n❌ [REJECT] No markup (.html) files found to inspect in: ${targetDir}`);
+  console.log("   Orthotect requires markup files to verify DOM budgets and CLS avoidance.");
+  process.exit(1);
 }
 
 if (errors.length === 0) {

@@ -84,35 +84,42 @@ def check_fsm_file(fpath):
 
     return violations
 
+def find_target_fsm_dir(target_path):
+    target_abs = os.path.abspath(target_path)
+    root_pkg = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    is_self = (target_abs == root_pkg or target_abs.startswith(os.path.join(root_pkg, 'examples')))
+
+    candidates = [
+        target_abs,
+        os.path.join(target_abs, 'core', 'fsm'),
+        os.path.join(target_abs, 'fsm'),
+        os.path.join(target_abs, '.orthotect', 'fsm')
+    ]
+    if is_self:
+        candidates.append(os.path.join(root_pkg, 'core', 'fsm'))
+
+    for c in candidates:
+        if os.path.exists(c):
+            json_files = [f for f in os.listdir(c) if f.endswith('.json')]
+            if json_files:
+                return c, json_files
+    return None, []
+
 def main():
     target_path = sys.argv[1] if len(sys.argv) > 1 else 'core/fsm'
-    
-    # Resolve directory to check
-    fsm_dir = target_path
-    if not os.path.exists(os.path.join(fsm_dir, 'button-states.json')):
-        # Check subdirectories
-        candidate = os.path.join(target_path, 'core', 'fsm')
-        if os.path.exists(candidate):
-            fsm_dir = candidate
-        else:
-            pkg_fallback = os.path.join(os.path.dirname(__file__), '..', 'core', 'fsm')
-            if os.path.exists(pkg_fallback):
-                fsm_dir = pkg_fallback
+    fsm_dir, json_files = find_target_fsm_dir(target_path)
 
     print("═══════════════════════════════════════════════════════════════")
     print("  ORTHOTECT GATE: FSM & State Machine Resilience Check")
-    print(f"  Inspecting: {fsm_dir}")
     print("═══════════════════════════════════════════════════════════════")
 
-    if not os.path.exists(fsm_dir):
-        print(f"❌ [REJECT] FSM directory does not exist: {fsm_dir}")
+    if not fsm_dir or not json_files:
+        print(f"❌ [REJECT] Missing required FSM specifications in target: {target_path}")
+        print("   Orthotect requires explicit FSM state definitions (.json) in core/fsm/.")
+        print("   (Run 'npx orthotect init <path>' to scaffold standard state models).")
         sys.exit(1)
 
-    json_files = [f for f in os.listdir(fsm_dir) if f.endswith('.json')]
-    if not json_files:
-        print(f"❌ [REJECT] No FSM specification files found in: {fsm_dir}")
-        sys.exit(1)
-
+    print(f"  Inspecting: {fsm_dir}")
     all_violations = []
     for f in json_files:
         viols = check_fsm_file(os.path.join(fsm_dir, f))

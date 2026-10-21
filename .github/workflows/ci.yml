@@ -22,15 +22,17 @@ jobs:
         with:
           node-version: 20
 
-      - name: Run Unit Tests
+      - name: Run Unit & E2E Negative Tests
         run: |
           python3 -m unittest discover -s tests -p 'test_*.py'
 
-      - name: Run Deterministic Quality Gates
+      - name: Run Deterministic Quality Gates on Showcase
         run: |
           python3 gates/run_all_gates.py examples/golden-showcase
 
-      - name: Test CLI Installation
+      - name: Test Real CLI Scaffolding and Verification
         run: |
-          node bin/orthotect.js list
-          node bin/orthotect.js verify examples/golden-showcase
+          mkdir -p /tmp/ci_test_project
+          node bin/orthotect.js init /tmp/ci_test_project
+          cp examples/golden-showcase/index.html /tmp/ci_test_project/
+          node bin/orthotect.js verify /tmp/ci_test_project
