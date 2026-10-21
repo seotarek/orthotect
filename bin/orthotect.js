@@ -89,11 +89,39 @@ switch (command) {
       process.exit(1);
     }
 
-    console.log(`Executing Deterministic Quality Gates on: ${targetDir}\n`);
     const runnerPath = path.join(rootDir, 'gates', 'run_all_gates.py');
+    const runnerArgs = [runnerPath, targetDir];
+
+    if (args.includes('--json')) runnerArgs.push('--json');
+    if (args.includes('--md')) runnerArgs.push('--md');
+
+    if (!args.includes('--json') && !args.includes('--md')) {
+      console.log(`Executing Deterministic Quality Gates on: ${targetDir}\n`);
+    }
 
     // Safe execution without shell string interpolation
-    const result = spawnSync('python3', [runnerPath, targetDir], {
+    const result = spawnSync('python3', runnerArgs, {
+      stdio: 'inherit',
+      cwd: rootDir
+    });
+
+    if (result.status !== 0) {
+      process.exit(result.status || 1);
+    }
+    break;
+  }
+
+  case 'compile':
+  case 'build:tokens': {
+    const tokensDir = targetArg ? path.resolve(process.cwd(), targetArg) : path.join(process.cwd(), 'core', 'tokens');
+    const outArgIndex = args.indexOf('--out') !== -1 ? args.indexOf('--out') + 1 : (args.indexOf('-o') !== -1 ? args.indexOf('-o') + 1 : -1);
+    const outputFile = outArgIndex !== -1 && args[outArgIndex] ? path.resolve(process.cwd(), args[outArgIndex]) : path.resolve(process.cwd(), 'tokens.css');
+
+    console.log(`Compiling W3C DTCG tokens from: ${tokensDir}`);
+    console.log(`Output destination: ${outputFile}\n`);
+
+    const compilerScript = path.join(rootDir, 'core', 'compiler.py');
+    const result = spawnSync('python3', [compilerScript, tokensDir, outputFile], {
       stdio: 'inherit',
       cwd: rootDir
     });
@@ -119,12 +147,14 @@ switch (command) {
   default: {
     console.log("Usage: npx orthotect <command> [target_directory] [options]");
     console.log("\nCommands:");
-    console.log("  init [path] [--force]    Scaffold tokens, FSM specs, and AGENTS.md in target directory");
-    console.log("  verify [path]            Run all deterministic quality gates on target directory");
-    console.log("  skills | list            List all installed agent skills");
+    console.log("  init [path] [--force]                  Scaffold tokens, FSM specs, and AGENTS.md in target directory");
+    console.log("  verify [path]                          Run all deterministic quality gates on target directory");
+    console.log("  compile [tokens_path] [--out <file>]   Compile W3C DTCG tokens into production CSS variables");
+    console.log("  skills | list                          List all installed agent skills");
     console.log("\nExamples:");
     console.log("  npx orthotect init .");
     console.log("  npx orthotect verify ./src");
+    console.log("  npx orthotect compile core/tokens --out styles/tokens.css");
     break;
   }
 }

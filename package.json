@@ -15,7 +15,8 @@
     "gate:contrast": "python3 gates/gate_contrast_wcag.py",
     "gate:fsm": "python3 gates/gate_fsm_integrity.py",
     "gate:slop": "python3 gates/gate_no_slop.py",
-    "gate:cwv": "node gates/gate_cwv_budget.mjs"
+    "gate:cwv": "node gates/gate_cwv_budget.mjs",
+    "compile:tokens": "node bin/orthotect.js compile core/tokens --out examples/golden-showcase/tokens.css"
   },
   "keywords": [
     "design-system",
@@ -52,7 +53,9 @@
     "examples",
     "AGENTS.md",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md"
   ],
   "license": "MIT",
   "engines": {

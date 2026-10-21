@@ -35,8 +35,9 @@ Unlike superficial prompt libraries that merely request "good design", Orthotect
 ```text
 orthotect/
 ├── core/
+│   ├── compiler.py      # W3C DTCG Token Compiler (:root light and [data-theme="dark"])
 │   ├── tokens/          # W3C DTCG 3-Tier Design Tokens (Primitives, Semantics, Motion, Ergonomics)
-│   └── fsm/             # State Machine Specifications for Buttons and Tables
+│   └── fsm/             # State Machine Specifications (Buttons, Data Tables, Modal Dialogs)
 ├── gates/               # Objective Deterministic Checkers (Python & Node.js)
 │   ├── gate_contrast_wcag.py     # Mathematical Relative Luminance (WCAG 2.2 AAA/AA)
 │   ├── gate_bidi_logical.py      # Strict Enforcement of CSS Logical Properties
@@ -51,17 +52,20 @@ orthotect/
 │   ├── orthotect-bidi            # Directional Neutrality & RTL Engineering
 │   ├── orthotect-dashboard       # High-Density Console Design
 │   └── orthotect-gates           # Gate Execution Workflows
-├── tests/               # Comprehensive Unit & Integration Test Suite (33 Tests)
+├── tests/               # Comprehensive Unit & Integration Test Suite (39 Tests)
 │   ├── test_contrast.py          # Relative luminance & contrast threshold unit tests
 │   ├── test_bidi.py              # BiDi logical scanner positive/negative tests
 │   ├── test_fsm.py               # FSM graph reachability and deadlock tests
-│   ├── test_cwv.py               # Media dimension & minified HTML DOM depth tests
+│   ├── test_cwv.py               # Media dimension, aspect-ratio & minified HTML DOM depth tests
 │   ├── test_slop.py              # AI purple gradient & raw emoji anti-pattern tests
+│   ├── test_compiler.py          # W3C DTCG CSS custom property compiler tests
 │   └── test_cli_e2e.py           # E2E CLI verification, boundary & negative rejection tests
 ├── .github/workflows/   # Automated CI Pipeline
 │   └── ci.yml
 ├── agents/
 │   └── orthotect-auditor.md      # Adversarial Quality Auditor Role
+├── CHANGELOG.md         # Full version history (v1.0.0 → v1.2.0)
+├── CONTRIBUTING.md      # Enterprise engineering guidelines
 └── examples/
     └── golden-showcase/          # Reference Enterprise Console passing 100% of gates
 ```
@@ -76,8 +80,9 @@ Run the verification suite against your project:
 # Verify current project
 npx orthotect verify .
 
-# Or verify a specific subfolder
-npx orthotect verify ./src
+# Or verify with automated reporting
+npx orthotect verify ./src --json
+npx orthotect verify ./src --md
 ```
 
 Output:
@@ -90,13 +95,13 @@ Output:
 
 GATE NAME                              STATUS           TIME
 ───────────────────────────────────────────────────────────────
-WCAG 2.2 Mathematical Contrast         ✅ PASS         75.5ms
-True BiDi & Logical Properties         ✅ PASS        104.8ms
-Finite State Machine Integrity         ✅ PASS        105.5ms
-Anti-Slop Pattern Inspector            ✅ PASS         59.6ms
-DOM & Layout-Shift Budget              ✅ PASS        246.3ms
+WCAG 2.2 Mathematical Contrast         ✅ PASS        116.7ms
+True BiDi & Logical Properties         ✅ PASS         82.7ms
+Finite State Machine Integrity         ✅ PASS         61.0ms
+Anti-Slop Pattern Inspector            ✅ PASS         95.1ms
+DOM & Layout-Shift Budget              ✅ PASS        334.1ms
 ───────────────────────────────────────────────────────────────
-Total Verification Time (Parallel): 254.8ms
+Total Verification Time (Parallel): 339.5ms
 
 🎉 ALL GATES PASSED! Build certified for enterprise production.
 ```
@@ -110,9 +115,12 @@ Initialize Orthotect into your repository:
 ```bash
 # Copies tokens, FSM models, and AGENTS.md rulebook into current directory
 npx orthotect init .
+
+# Compile W3C DTCG tokens into pure CSS Custom Properties (:root & dark theme)
+npx orthotect compile core/tokens --out styles/tokens.css
 ```
 
-Run independent unit test suite:
+Run independent unit and E2E test suite:
 
 ```bash
 npm test

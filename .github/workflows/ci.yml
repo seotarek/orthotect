@@ -22,13 +22,9 @@ jobs:
         with:
           node-version: 20
 
-      - name: Run Unit & E2E Negative Tests
+      - name: Run 39 Unit & E2E Integration Tests
         run: |
-          python3 -m unittest discover -s tests -p 'test_*.py'
-
-      - name: Run Deterministic Quality Gates on Showcase
-        run: |
-          python3 gates/run_all_gates.py examples/golden-showcase
+          npm test
 
       - name: Test Real CLI Scaffolding and Verification
         run: |
@@ -36,3 +32,17 @@ jobs:
           node bin/orthotect.js init /tmp/ci_test_project
           cp examples/golden-showcase/index.html /tmp/ci_test_project/
           node bin/orthotect.js verify /tmp/ci_test_project
+
+      - name: Test W3C DTCG Token Compiler
+        run: |
+          node bin/orthotect.js compile core/tokens --out /tmp/ci_tokens.css
+          test -s /tmp/ci_tokens.css
+
+      - name: Test Reporting Formats (JSON & Markdown)
+        run: |
+          node bin/orthotect.js verify examples/golden-showcase --json
+          node bin/orthotect.js verify examples/golden-showcase --md
+
+      - name: Verify NPM Package Tarball Integrity
+        run: |
+          npm pack --dry-run

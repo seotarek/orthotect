@@ -138,5 +138,37 @@ class TestOrthotectE2E(unittest.TestCase):
         self.assertEqual(res.returncode, 0)
         self.assertIn("ALL GATES PASSED", res.stdout)
 
+    def test_e2e_verify_json_format(self):
+        """Positive test: 'orthotect verify --json' produces valid JSON scorecard."""
+        showcase_dir = os.path.join(self.root_dir, 'examples', 'golden-showcase')
+        res = subprocess.run(['node', self.cli_path, 'verify', showcase_dir, '--json'],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0)
+        import json
+        # Extract JSON from output
+        json_start = res.stdout.find('{')
+        self.assertNotEqual(json_start, -1)
+        data = json.loads(res.stdout[json_start:])
+        self.assertTrue(data['allPassed'])
+        self.assertEqual(len(data['gates']), 5)
+
+    def test_e2e_verify_markdown_format(self):
+        """Positive test: 'orthotect verify --md' produces clean Markdown report."""
+        showcase_dir = os.path.join(self.root_dir, 'examples', 'golden-showcase')
+        res = subprocess.run(['node', self.cli_path, 'verify', showcase_dir, '--md'],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("### 🏛️ Orthotect Quality Gates Report", res.stdout)
+        self.assertIn("| Gate Name | Status | Duration |", res.stdout)
+
+    def test_e2e_compile_command(self):
+        """Positive test: 'orthotect compile' compiles DTCG tokens into CSS variables."""
+        out_css = os.path.join(self.temp_dir, 'cli_tokens.css')
+        tokens_dir = os.path.join(self.root_dir, 'core', 'tokens')
+        res = subprocess.run(['node', self.cli_path, 'compile', tokens_dir, '--out', out_css],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0)
+        self.assertTrue(os.path.exists(out_css))
+
 if __name__ == '__main__':
     unittest.main()
