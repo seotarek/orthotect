@@ -250,6 +250,15 @@
       color: var(--ot-action-primary);
       font-weight: 600;
     }
+    .modal-error-banner {
+      color: var(--ot-action-danger);
+      background-color: var(--ot-surface-subtle);
+      border: 1px solid var(--ot-action-danger);
+      border-radius: var(--ot-radius-sm);
+      padding: var(--ot-space-2);
+      margin-block-start: var(--ot-space-2);
+      font-size: 0.85rem;
+    }
   </style>
 </head>
 <body>
@@ -344,7 +353,7 @@
   </div>
 
   <!-- Accessible Modal Dialog Component (Governed by core/fsm/modal-dialog.json) -->
-  <div id="modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc" aria-hidden="true">
+  <div id="modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc" aria-hidden="true" style="display: none;">
     <div class="modal-panel">
       <div class="modal-header">
         <h2 id="modal-title" class="modal-title">Configure Node Shard</h2>
@@ -354,10 +363,12 @@
         <p id="modal-desc">Adjust node replication parameters. Focus is trapped within this dialog while active.</p>
         <label for="shard-name-input" style="font-size: 0.8rem; font-weight: 600; display: block; margin-block-start: var(--ot-space-2);">Shard Identifier</label>
         <input type="text" id="shard-name-input" class="modal-input" value="shard-me-central-04" />
+        <div id="modal-error-banner" class="modal-error-banner" style="display: none;" role="alert"></div>
         <div id="modal-status-text" class="modal-status" style="margin-block-start: var(--ot-space-2);" aria-live="polite"></div>
       </div>
       <div class="modal-footer">
         <button id="btn-cancel-modal" class="btn btn-secondary">Cancel</button>
+        <button id="btn-retry-modal" class="btn btn-secondary" style="display: none;">Retry</button>
         <button id="btn-submit-modal" class="btn btn-primary">Save Configuration</button>
       </div>
     </div>
@@ -367,117 +378,202 @@
     document.addEventListener("DOMContentLoaded", () => {
     // Theme toggle
     const themeBtn = document.getElementById('toggle-theme');
-    themeBtn.addEventListener('click', () => {
-      const current = document.documentElement.getAttribute('data-theme');
-      const next = current === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-    });
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+      });
+    }
 
     // BiDi toggle
     const bidiBtn = document.getElementById('toggle-bidi');
     const bidiLabel = document.getElementById('bidi-target');
-    bidiBtn.addEventListener('click', () => {
-      const currentDir = document.documentElement.getAttribute('dir');
-      if (currentDir === 'rtl') {
-        document.documentElement.setAttribute('dir', 'ltr');
-        bidiLabel.textContent = 'RTL (العربية)';
-      } else {
-        document.documentElement.setAttribute('dir', 'rtl');
-        bidiLabel.textContent = 'LTR (English)';
-      }
-    });
+    if (bidiBtn && bidiLabel) {
+      bidiBtn.addEventListener('click', () => {
+        const currentDir = document.documentElement.getAttribute('dir');
+        if (currentDir === 'rtl') {
+          document.documentElement.setAttribute('dir', 'ltr');
+          bidiLabel.textContent = 'RTL (العربية)';
+        } else {
+          document.documentElement.setAttribute('dir', 'rtl');
+          bidiLabel.textContent = 'LTR (English)';
+        }
+      });
+    }
 
     // Button FSM Demo
     const deployBtn = document.getElementById('btn-deploy');
-    const label = deployBtn.querySelector('.btn-label');
-    deployBtn.addEventListener('click', () => {
-      if (deployBtn.classList.contains('is-loading')) return;
-      deployBtn.classList.add('is-loading');
-      label.textContent = 'Deploying...';
-      setTimeout(() => {
-        deployBtn.classList.remove('is-loading');
-        label.textContent = 'Deployed!';
+    if (deployBtn) {
+      const label = deployBtn.querySelector('.btn-label');
+      deployBtn.addEventListener('click', () => {
+        if (deployBtn.classList.contains('is-loading')) return;
+        deployBtn.classList.add('is-loading');
+        if (label) label.textContent = 'Deploying...';
         setTimeout(() => {
-          label.textContent = 'Deploy Service';
-        }, 1500);
-      }, 1200);
-    });
+          deployBtn.classList.remove('is-loading');
+          if (label) label.textContent = 'Deployed!';
+          setTimeout(() => {
+            if (label) label.textContent = 'Deploy Service';
+          }, 1500);
+        }, 1200);
+      });
+    }
   
     // Modal Dialog FSM Implementation
+    const appShell = document.querySelector('.app-shell');
     const openModalBtn = document.getElementById('btn-open-modal');
     const modalBackdrop = document.getElementById('modal-backdrop');
     const closeModalBtn = document.getElementById('btn-close-modal');
     const cancelModalBtn = document.getElementById('btn-cancel-modal');
     const submitModalBtn = document.getElementById('btn-submit-modal');
+    const retryModalBtn = document.getElementById('btn-retry-modal');
     const modalInput = document.getElementById('shard-name-input');
     const modalStatus = document.getElementById('modal-status-text');
+    const modalErrorBanner = document.getElementById('modal-error-banner');
 
     let modalFsmState = 'closed';
+    let previousActiveElement = null;
 
     function transitionModal(toState) {
       modalFsmState = toState;
       if (toState === 'opening') {
-        modalBackdrop.classList.add('is-open');
-        modalBackdrop.setAttribute('aria-hidden', 'false');
+        previousActiveElement = document.activeElement;
+        if (modalBackdrop) {
+          modalBackdrop.style.display = 'flex';
+          modalBackdrop.classList.add('is-open');
+          modalBackdrop.setAttribute('aria-hidden', 'false');
+        }
+        if (appShell) {
+          appShell.setAttribute('inert', '');
+          appShell.setAttribute('aria-hidden', 'true');
+        }
         setTimeout(() => transitionModal('open'), 40);
       } else if (toState === 'open') {
-        modalInput.disabled = false;
-        submitModalBtn.disabled = false;
-        cancelModalBtn.disabled = false;
-        closeModalBtn.disabled = false;
-        modalStatus.textContent = '';
-        modalInput.focus();
+        if (modalBackdrop) modalBackdrop.removeAttribute('aria-busy');
+        if (modalInput) {
+          modalInput.disabled = false;
+          modalInput.focus();
+        }
+        if (submitModalBtn) submitModalBtn.disabled = false;
+        if (cancelModalBtn) cancelModalBtn.disabled = false;
+        if (closeModalBtn) closeModalBtn.disabled = false;
+        if (retryModalBtn) retryModalBtn.style.display = 'none';
+        if (modalStatus) modalStatus.textContent = '';
+        if (modalErrorBanner) {
+          modalErrorBanner.style.display = 'none';
+          modalErrorBanner.textContent = '';
+        }
       } else if (toState === 'submitting') {
         // allowClick: false (Race condition lock)
-        modalInput.disabled = true;
-        submitModalBtn.disabled = true;
-        cancelModalBtn.disabled = true;
-        closeModalBtn.disabled = true;
-        modalStatus.textContent = 'Submitting configuration (interactions locked)...';
-        setTimeout(() => transitionModal('successFeedback'), 900);
+        if (modalBackdrop) modalBackdrop.setAttribute('aria-busy', 'true');
+        if (modalInput) modalInput.disabled = true;
+        if (submitModalBtn) submitModalBtn.disabled = true;
+        if (cancelModalBtn) cancelModalBtn.disabled = true;
+        if (closeModalBtn) closeModalBtn.disabled = true;
+        if (retryModalBtn) retryModalBtn.style.display = 'none';
+        if (modalErrorBanner) modalErrorBanner.style.display = 'none';
+        if (modalStatus) modalStatus.textContent = 'Submitting configuration (interactions locked)...';
+
+        setTimeout(() => {
+          if (!modalInput || !modalInput.value.trim() || modalInput.value.trim().toLowerCase() === 'error') {
+            transitionModal('errorFeedback');
+          } else {
+            transitionModal('successFeedback');
+          }
+        }, 800);
+      } else if (toState === 'errorFeedback') {
+        if (modalBackdrop) modalBackdrop.removeAttribute('aria-busy');
+        if (modalInput) modalInput.disabled = false;
+        if (submitModalBtn) submitModalBtn.disabled = false;
+        if (cancelModalBtn) cancelModalBtn.disabled = false;
+        if (closeModalBtn) closeModalBtn.disabled = false;
+        if (retryModalBtn) {
+          retryModalBtn.style.display = 'inline-block';
+          retryModalBtn.focus();
+        }
+        if (modalStatus) modalStatus.textContent = '';
+        if (modalErrorBanner) {
+          modalErrorBanner.style.display = 'block';
+          modalErrorBanner.textContent = 'Validation error: shard identifier cannot be empty or "error".';
+        }
       } else if (toState === 'successFeedback') {
-        modalStatus.textContent = '✓ Shard configured successfully!';
+        if (modalBackdrop) modalBackdrop.removeAttribute('aria-busy');
+        if (modalStatus) modalStatus.textContent = '✓ Shard configured successfully!';
         setTimeout(() => transitionModal('closing'), 700);
       } else if (toState === 'closing') {
-        modalBackdrop.classList.remove('is-open');
-        modalBackdrop.setAttribute('aria-hidden', 'true');
+        if (modalBackdrop) {
+          modalBackdrop.classList.remove('is-open');
+          modalBackdrop.style.display = 'none';
+          modalBackdrop.setAttribute('aria-hidden', 'true');
+          modalBackdrop.removeAttribute('aria-busy');
+        }
+        if (appShell) {
+          appShell.removeAttribute('inert');
+          appShell.removeAttribute('aria-hidden');
+        }
         modalFsmState = 'closed';
-        openModalBtn.focus();
+        if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
+          previousActiveElement.focus();
+        } else if (openModalBtn) {
+          openModalBtn.focus();
+        }
       }
     }
 
-    openModalBtn.addEventListener('click', () => {
-      if (modalFsmState === 'closed') transitionModal('opening');
-    });
+    if (openModalBtn) {
+      openModalBtn.addEventListener('click', () => {
+        if (modalFsmState === 'closed') transitionModal('opening');
+      });
+    }
 
-    closeModalBtn.addEventListener('click', () => {
-      if (modalFsmState === 'open') transitionModal('closing');
-    });
+    if (closeModalBtn) {
+      closeModalBtn.addEventListener('click', () => {
+        if (modalFsmState === 'open' || modalFsmState === 'errorFeedback') transitionModal('closing');
+      });
+    }
 
-    cancelModalBtn.addEventListener('click', () => {
-      if (modalFsmState === 'open') transitionModal('closing');
-    });
+    if (cancelModalBtn) {
+      cancelModalBtn.addEventListener('click', () => {
+        if (modalFsmState === 'open' || modalFsmState === 'errorFeedback') transitionModal('closing');
+      });
+    }
 
-    submitModalBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (modalFsmState === 'open') transitionModal('submitting');
-    });
+    if (retryModalBtn) {
+      retryModalBtn.addEventListener('click', () => {
+        if (modalFsmState === 'errorFeedback') transitionModal('submitting');
+      });
+    }
 
-    modalBackdrop.addEventListener('click', (e) => {
-      if (e.target === modalBackdrop && modalFsmState === 'open') transitionModal('closing');
-    });
+    if (submitModalBtn) {
+      submitModalBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (modalFsmState === 'open' || modalFsmState === 'errorFeedback') transitionModal('submitting');
+      });
+    }
+
+    if (modalBackdrop) {
+      modalBackdrop.addEventListener('click', (e) => {
+        if (e.target === modalBackdrop && (modalFsmState === 'open' || modalFsmState === 'errorFeedback')) {
+          transitionModal('closing');
+        }
+      });
+    }
 
     window.addEventListener('keydown', (e) => {
       if (modalFsmState === 'closed') return;
 
-      if (e.key === 'Escape' && modalFsmState === 'open') {
-        e.preventDefault();
-        transitionModal('closing');
+      if (e.key === 'Escape') {
+        if (modalFsmState === 'open' || modalFsmState === 'errorFeedback') {
+          e.preventDefault();
+          transitionModal('closing');
+        }
         return;
       }
 
-      if (e.key === 'Tab' && (modalFsmState === 'open' || modalFsmState === 'submitting')) {
-        const focusables = modalBackdrop.querySelectorAll('button:not(:disabled), input:not(:disabled)');
+      if (e.key === 'Tab') {
+        if (!modalBackdrop) return;
+        const focusables = modalBackdrop.querySelectorAll('button:not(:disabled):not([style*="display: none"]), input:not(:disabled)');
         if (focusables.length === 0) return;
         const first = focusables[0];
         const last = focusables[focusables.length - 1];

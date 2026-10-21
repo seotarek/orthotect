@@ -77,6 +77,17 @@ document.addEventListener("DOMContentLoaded", () => {
 <button class="submit-btn">
   🚀 Launch Platform ✨ <!-- VIOLATION: Uncalibrated emoji substitutes -->
 </button>`
+    },
+    dom_fail: {
+      name: "DOM Nesting Failure: Depth > 32",
+      code: `<!-- DOM Depth Violation (> 32 Nested Levels) -->
+<div><div><div><div><div><div><div><div><div><div>
+<div><div><div><div><div><div><div><div><div><div>
+<div><div><div><div><div><div><div><div><div><div>
+<div><div><div><span>Exceeds max allowable tree depth (33 > 32)</span></div></div></div>
+</div></div></div></div></div></div></div></div></div></div>
+</div></div></div></div></div></div></div></div></div></div>
+</div></div></div></div></div></div></div></div></div></div>`
     }
   };
 
@@ -104,54 +115,210 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- 3. Bidirectional (BiDi) & Language Management ---
   const bidiDict = {
     en: {
-      brandDesc: "Runtime Gate Engine: ACTIVE",
-      navManifesto: "Manifesto",
-      navCompetitors: "Teardown",
+      brandDesc: "Skill Studio & Gate Engine",
+      navSkills: "Skills & Doctrine",
       navGates: "Gate Simulator",
-      navFsm: "FSM Explorer",
+      navFsm: "FSM & Components",
       navTokens: "Design Tokens",
+      navDashboard: "Telemetry",
+      navCompetitors: "Teardown",
+      navManifesto: "Manifesto",
       heroBadge: "The Google-Scale Standard for Autonomous Coding Agents",
       heroTitle: "Deterministic Interface Engineering & Runtime Gates for AI",
       heroSub: "Stop trusting probabilistic UI code. Orthotect enforces mathematical WCAG AAA contrast, 100% CSS logical properties, formal state machines, and zero layout shift in sub-400ms parallel gates.",
       proofGates: "Deterministic Gates",
-      proofTests: "Unit Tests Passing",
+      proofTests: "Unit & E2E Tests",
       proofLatency: "Parallel Gate Latency",
-      proofDeps: "Dependencies (Zero Bloat)",
+      proofDeps: "Runtime Dependencies",
       proofBidi: "CSS Logical Properties",
+      skillsTitle: "The 6 Orthotect Skills Portfolio",
+      skillsDesc: "Modular agent capabilities engineered for Google Antigravity, Claude Code, Cursor Agent, and Codex.",
+      descDoctrine: "The 7 Non-Negotiable Laws of High-Integrity Interface Engineering. Loaded first by agents before generating or styling any UI component.",
+      descGates: "Execute 5 parallel deterministic gates in <400ms: WCAG AAA contrast, BiDi logical properties, FSM integrity, DOM depth, and Anti-Slop.",
+      descBidi: "True bidirectional interface engineering with flawless Arabic (RTL) and English (LTR) symmetry using 100% CSS logical properties.",
+      descTokens: "Deterministic 3-tier token compiler (Primitives → Semantics → Components) with built-in mathematical contrast certification.",
+      descFsm: "Formal Finite State Machine specifications with BFS reachability, deadlock prevention, and double-submission async locks.",
+      descDashboard: "High-density telemetry consoles with inline SVG sparklines, zero layout shift (CLS = 0.00), and cognitive ergonomics.",
+      lawsTitle: "The 7 Non-Negotiable Laws of Interface Engineering",
+      lawsDesc: "Every line of code produced by AI coding agents must pass these 7 foundational laws before merging.",
+      law1Title: "Law of Mathematical Contrast",
+      law1Desc: "Contrast is a mathematical formula of relative luminance, never subjective aesthetic opinion. Low-contrast muted text is strictly rejected.",
+      law2Title: "Law of Directional Neutrality",
+      law2Desc: "Physical coordinates (left, right, margin-left, padding-right) fail build gates. Use directional-neutral logical properties for seamless LTR/RTL symmetry.",
+      law3Title: "Law of State Closure",
+      law3Desc: "Component behavior must be modeled as a closed Finite State Machine. Loose boolean flags (isLoading, isError) that allow invalid state combinations are banned.",
+      law4Title: "Law of Zero Cumulative Layout Shift",
+      law4Desc: "Every image, video, SVG, and iframe must declare explicit positive integer width and height attributes or valid CSS aspect-ratio before layout computation.",
+      law5Title: "Law of Cognitive Ergonomics",
+      law5Desc: "Telemetry and data displays must present maximum semantic clarity with zero visual clutter. Use inline SVG sparklines and gauges instead of bloated chart runtimes.",
+      law6Title: "Law of Token Purity",
+      law6Desc: "Zero hardcoded hex, rgb, or pixel spacing in component stylesheets and markup. All colors, spacing, and radii must resolve through semantic DTCG tokens.",
+      law7Title: "Law of Anti-Slop Discipline",
+      law7Desc: "Bans statistical AI slop: multi-stop purple/indigo gradients (linear-gradient(#6366f1, #a855f7)), raw emojis used as button icon substitutes, and generic card-in-card nesting.",
       simTitle: "Live In-Browser Gate Simulator",
       simDesc: "Test arbitrary code against the 5 Orthotect quality gates in real time with optical and AST checks.",
       runBtn: "Execute Deterministic Gates",
       fsmTitle: "Interactive Finite State Machine Simulator",
       fsmDesc: "Prevent UI state explosions, double submissions, and unhandled async edges via formal state graphs.",
+      liveCompTitle: "Production Components Governed by FSM",
+      liveCompDesc: "Interact directly with real UI components executed under strict FSM state transitions and accessibility policies.",
+      demoBtnTitle: "1. Interactive Action Button",
+      demoBtnDesc: "Guards against double submissions. When async loading starts, pointer events and clicks are locked at the engine level.",
+      demoBtnLabel: "Save Parameters",
+      demoModalTitle: "2. Production Modal Dialog",
+      demoModalDesc: "Meets W3C APG Dialog pattern: focus trapping, inert background shell, Escape key handling, and double-submission recovery.",
+      launchModalLabel: "Launch Accessible Modal",
       tokensTitle: "W3C DTCG 3-Tier Design Tokens",
       tokensDesc: "Hierarchical token architecture compiled natively to multi-theme CSS variables.",
+      dashTitle: "Zero-CLS Telemetry Console",
+      dashDesc: "Inline SVG sparklines, memory pressure monitors, and node health displays with zero layout shift and 100% RTL symmetry.",
+      m1Lbl: "Parallel Gate Latency",
+      m2Lbl: "Cumulative Layout Shift",
+      m3Lbl: "WCAG Contrast Delta",
+      m4Lbl: "State Machine Deadlocks",
       matrixTitle: "Architectural Comparison Matrix",
-      matrixDesc: "How Orthotect fundamentally surpasses prompt-based collections and legacy component libraries."
+      matrixDesc: "How Orthotect fundamentally surpasses prompt-based collections and legacy component libraries.",
+      thCap: "Capability",
+      thPrompts: "Prompt Skills (XIAS, taste)",
+      thLibs: "Component Libs (shadcn, MUI)",
+      thAi: "AI UI Generators (v0, Bolt)",
+      thOrtho: "Orthotect Architecture",
+      td1Cap: "Verification Model",
+      td1P: "None (Subjective text)",
+      td1L: "Manual QA / Unit tests",
+      td1A: "None (Black-box generation)",
+      td1O: "5 Parallel Deterministic Gates (<400ms)",
+      td2Cap: "Bidirectional Layouts (BiDi)",
+      td2P: "Unenforced markdown advice",
+      td2L: "Physical classes (ml-*, pr-*)",
+      td2A: "Broken in RTL modes",
+      td2O: "100% Strict CSS Logical Properties",
+      td3Cap: "State Machine Integrity",
+      td3P: "Loose boolean flags (isLoading)",
+      td3L: "Optional / Complex (XState)",
+      td3A: "Unhandled async race bugs",
+      td3O: "Formal FSMs with BFS Reachability",
+      td4Cap: "WCAG 2.2 Accessibility",
+      td4P: "Prompt recommendations",
+      td4L: "Radix primitives (breakable)",
+      td4A: "Contrast failures frequent",
+      td4O: "Mathematical Luminance Matrix (AAA & AA)",
+      td5Cap: "Core Web Vitals Enforcement",
+      td5P: "None",
+      td5L: "Manual dev responsibility",
+      td5A: "High CLS from unbudgeted media",
+      td5O: "Stream DOM Budget & Media Bounding",
+      td6Cap: "External Dependencies",
+      td6P: "Zero (Markdown only)",
+      td6L: "High (React, Radix, Tailwind)",
+      td6A: "Proprietary SaaS cloud",
+      td6O: "Zero Runtime Dependencies (Pure Web Standards)",
+      docsModalTitle: "Configure Production Shard",
+      docsModalDesc: "Adjust distributed shard parameters. Focus is trapped inside this dialog while active.",
+      docsModalSaveLabel: "Save Configuration"
     },
     ar: {
-      brandDesc: "محرك بوابات الجودة: يعمل بكفاءة",
-      navManifesto: "البيان التأسيسي",
-      navCompetitors: "تشريح المنافسين",
+      brandDesc: "استوديو المهارات ومحرك البوابات",
+      navSkills: "المهارات والمبادئ",
       navGates: "محاكي البوابات",
-      navFsm: "محاكي آلات الحالة",
+      navFsm: "آلات الحالة والمكونات",
       navTokens: "رموز التصميم",
+      navDashboard: "لوحة القياس",
+      navCompetitors: "تشريح المنافسين",
+      navManifesto: "البيان التأسيسي",
       heroBadge: "المعمارية الهندسية القياسية للوكلاء البرمجيين الذاتيين",
       heroTitle: "هندسة الواجهات الحتمية وبوابات الفحص الصارمة لكود الذكاء الاصطناعي",
       heroSub: "توقف عن قبول كود الواجهات العشوائي. يفرض أورثوتكت تباين WCAG AAA الرياضي، وخواص CSS المنطقية 100%، وآلات الحالة المنتهية FSM، وانعدام الـ Layout Shift في بوابات متوازية تحت 400ms.",
       proofGates: "بوابات فحص حتمية",
       proofTests: "اختبارات نجحت بنسبة 100%",
       proofLatency: "زمن الفحص المتوازي",
-      proofDeps: "اعتماديات خارجية (صفر حشو)",
+      proofDeps: "اعتماديات التشغيل (صفر حشو)",
       proofBidi: "خواص CSS منطقية",
+      skillsTitle: "محفظة مهارات أورثوتكت الست",
+      skillsDesc: "قدرات برمجية معيارية مهندسة خصيصاً لوكلاء Google Antigravity وClaude Code وCursor Agent وCodex.",
+      descDoctrine: "القوانين السبعة غير القابلة للتفاوض لهندسة الواجهات عالية الموثوقية. يحملها الوكيل البرمجي أولاً قبل كتابة أي كود.",
+      descGates: "تشغيل 5 بوابات فحص حتمية متوازية تحت 400ms: تباين WCAG AAA، خواص BiDi، سلامة FSM، عمق DOM، ومكافحة الحشو.",
+      descBidi: "هندسة واجهات ثنائية الاتجاه بتطابق تام بين العربية (RTL) والإنجليزية (LTR) عبر خواص CSS المنطقية 100%.",
+      descTokens: "مترجم رموز التصميم ثلاثي المستويات W3C DTCG مع اعتماد التباين الرياضي التلقائي.",
+      descFsm: "مواصفات رسمية لآلات الحالة المنتهية مع فحص الوصول BFS ومنع الجمود وأقفال الحماية من الضغطات المتكررة.",
+      descDashboard: "شاشات قياس عالية الكثافة مع رسوم SVG مدمجة، وانعدام تام لإزاحة التخطيط (CLS = 0.00).",
+      lawsTitle: "القوانين السبعة غير القابلة للتفاوض لهندسة الواجهات",
+      lawsDesc: "كل سطر كود ينتجه الذكاء الاصطناعي يجب أن يجتاز هذه القوانين الصارمة قبل اعتماده في الإنتاج.",
+      law1Title: "قانون التباين الرياضي",
+      law1Desc: "التباين صيغة رياضية دقيقة للمعان النسبي، وليس مجرد رأي جمالي شخصي. النصوص منخفضة التباين تُرفض فوراً.",
+      law2Title: "قانون الحيادية الاتجاهية",
+      law2Desc: "الإحداثيات الفيزيائية (left, right, margin-left) تسقط في بوابات الفحص. استخدام الخواص المنطقية يضمن تطابق العربية والإنجليزية.",
+      law3Title: "قانون انغلاق الحالة",
+      law3Desc: "يجب نمذجة سلوك المكونات كآلة حالة منتهية مغلقة FSM. المتغيرات البولينية السائبة (isLoading, isError) ممنوعة تماماً.",
+      law4Title: "قانون انعدام إزاحة التخطيط التراكمية",
+      law4Desc: "كل صورة، فيديو، أو عنصر SVG يجب أن يحدد أبعاد أرقام صحيحة صريحة أو خاصية CSS aspect-ratio لمنع اهتزاز الصفحة.",
+      law5Title: "قانون الراحة الإدراكية",
+      law5Desc: "عرض البيانات والقياسات يجب أن يحقق أقصى وضوح دلالي بدون تشويش بصري، باستخدام SVG مدمج بدلاً من مكتبات الرسوم الثقيلة.",
+      law6Title: "قانون نقاء الرموز",
+      law6Desc: "صفر أكواد ألوان مباشرة أو مسافات بالبكسل. جميع الألوان والمسافات يجب أن تنحدر من رموز DTCG الدلالية.",
+      law7Title: "قانون مكافحة حشو الذكاء الاصطناعي",
+      law7Desc: "حظر التدرجات البنفسجية الإحصائية المبتذلة، وحظر استخدام الإيموجي كأيقونات في الأزرار، والبطاقات المتداخلة عشوائياً.",
       simTitle: "محاكي البوابات الحي داخل المتصفح",
       simDesc: "اختبر أي كود فورياً مقابل بوابات الجودة الخمس مع حسابات اللمعان الضوئي والفحص الهيكلي.",
       runBtn: "تشغيل بوابات الفحص الحتمية",
       fsmTitle: "محاكي آلات الحالة المنتهية (FSM) التفاعلي",
       fsmDesc: "منع تعارض الحالات والضغطات المزدوجة بفضل الرسوم البيانية المحصنة لآلات الحالة.",
+      liveCompTitle: "مكونات إنتاجية حقيقية تُحكم بآلة الحالة",
+      liveCompDesc: "تفاعل مباشرة مع مكونات واجهة حقيقية تنفذ تحولات الحالة بدقة مع سياسات إتاحة الاستخدام القياسية.",
+      demoBtnTitle: "1. زر تفاعلي مقاوم للضغط المزدوج",
+      demoBtnDesc: "يحمي من إرسال الطلبات المتكررة. عند بدء التحميل يتم قفل مؤشر الفأرة والضغطات على مستوى المحرك.",
+      demoBtnLabel: "حفظ المعلمات",
+      demoModalTitle: "2. نافذة منبثقة إنتاجية متوافقة مع الإتاحة",
+      demoModalDesc: "تطبق معيار W3C APG: حصر تركيز لوحة المفاتيح، جعل الخلفية خاملة inert، ودعم زر الهروب Escape والتعافي من الأخطاء.",
+      launchModalLabel: "فتح النافذة المنبثقة القياسية",
       tokensTitle: "رموز التصميم القياسية W3C DTCG (نظام 3-Tier)",
       tokensDesc: "معمارية هرمية للرموز يتم تصريفها برمجياً لمتغيرات CSS لكافة السمات.",
+      dashTitle: "لوحة قياس فورية بدون إزاحة تخطيط (CLS = 0.00)",
+      dashDesc: "رسوم SVG نبضية ومؤشرات ضغط الذاكرة وحالة العقد مع تناظر تام 100% في الاتجاه العربي.",
+      m1Lbl: "زمن استجابة البوابات المتوازية",
+      m2Lbl: "إزاحة التخطيط التراكمية",
+      m3Lbl: "معدل تباين WCAG القياسي",
+      m4Lbl: "حالات الجمود المكتشفة",
       matrixTitle: "جدول المقارنة المعمارية مع المنافسين",
-      matrixDesc: "كيف يتفوق أورثوتكت جذرياً على برومبتات التصميم السطحية ومكتبات المكونات التقليدية."
+      matrixDesc: "كيف يتفوق أورثوتكت جذرياً على برومبتات التصميم السطحية ومكتبات المكونات التقليدية.",
+      thCap: "القدرة الهندسية",
+      thPrompts: "برومبتات التصميم (XIAS, taste)",
+      thLibs: "مكتبات المكونات (shadcn, MUI)",
+      thAi: "مولدات الذكاء الاصطناعي (v0, Bolt)",
+      thOrtho: "معمارية أورثوتكت",
+      td1Cap: "نموذج التحقق",
+      td1P: "لا يوجد (نص إنشائي)",
+      td1L: "اختبارات يدوية بطيئة",
+      td1A: "لا يوجد (صندوق أسود)",
+      td1O: "5 بوابات حتمية متوازية (<400ms)",
+      td2Cap: "التخطيط ثنائي الاتجاه (BiDi)",
+      td2P: "نصائح ماركداون غير ملزمة",
+      td2L: "كلاسات فيزيائية (ml-*, pr-*)",
+      td2A: "يتكسر تماماً في RTL",
+      td2O: "خواص CSS منطقية صارمة 100%",
+      td3Cap: "سلامة آلة الحالة (FSM)",
+      td3P: "أعلام بولينية عشوائية (isLoading)",
+      td3L: "اختياري ومعقد (XState)",
+      td3A: "أخطاء تضارب العمليات غير المتزامنة",
+      td3O: "آلات FSM رسمية مع خوارزمية BFS",
+      td4Cap: "إتاحة الاستخدام WCAG 2.2",
+      td4P: "توصيات غير مفحوصة",
+      td4L: "مكونات Radix قابلة للكسر",
+      td4A: "فشل تكراري في التباين",
+      td4O: "مصفوفة لمعان رياضي حتمي (AAA & AA)",
+      td5Cap: "مؤشرات أداء الويب Core Web Vitals",
+      td5P: "لا يوجد",
+      td5L: "مسؤولية المطور اليدوية",
+      td5A: "اهتزاز عالي لعدم تحديد الأبعاد",
+      td5O: "ميزانية DOM صارمة وأبعاد مؤكدة",
+      td6Cap: "الاعتماديات الخارجية",
+      td6P: "صفر (ملفات نصية)",
+      td6L: "عالية جداً (React, Radix, Tailwind)",
+      td6A: "خدمات سحابية مغلقة المصدر",
+      td6O: "صفر اعتماديات تشغيل (معايير الويب الأصيلة)",
+      docsModalTitle: "تكوين العقدة الإنتاجية",
+      docsModalDesc: "تعديل معلمات العقدة الموزعة. تركيز لوحة المفاتيح محصور داخل هذه النافذة أثناء تفعيلها.",
+      docsModalSaveLabel: "حفظ التكوين"
     }
   };
 
@@ -334,20 +501,50 @@ document.addEventListener("DOMContentLoaded", () => {
         logLine("<span class='gate-badge pass'>PASS</span> <strong>DOM & Media Aspect-Ratio:</strong> No unbudgeted media shifts detected.");
       }
 
-      // Gate 4: Anti-Slop Pattern Inspector
+      // Gate 4: DOM Depth & Tree Budget
+      function computeMaxDepth(html) {
+        const tagRegex = /<\/?([a-zA-Z0-9\-]+)[^>]*>/g;
+        let depth = 0;
+        let maxDepth = 0;
+        const voidTags = new Set(["area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"]);
+        let m;
+        while ((m = tagRegex.exec(html)) !== null) {
+          const tagStr = m[0];
+          const tagName = m[1].toLowerCase();
+          if (voidTags.has(tagName) || tagStr.endsWith("/>")) continue;
+          if (tagStr.startsWith("</")) {
+            depth = Math.max(0, depth - 1);
+          } else {
+            depth++;
+            if (depth > maxDepth) maxDepth = depth;
+          }
+        }
+        return maxDepth;
+      }
+      const treeDepth = computeMaxDepth(code);
+      if (treeDepth > 32) {
+        allPassed = false;
+        logLine(`<span class='gate-badge fail'>FAIL</span> <strong>DOM Depth & Structure:</strong> Max tree depth is ${treeDepth} (Exceeds maximum allowable budget of 32 levels). Fix: Flatten nesting.`);
+      } else {
+        logLine(`<span class='gate-badge pass'>PASS</span> <strong>DOM Depth & Structure:</strong> Max tree depth is ${treeDepth} (Well within 32 budget).`);
+      }
+
+      // Gate 5: Anti-Slop Pattern Inspector
       const hasAiGradient = /(linear-gradient|from-purple|via-pink|to-indigo)/i.test(code);
       const hasEmojiButton = /<button[^>]*>.*[\u{1F300}-\u{1F9FF}].*<\/button>/su.test(code);
-      if (hasAiGradient || hasEmojiButton) {
+      const hasInlineColor = /style="[^"]*(#[0-9a-fA-F]{3,6}|rgb\([^)]+\))[^"]*"/i.test(code);
+      if (hasAiGradient || hasEmojiButton || hasInlineColor) {
         allPassed = false;
         let reasons = [];
-        if (hasAiGradient) reasons.push("Banned AI-generated multi-stop gradient detected");
-        if (hasEmojiButton) reasons.push("Emoji used as UI icon substitute inside button");
-        logLine("<span class='gate-badge fail'>FAIL</span> <strong>Anti-Slop Pattern Inspector:</strong> " + reasons.join(", "));
+        if (hasAiGradient) reasons.push("Banned AI-generated multi-stop gradient (Fix: Use semantic token surfaces)");
+        if (hasEmojiButton) reasons.push("Emoji used as UI icon in button (Fix: Use accessible SVG vector icon)");
+        if (hasInlineColor) reasons.push("Inline style bypassing DTCG tokens (Fix: Use stylesheet class with var(--ot-*))");
+        logLine("<span class='gate-badge fail'>FAIL</span> <strong>Anti-Slop Pattern Inspector:</strong> " + reasons.join("; "));
       } else {
         logLine("<span class='gate-badge pass'>PASS</span> <strong>Anti-Slop Pattern Inspector:</strong> Zero generic AI slop detected.");
       }
 
-      // Gate 5: Finite State Machine Integrity
+      // Gate 6: Finite State Machine Integrity
       logLine("<span class='gate-badge pass'>PASS</span> <strong>Finite State Machine Integrity:</strong> Graph reachability verified, race locks active.");
 
       const duration = (performance.now() - startTime).toFixed(1);
@@ -487,6 +684,234 @@ document.addEventListener("DOMContentLoaded", () => {
       const prev = copyTokensBtn.textContent;
       copyTokensBtn.textContent = "✓ CSS Variables Copied!";
       setTimeout(() => { copyTokensBtn.textContent = prev; }, 2000);
+    });
+  }
+
+  // --- 8. Live Interactive Action Button Demo ---
+  const demoBtn = document.getElementById("interactiveButtonDemo");
+  const demoBtnSpinner = document.getElementById("demoBtnSpinner");
+  const demoBtnLabel = document.getElementById("demoBtnLabel");
+  const demoBtnStateBadge = document.getElementById("demoBtnStateBadge");
+
+  let demoBtnState = "idle";
+  let demoClickCount = 0;
+
+  function updateDemoButtonState(state) {
+    demoBtnState = state;
+    if (demoBtnStateBadge) {
+      demoBtnStateBadge.textContent = `State: ${state.toUpperCase()}`;
+    }
+    if (!demoBtn) return;
+
+    demoBtn.classList.remove("is-loading", "is-success", "is-error");
+    demoBtn.disabled = false;
+    if (demoBtnSpinner) demoBtnSpinner.style.display = "none";
+
+    // Synchronize with FSM visualizer if Button FSM is active
+    if (activeFsmComponent === "button") {
+      activeFsmState = state;
+      renderFsm();
+    }
+
+    if (state === "idle") {
+      if (demoBtnLabel) demoBtnLabel.textContent = "Save Parameters";
+    } else if (state === "loading") {
+      demoBtn.classList.add("is-loading");
+      demoBtn.disabled = true; // Lock interactions at DOM level
+      if (demoBtnSpinner) demoBtnSpinner.style.display = "inline-block";
+      if (demoBtnLabel) demoBtnLabel.textContent = "Writing Shard...";
+      logFsmTransition("hover/idle", "CLICK", "loading (LOCKED)");
+    } else if (state === "success") {
+      demoBtn.classList.add("is-success");
+      if (demoBtnLabel) demoBtnLabel.textContent = "✓ Shard Saved!";
+      logFsmTransition("loading", "RESOLVE_SUCCESS", "success");
+      setTimeout(() => updateDemoButtonState("idle"), 2200);
+    } else if (state === "error") {
+      demoBtn.classList.add("is-error");
+      if (demoBtnLabel) demoBtnLabel.textContent = "⚠ Timeout (Click Retry)";
+      logFsmTransition("loading", "RESOLVE_ERROR", "error");
+    }
+  }
+
+  if (demoBtn) {
+    demoBtn.addEventListener("click", () => {
+      if (demoBtnState === "loading") return; // double-submission guard
+
+      if (demoBtnState === "error") {
+        updateDemoButtonState("loading");
+        setTimeout(() => updateDemoButtonState("success"), 1200);
+        return;
+      }
+
+      demoClickCount++;
+      updateDemoButtonState("loading");
+      setTimeout(() => {
+        if (demoClickCount % 2 === 0) {
+          updateDemoButtonState("error");
+        } else {
+          updateDemoButtonState("success");
+        }
+      }, 1400);
+    });
+  }
+
+  // --- 9. Production Accessible Modal Dialog Controller ---
+  const launchModalBtn = document.getElementById("launchModalBtn");
+  const modalBackdrop = document.getElementById("docsModalBackdrop");
+  const modalCloseBtn = document.getElementById("docsModalCloseBtn");
+  const modalCancelBtn = document.getElementById("docsModalCancelBtn");
+  const modalRetryBtn = document.getElementById("docsModalRetryBtn");
+  const modalSaveBtn = document.getElementById("docsModalSaveBtn");
+  const modalSpinner = document.getElementById("docsModalSpinner");
+  const modalSaveLabel = document.getElementById("docsModalSaveLabel");
+  const modalErrorBanner = document.getElementById("docsModalErrorBanner");
+  const modalStatusText = document.getElementById("docsModalStatusText");
+  const shardInput = document.getElementById("docsShardInput");
+  const appShell = document.getElementById("appShell");
+
+  let lastActiveElement = null;
+  let modalState = "closed";
+
+  function openAccessibleModal() {
+    lastActiveElement = document.activeElement;
+    modalState = "open";
+
+    if (modalBackdrop) {
+      modalBackdrop.style.display = "flex";
+      modalBackdrop.setAttribute("aria-hidden", "false");
+    }
+    if (appShell) {
+      appShell.setAttribute("inert", "");
+      appShell.setAttribute("aria-hidden", "true");
+    }
+    if (modalErrorBanner) modalErrorBanner.style.display = "none";
+    if (modalRetryBtn) modalRetryBtn.style.display = "none";
+    if (modalStatusText) modalStatusText.textContent = "";
+
+    // Trap focus inside modal
+    if (shardInput) {
+      shardInput.focus();
+    } else if (modalCloseBtn) {
+      modalCloseBtn.focus();
+    }
+
+    if (activeFsmComponent === "modal") {
+      activeFsmState = "open";
+      logFsmTransition("closed", "OPEN_TRIGGER", "open");
+      renderFsm();
+    }
+  }
+
+  function closeAccessibleModal() {
+    modalState = "closed";
+    if (modalBackdrop) {
+      modalBackdrop.style.display = "none";
+      modalBackdrop.setAttribute("aria-hidden", "true");
+    }
+    if (appShell) {
+      appShell.removeAttribute("inert");
+      appShell.removeAttribute("aria-hidden");
+    }
+    if (lastActiveElement && typeof lastActiveElement.focus === "function") {
+      lastActiveElement.focus();
+    }
+
+    if (activeFsmComponent === "modal") {
+      activeFsmState = "closed";
+      logFsmTransition("open", "CLOSE_TRIGGER", "closed");
+      renderFsm();
+    }
+  }
+
+  // Keyboard Navigation: Tab Focus Trap & Escape key
+  document.addEventListener("keydown", (e) => {
+    if (modalState !== "open" || !modalBackdrop) return;
+
+    if (e.key === "Escape") {
+      e.preventDefault();
+      closeAccessibleModal();
+      return;
+    }
+
+    if (e.key === "Tab") {
+      const focusable = modalBackdrop.querySelectorAll(
+        'button:not([disabled]):not([style*="display: none"]), input:not([disabled]), [tabindex="0"]'
+      );
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  });
+
+  if (launchModalBtn) {
+    launchModalBtn.addEventListener("click", openAccessibleModal);
+  }
+  if (modalCloseBtn) {
+    modalCloseBtn.addEventListener("click", closeAccessibleModal);
+  }
+  if (modalCancelBtn) {
+    modalCancelBtn.addEventListener("click", closeAccessibleModal);
+  }
+
+  // Backdrop click closes dialog
+  if (modalBackdrop) {
+    modalBackdrop.addEventListener("click", (e) => {
+      if (e.target === modalBackdrop) {
+        closeAccessibleModal();
+      }
+    });
+  }
+
+  // Save Configuration inside Modal with double-submission lock & simulated recovery
+  if (modalSaveBtn) {
+    modalSaveBtn.addEventListener("click", () => {
+      if (modalState === "submitting") return;
+      modalState = "submitting";
+
+      modalSaveBtn.disabled = true;
+      if (modalCancelBtn) modalCancelBtn.disabled = true;
+      if (modalCloseBtn) modalCloseBtn.disabled = true;
+      if (modalSpinner) modalSpinner.style.display = "inline-block";
+      if (modalSaveLabel) modalSaveLabel.textContent = "Writing...";
+      if (modalErrorBanner) modalErrorBanner.style.display = "none";
+      if (modalRetryBtn) modalRetryBtn.style.display = "none";
+      if (modalStatusText) modalStatusText.textContent = "Applying parameters to cluster...";
+
+      const shardVal = (shardInput ? shardInput.value : "").trim();
+
+      setTimeout(() => {
+        if (shardVal.toLowerCase().includes("error") || shardVal.toLowerCase().includes("fail")) {
+          modalState = "open";
+          modalSaveBtn.disabled = false;
+          if (modalCancelBtn) modalCancelBtn.disabled = false;
+          if (modalCloseBtn) modalCloseBtn.disabled = false;
+          if (modalSpinner) modalSpinner.style.display = "none";
+          if (modalSaveLabel) modalSaveLabel.textContent = "Save Configuration";
+          if (modalErrorBanner) modalErrorBanner.style.display = "block";
+          if (modalRetryBtn) {
+            modalRetryBtn.style.display = "inline-block";
+            modalRetryBtn.onclick = () => {
+              if (shardInput) shardInput.value = "shard-me-central-04";
+              modalSaveBtn.click();
+            };
+          }
+          if (modalStatusText) modalStatusText.textContent = "";
+        } else {
+          modalState = "open";
+          if (modalStatusText) modalStatusText.textContent = "✓ Configuration committed successfully!";
+          if (modalSpinner) modalSpinner.style.display = "none";
+          if (modalSaveLabel) modalSaveLabel.textContent = "Saved";
+          setTimeout(closeAccessibleModal, 800);
+        }
+      }, 1200);
     });
   }
 });

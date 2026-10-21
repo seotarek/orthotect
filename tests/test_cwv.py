@@ -136,5 +136,69 @@ class TestCWVBudgetGate(unittest.TestCase):
         self.assertNotEqual(res.returncode, 0)
         self.assertIn("Excessive DOM depth", res.stdout)
 
+    def test_width_with_px_unit_rejected(self):
+        """Negative test: width="200px" must be rejected per HTML5 integer dimension rules."""
+        html_file = os.path.join(self.temp_dir, 'index.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head></head><body><img src="logo.png" width="200px" height="100" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("invalid width attribute value", res.stdout)
+
+    def test_width_with_decimal_rejected(self):
+        """Negative test: decimal dimensions like width="150.5" must be rejected."""
+        html_file = os.path.join(self.temp_dir, 'index.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head></head><body><img src="logo.png" width="150.5" height="100" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("invalid width attribute value", res.stdout)
+
+    def test_aspect_ratio_inside_css_comment_fails(self):
+        """Negative test: aspect-ratio inside a CSS comment must not satisfy dimensions."""
+        html_file = os.path.join(self.temp_dir, 'index.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head></head><body><img src="logo.png" style="/* aspect-ratio: 16/9; */ display: block;" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("lacks complete dimensions", res.stdout)
+
+    def test_repeated_aspect_ratio_with_invalid_override_fails(self):
+        """Negative test: later invalid aspect-ratio overrides earlier valid one in CSS cascade."""
+        html_file = os.path.join(self.temp_dir, 'index.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head></head><body><img src="logo.png" style="aspect-ratio: 16/9; aspect-ratio: invalid;" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("invalid CSS aspect-ratio value", res.stdout)
+
+    def test_div_trailing_solidus_rejected(self):
+        """Negative test: <div/> trailing solidus is invalid self-closing in HTML5."""
+        html_file = os.path.join(self.temp_dir, 'index.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head></head><body><div/><p>Hello</p></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("trailing solidus", res.stdout)
+
+    def test_html5_optional_closing_tags_pass(self):
+        """Ensure standard HTML5 optional closing tags on lists pass without errors."""
+        html_file = os.path.join(self.temp_dir, 'index.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head></head><body><ul><li>Item 1<li>Item 2</ul><img src="a.png" width="10" height="10" alt="x"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("PASS", res.stdout)
+
+    def test_custom_elements_supported_and_budgeted(self):
+        """Ensure custom elements are counted towards DOM depth."""
+        html_file = os.path.join(self.temp_dir, 'index.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head></head><body><app-root><nav-bar><user-card><img src="a.png" width="10" height="10" alt="x"></user-card></nav-bar></app-root></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("PASS", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
+

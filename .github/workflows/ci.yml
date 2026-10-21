@@ -22,9 +22,17 @@ jobs:
         with:
           node-version: 22
 
-      - name: Run 53 Unit & E2E Integration Tests
+      - name: Install dependencies
+        run: |
+          npm ci
+
+      - name: Run 67 Unit & E2E Integration Tests
         run: |
           npm test
+
+      - name: Verify Documentation & Skill Studio Gates
+        run: |
+          node bin/orthotect.js verify docs
 
       - name: Test Real CLI Scaffolding and Verification
         run: |

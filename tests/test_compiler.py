@@ -56,11 +56,16 @@ class TestTokenCompiler(unittest.TestCase):
             "theme": {
                 "light": {
                     "surface": {
-                        "canvas": { "$value": "{color.gray.600}" }
+                        "canvas": { "$value": "{color.gray.600}" },
+                        "panel": { "$value": "{color.gray.600}" }
+                    },
+                    "action": {
+                        "primary": { "$value": "{color.gray.600}" }
                     },
                     "content": {
                         # #777777 on #666666 gives approx 1.3:1 contrast (severe failure)
-                        "primary": { "$value": "{color.gray.500}" }
+                        "primary": { "$value": "{color.gray.500}" },
+                        "inverse": { "$value": "{color.gray.500}" }
                     }
                 }
             }
@@ -73,6 +78,113 @@ class TestTokenCompiler(unittest.TestCase):
         with self.assertRaises(ValueError) as ctx:
             compile_tokens(bad_dir)
         self.assertIn("WCAG 2.2 Contrast Failure", str(ctx.exception))
+
+    def test_circular_reference_raises(self):
+        """Negative test: Circular references between tokens must raise ValueError."""
+        dir_path = os.path.join(self.temp_dir, 'cycle_tokens')
+        os.makedirs(dir_path, exist_ok=True)
+        prims = {
+            "color": {
+                "a": { "$value": "{color.b}" },
+                "b": { "$value": "{color.a}" }
+            }
+        }
+        sems = {
+            "theme": {
+                "light": {
+                    "surface": {
+                        "canvas": { "$value": "{color.a}" },
+                        "panel": { "$value": "{color.a}" }
+                    },
+                    "action": {
+                        "primary": { "$value": "{color.a}" }
+                    },
+                    "content": {
+                        "primary": { "$value": "{color.b}" },
+                        "inverse": { "$value": "{color.b}" }
+                    }
+                }
+            }
+        }
+        with open(os.path.join(dir_path, 'primitives.json'), 'w') as f:
+            json.dump(prims, f)
+        with open(os.path.join(dir_path, 'semantics.json'), 'w') as f:
+            json.dump(sems, f)
+
+        with self.assertRaises(ValueError) as ctx:
+            compile_tokens(dir_path)
+        self.assertIn("Circular reference detected", str(ctx.exception))
+
+    def test_unresolved_reference_raises(self):
+        """Negative test: Token reference to non-existent key must raise ValueError."""
+        dir_path = os.path.join(self.temp_dir, 'missing_ref_tokens')
+        os.makedirs(dir_path, exist_ok=True)
+        prims = {
+            "color": {
+                "valid": { "$value": "#ffffff" }
+            }
+        }
+        sems = {
+            "theme": {
+                "light": {
+                    "surface": {
+                        "canvas": { "$value": "{color.does_not_exist}" },
+                        "panel": { "$value": "{color.valid}" }
+                    },
+                    "action": {
+                        "primary": { "$value": "{color.valid}" }
+                    },
+                    "content": {
+                        "primary": { "$value": "{color.valid}" },
+                        "inverse": { "$value": "{color.valid}" }
+                    }
+                }
+            }
+        }
+        with open(os.path.join(dir_path, 'primitives.json'), 'w') as f:
+            json.dump(prims, f)
+        with open(os.path.join(dir_path, 'semantics.json'), 'w') as f:
+            json.dump(sems, f)
+
+        with self.assertRaises(ValueError) as ctx:
+            compile_tokens(dir_path)
+        self.assertIn("Unresolved token reference", str(ctx.exception))
+
+    def test_missing_required_semantic_token_raises(self):
+        """Negative test: Theme missing mandatory semantic tokens (e.g. surface.panel) must raise ValueError."""
+        dir_path = os.path.join(self.temp_dir, 'missing_sem_tokens')
+        os.makedirs(dir_path, exist_ok=True)
+        prims = {
+            "color": {
+                "white": { "$value": "#ffffff" },
+                "black": { "$value": "#000000" }
+            }
+        }
+        sems = {
+            "theme": {
+                "light": {
+                    "surface": {
+                        "canvas": { "$value": "{color.white}" }
+                        # Missing surface.panel
+                    },
+                    "action": {
+                        "primary": { "$value": "{color.black}" }
+                    },
+                    "content": {
+                        "primary": { "$value": "{color.black}" },
+                        "inverse": { "$value": "{color.white}" }
+                    }
+                }
+            }
+        }
+        with open(os.path.join(dir_path, 'primitives.json'), 'w') as f:
+            json.dump(prims, f)
+        with open(os.path.join(dir_path, 'semantics.json'), 'w') as f:
+            json.dump(sems, f)
+
+        with self.assertRaises(ValueError) as ctx:
+            compile_tokens(dir_path)
+        self.assertIn("Missing required semantic token", str(ctx.exception))
 
     def test_compile_missing_tokens_raises(self):
         empty_dir = os.path.join(self.temp_dir, 'empty')

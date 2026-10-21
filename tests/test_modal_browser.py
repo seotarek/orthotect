@@ -81,6 +81,8 @@ class TestModalBrowserExecution(unittest.TestCase):
 
         global.document = {
             getElementById: (id) => elements[id] || null,
+            querySelector: (sel) => mockElement(sel.replace(/^[.#]/, '')),
+            querySelectorAll: (sel) => [],
             documentElement: mockElement('html'),
             addEventListener: (evt, cb) => {
                 if (evt === 'DOMContentLoaded') cb();
@@ -105,5 +107,83 @@ class TestModalBrowserExecution(unittest.TestCase):
         self.assertEqual(res.returncode, 0, f"Script threw error on execution: {res.stderr}")
         self.assertIn("SUCCESS_EVAL", res.stdout)
 
+    def test_real_browser_playwright_modal_interaction(self):
+        """Execute genuine headless browser interaction tests via Playwright and Chrome."""
+        chrome_path = '/usr/bin/google-chrome'
+        if not os.path.exists(chrome_path):
+            self.skipTest("Google Chrome binary not found at /usr/bin/google-chrome")
+
+        test_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          await page.goto('file://{self.html_path}');
+          
+          // 1. Initial state closed
+          const isClosed = await page.$eval('#modal-backdrop', el => el.getAttribute('aria-hidden') === 'true' && el.style.display === 'none');
+          if (!isClosed) throw new Error('Initial state not closed');
+
+          // 2. Open modal and check focus + inert
+          await page.click('#btn-open-modal');
+          await page.waitForTimeout(100);
+          const isOpen = await page.$eval('#modal-backdrop', el => el.getAttribute('aria-hidden') === 'false' && el.classList.contains('is-open'));
+          const focusedId = await page.evaluate(() => document.activeElement ? document.activeElement.id : null);
+          const appShellInert = await page.$eval('.app-shell', el => el.hasAttribute('inert') && el.getAttribute('aria-hidden') === 'true');
+          if (!isOpen || focusedId !== 'shard-name-input' || !appShellInert) {{
+            throw new Error(`Open state failure: open=${{isOpen}}, focus=${{focusedId}}, inert=${{appShellInert}}`);
+          }}
+
+          // 3. Escape key handling and focus restoration
+          await page.keyboard.press('Escape');
+          await page.waitForTimeout(100);
+          const closedAfterEsc = await page.$eval('#modal-backdrop', el => el.getAttribute('aria-hidden') === 'true' && el.style.display === 'none');
+          const restoredId = await page.evaluate(() => document.activeElement ? document.activeElement.id : null);
+          if (!closedAfterEsc || restoredId !== 'btn-open-modal') {{
+            throw new Error(`Escape restore failure: closed=${{closedAfterEsc}}, restoredId=${{restoredId}}`);
+          }}
+
+          // 4. Open again and test submitting double-click lock
+          await page.click('#btn-open-modal');
+          await page.waitForTimeout(100);
+          await page.fill('#shard-name-input', 'error');
+          await page.click('#btn-submit-modal');
+          const isLocked = await page.$eval('#btn-submit-modal', el => el.disabled);
+          if (!isLocked) throw new Error('Submit lock failed to disable submit button');
+
+          // 5. Error recovery transition
+          await page.waitForTimeout(900);
+          const hasError = await page.$eval('#modal-error-banner', el => el.style.display !== 'none' && el.textContent.includes('error'));
+          const retryVisible = await page.$eval('#btn-retry-modal', el => el.style.display !== 'none');
+          if (!hasError || !retryVisible) throw new Error('Error feedback state not reached');
+
+          // 6. Retry and success path
+          await page.fill('#shard-name-input', 'shard-prod-01');
+          await page.click('#btn-retry-modal');
+          await page.waitForTimeout(900);
+          const successStatus = await page.$eval('#modal-status-text', el => el.textContent.includes('✓'));
+          if (!successStatus) throw new Error('Success status feedback failed');
+
+          // 7. Auto close
+          await page.waitForTimeout(800);
+          const finallyClosed = await page.$eval('#modal-backdrop', el => el.getAttribute('aria-hidden') === 'true');
+          if (!finallyClosed) throw new Error('Modal failed to auto-close after success');
+
+          await browser.close();
+          console.log("REAL_BROWSER_E2E_PASSED");
+        }}).catch(err => {{
+          console.error("REAL_BROWSER_ERROR:", err);
+          process.exit(1);
+        }});
+        """
+
+        res = subprocess.run(['node', '--input-type=module', '-e', test_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Real browser test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("REAL_BROWSER_E2E_PASSED", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
+

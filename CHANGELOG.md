@@ -4,6 +4,18 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-10-22
+
+### Added
+- **Orthotect Skill Studio Platform (`docs/`)**: Transformed GitHub Pages into an authoritative interactive Skill Studio and demonstration platform showcasing the 6 Orthotect Skills (`orthotect-doctrine`, `orthotect-gates`, `orthotect-bidi`, `orthotect-tokens`, `orthotect-fsm`, `orthotect-dashboard`) and the 7 Laws of Interface Engineering with interactive before/after comparisons.
+- **Genuine Real-Browser Playwright Tests**: Added headless Google Chrome interaction test suite (`tests/test_modal_browser.py`) testing focus trapping, inert backdrop, double-submission locking, and escape recovery in actual browser runtimes.
+- **WHATWG-Compliant `parse5` DOM Depth Calculator**: Replaced regex tag parsing in `gates/gate_cwv_budget.mjs` with full HTML5 specification tree parsing via `parse5`, ensuring 100% accurate DOM depth calculation across void elements, comments, unclosed tags, and minified HTML.
+- **Strict HTML5 Integer Image Dimension Parser**: Upgraded `gates/gate_cwv_budget.mjs` to enforce standard HTML5 positive integer rules (`/^[1-9]\d*$/`), rejecting `"200px"`, zero, decimals, negatives, and empty values.
+- **Compiler Reference Cycle & Tiered Contrast Gates**: Hardened `core/compiler.py` with DFS cycle detection (`A -> B -> A`), missing reference validation, malformed JSON handling, and tiered contrast checks (4.5:1 for normal text, 3.0:1 for graphical controls and large text).
+- **Interactive Component Studio in Browser**: Added live interactive action button demonstrating in-engine double-submission locks and accessible modal dialog meeting W3C APG dialog standards with focus trap, inert background, and Escape key handling.
+- **High-Density Telemetry Console**: Inline SVG sparklines and node metrics with zero layout shift (CLS = 0.00) and complete Arabic RTL symmetry.
+- **67 Automated Tests**: Test suite expanded from 53 to 67 unit, AST, and browser integration tests with 100% pass rate.
+
 ## [1.3.1] - 2026-10-22
 
 ### Fixed

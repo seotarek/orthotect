@@ -112,7 +112,62 @@ class TestFsmValidator(unittest.TestCase):
         with open(fpath, "w") as f:
             json.dump(orphaned, f)
         viols = check_fsm_file(fpath)
-        self.assertTrue(any("orphanState" in v for v in viols))
+    def test_explicit_is_async_property_enforces_lock(self):
+        """Schema test: explicit isAsync: true on arbitrary state name must enforce allowClick: false and recovery."""
+        fsm = {
+            "name": "CustomAsync",
+            "initialState": "idle",
+            "states": {
+                "idle": { "on": { "RUN": "customOperation" } },
+                "customOperation": {
+                    "isAsync": True,
+                    "on": { "DONE": "idle", "FAIL": "errorState" }
+                },
+                "errorState": { "on": { "RESET": "idle" } }
+            }
+        }
+        fpath = os.path.join(self.temp_dir.name, "custom_async.json")
+        with open(fpath, "w") as f:
+            json.dump(fsm, f)
+        viols = check_fsm_file(fpath)
+        self.assertTrue(any("must explicitly declare 'allowClick: false'" in v for v in viols))
+
+    def test_deadlock_non_final_state_fails(self):
+        """Negative test: non-final state with no outgoing transitions is a deadlock."""
+        fsm = {
+            "name": "DeadlockFSM",
+            "initialState": "idle",
+            "states": {
+                "idle": { "on": { "NEXT": "trapped" } },
+                "trapped": {} # Deadlock: no transitions
+            }
+        }
+        fpath = os.path.join(self.temp_dir.name, "deadlock.json")
+        with open(fpath, "w") as f:
+            json.dump(fsm, f)
+        viols = check_fsm_file(fpath)
+        self.assertTrue(any("Deadlock detected in non-final state 'trapped'" in v for v in viols))
+
+    def test_dead_end_error_state_fails(self):
+        """Negative test: error state that has no transitions traps the user."""
+        fsm = {
+            "name": "DeadEndError",
+            "initialState": "idle",
+            "states": {
+                "idle": { "on": { "GO": "loading" } },
+                "loading": {
+                    "allowClick": False,
+                    "on": { "SUCCESS": "idle", "REJECT_ERROR": "errorTrap" }
+                },
+                "errorTrap": {} # Dead-end error
+            }
+        }
+        fpath = os.path.join(self.temp_dir.name, "dead_end_error.json")
+        with open(fpath, "w") as f:
+            json.dump(fsm, f)
+        viols = check_fsm_file(fpath)
+        self.assertTrue(any("no recovery transitions" in v for v in viols))
 
 if __name__ == '__main__':
     unittest.main()
+

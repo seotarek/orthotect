@@ -756,6 +756,12 @@ body {
   border-radius: 4px;
   border: 1px solid var(--ortho-border-subtle);
 }
+.token-swatch.swatch-cyan {
+  background-color: var(--ortho-accent-cyan);
+}
+.token-swatch.swatch-emerald {
+  background-color: var(--ortho-success);
+}
 
 /* Competitor Matrix Table */
 .matrix-section {
@@ -828,4 +834,399 @@ body {
 }
 .footer-link:hover {
   color: var(--ortho-accent-cyan);
+}
+
+/* ==========================================================================
+   Skill Studio Portfolio & 7 Laws Doctrine
+   ========================================================================== */
+.skills-section {
+  padding-block: 4.5rem;
+  background: var(--ortho-surface-1);
+  border-block-end: 1px solid var(--ortho-border-subtle);
+}
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-block-end: 3rem;
+}
+
+.skill-card {
+  background: var(--ortho-canvas);
+  border: 1px solid var(--ortho-border-medium);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
+}
+.skill-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--ortho-border-active);
+}
+
+.skill-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.skill-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--ortho-accent-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.skill-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ortho-text-primary);
+}
+
+.skill-badge {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding-inline: 0.5rem;
+  padding-block: 0.2rem;
+  border-radius: var(--radius-pill);
+  background: var(--ortho-surface-3);
+  color: var(--ortho-accent-cyan);
+}
+
+.skill-desc {
+  font-size: 0.875rem;
+  color: var(--ortho-text-secondary);
+  line-height: 1.5;
+}
+
+.skill-cmd {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  background: var(--ortho-surface-2);
+  padding-inline: 0.75rem;
+  padding-block: 0.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--ortho-border-subtle);
+  color: var(--ortho-text-muted);
+}
+
+/* 7 Laws Doctrine Showcase */
+.laws-container {
+  max-width: 1140px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.law-card {
+  background: var(--ortho-canvas);
+  border: 1px solid var(--ortho-border-medium);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+}
+
+.law-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block-end: 0.75rem;
+}
+
+.law-num {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ortho-accent-cyan);
+}
+
+.law-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ortho-text-primary);
+}
+
+.code-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-block-start: 0.75rem;
+}
+
+.code-snippet {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 0.85rem;
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  line-height: 1.45;
+}
+.code-snippet.bad {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+}
+.code-snippet.good {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #6ee7b7;
+}
+
+/* ==========================================================================
+   Live Interactive Component Studio (Button & Modal)
+   ========================================================================== */
+.live-components-wrapper {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-block-start: 2rem;
+}
+
+.demo-component-card {
+  background: var(--ortho-surface-1);
+  border: 1px solid var(--ortho-border-medium);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.demo-component-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.demo-component-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ortho-text-primary);
+}
+
+.demo-box {
+  background: var(--ortho-canvas);
+  border: 1px dashed var(--ortho-border-medium);
+  border-radius: var(--radius-sm);
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 160px;
+}
+
+/* Interactive Button States */
+.interactive-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding-inline: 1.5rem;
+  padding-block: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  background-color: var(--ortho-accent-cyan);
+  color: #090c10;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+.interactive-action-btn:hover:not(:disabled) {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+.interactive-action-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+.interactive-action-btn:focus-visible {
+  outline: 2px solid var(--ortho-border-active);
+  outline-offset: 3px;
+}
+.interactive-action-btn.is-loading {
+  background-color: var(--ortho-surface-3);
+  color: var(--ortho-text-muted);
+  cursor: wait;
+}
+.interactive-action-btn.is-success {
+  background-color: var(--ortho-success);
+  color: #090c10;
+}
+.interactive-action-btn.is-error {
+  background-color: var(--ortho-danger);
+  color: #ffffff;
+}
+
+.btn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-block-start-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Accessible Modal Styles */
+.docs-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(9, 12, 16, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+  animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.docs-modal-panel {
+  width: 100%;
+  max-width: 520px;
+  background: var(--ortho-surface-1);
+  border: 1px solid var(--ortho-border-medium);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: modalSlideUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.docs-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.docs-modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ortho-text-primary);
+}
+
+.docs-modal-body {
+  font-size: 0.9rem;
+  color: var(--ortho-text-secondary);
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.docs-modal-input {
+  width: 100%;
+  padding-inline: 0.85rem;
+  padding-block: 0.6rem;
+  border: 1px solid var(--ortho-border-medium);
+  border-radius: var(--radius-sm);
+  background: var(--ortho-canvas);
+  color: var(--ortho-text-primary);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+.docs-modal-input:focus {
+  outline: none;
+  border-color: var(--ortho-accent-cyan);
+}
+
+.docs-modal-error {
+  color: var(--ortho-danger);
+  background: var(--ortho-danger-bg);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem;
+  font-size: 0.85rem;
+}
+
+.docs-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* ==========================================================================
+   High-Density SVG Telemetry Dashboard
+   ========================================================================== */
+.telemetry-section {
+  padding-block: 4.5rem;
+  border-block-end: 1px solid var(--ortho-border-subtle);
+}
+
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+  margin-block-start: 2rem;
+}
+
+.telemetry-card {
+  background: var(--ortho-surface-1);
+  border: 1px solid var(--ortho-border-medium);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.telemetry-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.telemetry-lbl {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ortho-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.telemetry-val {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--ortho-text-primary);
+}
+
+.telemetry-chart-wrap {
+  width: 100%;
+  height: 48px;
+  margin-block-start: 0.25rem;
+}
+
+.telemetry-chart-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }

@@ -25,6 +25,7 @@
     },
     "submitting": {
       "description": "Async submit in flight. Secondary actions and backdrop dismiss locked.",
+      "isAsync": true,
       "allowClick": false,
       "on": {
         "RESOLVE_SUCCESS": "successFeedback",
@@ -43,7 +44,9 @@
       "description": "Inline error banner displayed with retry capability. Re-enables interaction.",
       "on": {
         "RETRY": "submitting",
-        "DISMISS_ERROR": "open"
+        "DISMISS_ERROR": "open",
+        "CLOSE": "closing",
+        "ESCAPE": "closing"
       }
     },
     "closing": {

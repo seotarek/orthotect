@@ -51,7 +51,7 @@ def find_target_tokens(target_path):
         except ValueError:
             return False
 
-    is_self = (target_abs == root_pkg or is_inside(target_abs, os.path.join(root_pkg, 'examples')))
+    is_self = is_inside(target_abs, root_pkg)
 
     candidates = [
         target_abs,

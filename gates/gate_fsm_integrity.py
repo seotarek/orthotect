@@ -52,7 +52,7 @@ def check_fsm_file(file_path):
                 violations.append(f"{fname}: State '{state_name}' has transition '{trigger}' -> undefined target '{target}'.")
 
     # 3. Asynchronous execution & submission lock validation
-    # Generalizes beyond 'loading' to any state representing in-flight work (e.g. submitting, fetching, pending)
+    # Supports explicit schema properties ('isAsync', 'type: "async"', 'locksInteraction') as well as documented conventions
     async_keywords = {'loading', 'submitting', 'pending', 'processing', 'fetching', 'skeletonloading', 'syncing'}
 
     for state_name, state_def in states.items():
@@ -61,17 +61,28 @@ def check_fsm_file(file_path):
 
         name_lower = state_name.lower()
         is_async_by_name = any(kw in name_lower for kw in async_keywords)
-        is_explicitly_async = (state_def.get('isAsync') is True or
-                               state_def.get('isLocked') is True or
-                               state_def.get('locked') is True or
-                               ('allowClick' in state_def and state_def.get('allowClick') is False))
+        is_explicitly_async = (
+            state_def.get('isAsync') is True or
+            state_def.get('async') is True or
+            state_def.get('type') == 'async' or
+            state_def.get('locksInteraction') is True or
+            state_def.get('isLocked') is True or
+            state_def.get('locked') is True or
+            ('allowClick' in state_def and state_def.get('allowClick') is False)
+        )
 
         if is_async_by_name or is_explicitly_async:
             # Race condition lock check: MUST lock pointer/keyboard actions (allowClick: false)
+            is_locked = (
+                state_def.get('allowClick') is False or
+                state_def.get('locksInteraction') is True or
+                state_def.get('isLocked') is True or
+                state_def.get('locked') is True
+            )
             if state_def.get('allowClick', False) is True:
                 violations.append(f"{fname}: '{state_name}' state must lock pointer/keyboard actions (allowClick: false) to prevent race conditions.")
-            elif 'allowClick' not in state_def and not state_def.get('locked') and not state_def.get('isLocked'):
-                violations.append(f"{fname}: '{state_name}' state must explicitly declare 'allowClick: false' to prevent double-submission race conditions.")
+            elif not is_locked:
+                violations.append(f"{fname}: '{state_name}' state must explicitly declare 'allowClick: false' (or locksInteraction: true) to prevent double-submission race conditions.")
 
             # Resilience check: Must have an explicit error/failure transition for recovery
             transitions = list(state_def.get('on', {}).values())
@@ -79,7 +90,16 @@ def check_fsm_file(file_path):
             if not has_error_recovery:
                 violations.append(f"{fname}: '{state_name}' state must have an explicit error/failure transition for resilience.")
 
-    # 4. Graph reachability check (BFS from initialState)
+    # 4. Deadlock detection: Ensure every non-terminal state has transitions
+    for state_name, state_def in states.items():
+        if not isinstance(state_def, dict):
+            continue
+        is_final = state_def.get('final') is True or state_def.get('type') == 'final'
+        transitions = state_def.get('on', {})
+        if not is_final and not transitions:
+            violations.append(f"{fname}: Deadlock detected in non-final state '{state_name}' (no outgoing transitions).")
+
+    # 5. Graph reachability check (BFS from initialState)
     if initial_state and initial_state in states:
         visited = set()
         queue = deque([initial_state])
@@ -96,6 +116,18 @@ def check_fsm_file(file_path):
         if unreachable:
             violations.append(f"{fname}: Unreachable orphaned state(s) detected: {', '.join(unreachable)}.")
 
+    # 6. Error recovery reversibility: Ensure error recovery states do not trap the user
+    for state_name, state_def in states.items():
+        if not isinstance(state_def, dict):
+            continue
+        transitions = state_def.get('on', {})
+        for trigger, target in transitions.items():
+            if any(term in trigger.lower() or term in target.lower() for term in ('error', 'fail', 'reject')):
+                if target in states:
+                    target_transitions = states[target].get('on', {})
+                    if not target_transitions:
+                        violations.append(f"{fname}: Error state '{target}' has no recovery transitions (dead-end error trap).")
+
     return violations
 
 def find_target_fsm_dir(target_path):
@@ -108,7 +140,7 @@ def find_target_fsm_dir(target_path):
         except ValueError:
             return False
 
-    is_self = (target_abs == root_pkg or is_inside(target_abs, os.path.join(root_pkg, 'examples')))
+    is_self = is_inside(target_abs, root_pkg)
 
     candidates = [
         target_abs,

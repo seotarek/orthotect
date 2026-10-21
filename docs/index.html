@@ -3,45 +3,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orthotect — Deterministic Interface Engineering & Runtime Gate Architecture</title>
+  <title>Orthotect — Skill Studio & Deterministic Interface Runtime</title>
   <meta name="description" content="The deterministic interface engineering and runtime gate architecture for AI coding agents. Sub-400ms parallel gates for WCAG AAA, True BiDi, FSM integrity, and zero layout shift." />
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2338bdf8%22/><text y=%2268%22 x=%2224%22 font-size=%2254%22 font-family=%22monospace%22 font-weight=%22bold%22 fill=%22%23090c10%22>O</text></svg>">
 </head>
 <body>
 
-  <!-- Top Sticky Header -->
-  <header class="site-header" role="banner">
-    <div class="container nav-wrap">
-      <a href="#" class="brand-group" aria-label="Orthotect Home">
-        <div class="brand-icon" aria-hidden="true">O</div>
-        <span class="brand-name">Orthotect</span>
-        <span class="brand-badge" id="brandDesc">Runtime Gate Engine: ACTIVE</span>
-      </a>
-
-      <nav aria-label="Main Navigation">
-        <ul class="nav-links">
-          <li><a href="#simulator" class="nav-link" id="navGates">Gate Simulator</a></li>
-          <li><a href="#fsm" class="nav-link" id="navFsm">FSM Explorer</a></li>
-          <li><a href="#tokens" class="nav-link" id="navTokens">Design Tokens</a></li>
-          <li><a href="#matrix" class="nav-link" id="navCompetitors">Teardown</a></li>
-          <li><a href="https://github.com/seotarek/orthotect/blob/main/MANIFESTO.md" target="_blank" rel="noopener" class="nav-link" id="navManifesto">Manifesto</a></li>
-        </ul>
-      </nav>
-
-      <div class="control-group">
-        <button id="themeToggleBtn" class="btn-ctrl" aria-label="Toggle Color Theme">🌙 Dark</button>
-        <button id="bidiToggleBtn" class="btn-ctrl" aria-label="Toggle Language and Direction">🌐 العربية</button>
-        <a href="https://github.com/seotarek/orthotect" target="_blank" rel="noopener" class="btn-ctrl" style="text-decoration: none;" aria-label="GitHub Repository">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-          <span>GitHub</span>
+  <div id="appShell" class="app-shell">
+    <!-- Top Sticky Header -->
+    <header class="site-header" role="banner">
+      <div class="container nav-wrap">
+        <a href="#" class="brand-group" aria-label="Orthotect Home">
+          <div class="brand-icon" aria-hidden="true">O</div>
+          <span class="brand-name">Orthotect</span>
+          <span class="brand-badge" id="brandDesc">Skill Studio & Gate Engine</span>
         </a>
-      </div>
-    </div>
-  </header>
 
-  <!-- Hero Section -->
-  <main>
+        <nav aria-label="Main Navigation">
+          <ul class="nav-links">
+            <li><a href="#skills" class="nav-link" id="navSkills">Skills & Doctrine</a></li>
+            <li><a href="#simulator" class="nav-link" id="navGates">Gate Simulator</a></li>
+            <li><a href="#fsm" class="nav-link" id="navFsm">FSM & Components</a></li>
+            <li><a href="#tokens" class="nav-link" id="navTokens">Design Tokens</a></li>
+            <li><a href="#dashboard" class="nav-link" id="navDashboard">Telemetry</a></li>
+            <li><a href="#matrix" class="nav-link" id="navCompetitors">Teardown</a></li>
+            <li><a href="https://github.com/seotarek/orthotect/blob/main/MANIFESTO.md" target="_blank" rel="noopener" class="nav-link" id="navManifesto">Manifesto</a></li>
+          </ul>
+        </nav>
+
+        <div class="control-group">
+          <button id="themeToggleBtn" class="btn-ctrl" aria-label="Toggle Color Theme">🌙 Dark</button>
+          <button id="bidiToggleBtn" class="btn-ctrl" aria-label="Toggle Language and Direction">🌐 العربية</button>
+          <a href="https://github.com/seotarek/orthotect" target="_blank" rel="noopener" class="btn-ctrl" style="text-decoration: none;" aria-label="GitHub Repository">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            <span>GitHub</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
     <section class="hero-section">
       <div class="container">
         <div class="hero-pill">
@@ -80,8 +83,8 @@
             <div class="proof-lbl" id="proofGates">Deterministic Gates</div>
           </div>
           <div class="proof-card">
-            <div class="proof-val">48 / 48</div>
-            <div class="proof-lbl" id="proofTests">Unit Tests Passing</div>
+            <div class="proof-val">67 / 67</div>
+            <div class="proof-lbl" id="proofTests">Unit & E2E Tests</div>
           </div>
           <div class="proof-card">
             <div class="proof-val">&lt; 400ms</div>
@@ -89,11 +92,256 @@
           </div>
           <div class="proof-card">
             <div class="proof-val">0</div>
-            <div class="proof-lbl" id="proofDeps">Dependencies (Zero Bloat)</div>
+            <div class="proof-lbl" id="proofDeps">Runtime Dependencies</div>
           </div>
           <div class="proof-card">
             <div class="proof-val">100%</div>
             <div class="proof-lbl" id="proofBidi">CSS Logical Properties</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: The 6 Orthotect Skills Portfolio & 7 Laws Doctrine -->
+    <section id="skills" class="skills-section">
+      <div class="container">
+        <div class="section-hdr">
+          <div class="section-pill">SKILL SUITE ARCHITECTURE</div>
+          <h2 class="section-title" id="skillsTitle">The 6 Orthotect Skills Portfolio</h2>
+          <p class="section-desc" id="skillsDesc">
+            Modular agent capabilities engineered for Google Antigravity, Claude Code, Cursor Agent, and Codex.
+          </p>
+        </div>
+
+        <!-- Skills Grid -->
+        <div class="skills-grid">
+          <!-- Skill 1 -->
+          <div class="skill-card">
+            <div class="skill-header">
+              <div class="skill-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              </div>
+              <div class="skill-title">orthotect-doctrine</div>
+              <span class="skill-badge">Core Laws</span>
+            </div>
+            <p class="skill-desc" id="descDoctrine">The 7 Non-Negotiable Laws of High-Integrity Interface Engineering. Loaded first by agents before generating or styling any UI component.</p>
+            <code class="skill-cmd">Law 1 to Law 7 Enforcement</code>
+          </div>
+
+          <!-- Skill 2 -->
+          <div class="skill-card">
+            <div class="skill-header">
+              <div class="skill-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div class="skill-title">orthotect-gates</div>
+              <span class="skill-badge">Parallel Runtime</span>
+            </div>
+            <p class="skill-desc" id="descGates">Execute 5 parallel deterministic gates in &lt;400ms: WCAG AAA contrast, BiDi logical properties, FSM integrity, DOM depth, and Anti-Slop.</p>
+            <code class="skill-cmd">node bin/orthotect.js verify &lt;path&gt;</code>
+          </div>
+
+          <!-- Skill 3 -->
+          <div class="skill-card">
+            <div class="skill-header">
+              <div class="skill-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              </div>
+              <div class="skill-title">orthotect-bidi</div>
+              <span class="skill-badge">Directional Symmetry</span>
+            </div>
+            <p class="skill-desc" id="descBidi">True bidirectional interface engineering with flawless Arabic (RTL) and English (LTR) symmetry using 100% CSS logical properties.</p>
+            <code class="skill-cmd">Bans margin-left, padding-right, left, right</code>
+          </div>
+
+          <!-- Skill 4 -->
+          <div class="skill-card">
+            <div class="skill-header">
+              <div class="skill-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+              </div>
+              <div class="skill-title">orthotect-tokens</div>
+              <span class="skill-badge">W3C DTCG 3-Tier</span>
+            </div>
+            <p class="skill-desc" id="descTokens">Deterministic 3-tier token compiler (Primitives &rarr; Semantics &rarr; Components) with built-in mathematical contrast certification.</p>
+            <code class="skill-cmd">python3 core/compiler.py core/tokens</code>
+          </div>
+
+          <!-- Skill 5 -->
+          <div class="skill-card">
+            <div class="skill-header">
+              <div class="skill-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              </div>
+              <div class="skill-title">orthotect-fsm</div>
+              <span class="skill-badge">State Integrity</span>
+            </div>
+            <p class="skill-desc" id="descFsm">Formal Finite State Machine specifications with BFS reachability, deadlock prevention, and double-submission async locks.</p>
+            <code class="skill-cmd">core/fsm/*.json specifications</code>
+          </div>
+
+          <!-- Skill 6 -->
+          <div class="skill-card">
+            <div class="skill-header">
+              <div class="skill-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              </div>
+              <div class="skill-title">orthotect-dashboard</div>
+              <span class="skill-badge">Zero-CLS Telemetry</span>
+            </div>
+            <p class="skill-desc" id="descDashboard">High-density telemetry consoles with inline SVG sparklines, zero layout shift (CLS = 0.00), and cognitive ergonomics.</p>
+            <code class="skill-cmd">Pure SVG inline charts & telemetry</code>
+          </div>
+        </div>
+
+        <!-- The 7 Laws Doctrine Showcase -->
+        <div class="section-hdr" style="margin-block-start: 4rem;">
+          <div class="section-pill">ENGINEERING CONSTITUTION</div>
+          <h3 class="section-title" id="lawsTitle">The 7 Non-Negotiable Laws of Interface Engineering</h3>
+          <p class="section-desc" id="lawsDesc">Every line of code produced by AI coding agents must pass these 7 foundational laws before merging.</p>
+        </div>
+
+        <div class="laws-container">
+          <!-- Law 1 -->
+          <div class="law-card">
+            <div class="law-header">
+              <div>
+                <span class="law-num">LAW 1</span>
+                <span class="law-name" id="law1Title">Law of Mathematical Contrast</span>
+              </div>
+              <span class="skill-badge">WCAG 2.2 AAA (7.0:1) & AA (4.5:1)</span>
+            </div>
+            <p class="skill-desc" id="law1Desc">Contrast is a mathematical formula of relative luminance, never subjective aesthetic opinion. Low-contrast muted text is strictly rejected.</p>
+            <div class="code-compare-grid">
+              <pre class="code-snippet bad"><code>/* VIOLATION: Contrast 2.3:1 (REJECTED) */
+color: #4b5563;
+background-color: #0d1117;</code></pre>
+              <pre class="code-snippet good"><code>/* CERTIFIED: Contrast 17.1:1 AAA (PASS) */
+color: var(--ot-content-primary); /* #f8fafc */
+background-color: var(--ot-surface-canvas);</code></pre>
+            </div>
+          </div>
+
+          <!-- Law 2 -->
+          <div class="law-card">
+            <div class="law-header">
+              <div>
+                <span class="law-num">LAW 2</span>
+                <span class="law-name" id="law2Title">Law of Directional Neutrality</span>
+              </div>
+              <span class="skill-badge">100% CSS Logical Properties</span>
+            </div>
+            <p class="skill-desc" id="law2Desc">Physical coordinates (left, right, margin-left, padding-right) fail build gates. Use directional-neutral logical properties for seamless LTR/RTL symmetry.</p>
+            <div class="code-compare-grid">
+              <pre class="code-snippet bad"><code>/* VIOLATION: Banned Physical Coordinates */
+/* Banned: margin-left, padding-right, text-align: left */
+physical-coord: left-offset(1rem);
+side-spacing: right-edge(0.75rem);</code></pre>
+              <pre class="code-snippet good"><code>/* CERTIFIED: True Bidirectional Symmetry */
+margin-inline-start: 1rem;
+padding-inline-end: 0.75rem;
+text-align: start;</code></pre>
+            </div>
+          </div>
+
+          <!-- Law 3 -->
+          <div class="law-card">
+            <div class="law-header">
+              <div>
+                <span class="law-num">LAW 3</span>
+                <span class="law-name" id="law3Title">Law of State Closure</span>
+              </div>
+              <span class="skill-badge">Finite State Machines (FSM)</span>
+            </div>
+            <p class="skill-desc" id="law3Desc">Component behavior must be modeled as a closed Finite State Machine. Loose boolean flags (isLoading, isError) that allow invalid state combinations are banned.</p>
+            <div class="code-compare-grid">
+              <pre class="code-snippet bad"><code>// VIOLATION: State explosion bug
+const [isLoading, setIsLoading] = useState(false);
+const [isError, setIsError] = useState(false);
+// Race bug: isLoading && isError simultaneously!</code></pre>
+              <pre class="code-snippet good"><code>// CERTIFIED: Formal Closed FSM State
+type State = 'idle' | 'loading' | 'success' | 'error';
+// Async edges locked; double-clicks impossible</code></pre>
+            </div>
+          </div>
+
+          <!-- Law 4 -->
+          <div class="law-card">
+            <div class="law-header">
+              <div>
+                <span class="law-num">LAW 4</span>
+                <span class="law-name" id="law4Title">Law of Zero Cumulative Layout Shift</span>
+              </div>
+              <span class="skill-badge">CLS = 0.00 & Media Bounds</span>
+            </div>
+            <p class="skill-desc" id="law4Desc">Every image, video, SVG, and iframe must declare explicit positive integer width and height attributes or valid CSS aspect-ratio before layout computation.</p>
+            <div class="code-compare-grid">
+              <pre class="code-snippet bad"><code>&lt;!-- VIOLATION: Unbounded Media (CLS Spike) --&gt;
+&lt;img src="hero.webp" alt="Hero" class="responsive" /&gt;</code></pre>
+              <pre class="code-snippet good"><code>&lt;!-- CERTIFIED: Guaranteed Zero Layout Shift --&gt;
+&lt;img src="hero.webp" width="800" height="450" alt="Hero" /&gt;</code></pre>
+            </div>
+          </div>
+
+          <!-- Law 5 -->
+          <div class="law-card">
+            <div class="law-header">
+              <div>
+                <span class="law-num">LAW 5</span>
+                <span class="law-name" id="law5Title">Law of Cognitive Ergonomics</span>
+              </div>
+              <span class="skill-badge">High-Density Telemetry</span>
+            </div>
+            <p class="skill-desc" id="law5Desc">Telemetry and data displays must present maximum semantic clarity with zero visual clutter. Use inline SVG sparklines and gauges instead of bloated chart runtimes.</p>
+            <div class="code-compare-grid">
+              <pre class="code-snippet bad"><code>&lt;!-- VIOLATION: 500KB heavy chart dependency --&gt;
+&lt;div id="heavy-d3-chart-container"&gt;&lt;/div&gt;</code></pre>
+              <pre class="code-snippet good"><code>&lt;!-- CERTIFIED: 2KB inline SVG sparkline --&gt;
+&lt;svg viewBox="0 0 120 28" class="sparkline-svg"&gt;...&lt;/svg&gt;</code></pre>
+            </div>
+          </div>
+
+          <!-- Law 6 -->
+          <div class="law-card">
+            <div class="law-header">
+              <div>
+                <span class="law-num">LAW 6</span>
+                <span class="law-name" id="law6Title">Law of Token Purity</span>
+              </div>
+              <span class="skill-badge">W3C DTCG Token Bindings</span>
+            </div>
+            <p class="skill-desc" id="law6Desc">Zero hardcoded hex, rgb, or pixel spacing in component stylesheets and markup. All colors, spacing, and radii must resolve through semantic DTCG tokens.</p>
+            <div class="code-compare-grid">
+              <pre class="code-snippet bad"><code>/* VIOLATION: Raw Hex Color Bypass */
+color: #ef4444;
+border: 1px solid rgba(239, 68, 68, 0.3);</code></pre>
+              <pre class="code-snippet good"><code>/* CERTIFIED: Pure Semantic Token Resolution */
+color: var(--ot-action-danger);
+border: 1px solid var(--ot-border-subtle);</code></pre>
+            </div>
+          </div>
+
+          <!-- Law 7 -->
+          <div class="law-card">
+            <div class="law-header">
+              <div>
+                <span class="law-num">LAW 7</span>
+                <span class="law-name" id="law7Title">Law of Anti-Slop Discipline</span>
+              </div>
+              <span class="skill-badge">Zero Generic AI Patterns</span>
+            </div>
+            <p class="skill-desc" id="law7Desc">Bans statistical AI slop: multi-stop generic purple/indigo gradients, unstyled emoji icons inside interactive elements, and unvalidated card nesting.</p>
+            <div class="code-compare-grid">
+              <pre class="code-snippet bad"><code>&lt;!-- VIOLATION: Generic AI Slop Gradient &amp; Raw Emojis --&gt;
+&lt;button class="banned-purple-gradient-btn"&gt;
+  Launch Platform [Emoji Icon]
+&lt;/button&gt;</code></pre>
+              <pre class="code-snippet good"><code>&lt;!-- CERTIFIED: Architectural Design System --&gt;
+&lt;button class="btn btn-primary"&gt;
+  &lt;svg class="btn-icon" viewBox="0 0 24 24"&gt;...&lt;/svg&gt;
+  &lt;span&gt;Deploy Production Node&lt;/span&gt;
+&lt;/button&gt;</code></pre>
+            </div>
           </div>
         </div>
       </div>
@@ -124,6 +372,7 @@
                 <option value="contrast_fail">Fail: WCAG Contrast Ratio</option>
                 <option value="cwv_fail">Fail: CWV Unbounded Media (CLS)</option>
                 <option value="slop_fail">Fail: AI Slop & Emojis</option>
+                <option value="dom_fail">Fail: Deep DOM Nesting (&gt;32 levels)</option>
               </select>
             </div>
             <textarea id="codeEditor" class="code-editor" spellcheck="false" aria-label="Code Editor Input"></textarea>
@@ -204,6 +453,51 @@
             </div>
           </div>
         </div>
+
+        <!-- Live Interactive Component Studio Showcase -->
+        <div class="section-hdr" style="margin-block-start: 3.5rem;">
+          <div class="section-pill">LIVE DEMO COMPONENTS</div>
+          <h3 class="section-title" id="liveCompTitle">Production Components Governed by FSM</h3>
+          <p class="section-desc" id="liveCompDesc">Interact directly with real UI components executed under strict FSM state transitions and accessibility policies.</p>
+        </div>
+
+        <div class="live-components-wrapper">
+          <!-- Demo 1: Interactive Button -->
+          <div class="demo-component-card">
+            <div class="demo-component-header">
+              <span class="demo-component-title" id="demoBtnTitle">1. Interactive Action Button</span>
+              <span class="skill-badge" id="demoBtnStateBadge">State: IDLE</span>
+            </div>
+            <p class="skill-desc" id="demoBtnDesc">Guards against double submissions. When async loading starts, pointer events and clicks are locked at the engine level.</p>
+            <div class="demo-box">
+              <button id="interactiveButtonDemo" class="interactive-action-btn">
+                <span id="demoBtnSpinner" class="btn-spinner" style="display: none;"></span>
+                <span id="demoBtnLabel">Save Parameters</span>
+              </button>
+              <div style="display: flex; gap: 0.5rem; font-size: 0.75rem; color: var(--ortho-text-muted);">
+                <span>Click button to trigger async operation with 1.5s lock</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Demo 2: Accessible Modal Dialog Trigger -->
+          <div class="demo-component-card">
+            <div class="demo-component-header">
+              <span class="demo-component-title" id="demoModalTitle">2. Production Modal Dialog</span>
+              <span class="skill-badge">Focus Trap + Inert</span>
+            </div>
+            <p class="skill-desc" id="demoModalDesc">Meets W3C APG Dialog pattern: focus trapping, inert background shell, Escape key handling, and double-submission recovery.</p>
+            <div class="demo-box">
+              <button id="launchModalBtn" class="btn-ctrl" style="padding-inline: 1.5rem; padding-block: 0.75rem; font-weight: 600;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                <span id="launchModalLabel">Launch Accessible Modal</span>
+              </button>
+              <div style="font-size: 0.75rem; color: var(--ortho-text-muted);">
+                Governed by <code>core/fsm/modal-dialog.json</code>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -229,14 +523,14 @@
               <span class="token-key">color.blue.500</span>
               <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <code style="font-size: 0.75rem;">#38bdf8</code>
-                <div class="token-swatch" style="background: #38bdf8;"></div>
+                <div class="token-swatch swatch-cyan"></div>
               </div>
             </div>
             <div class="token-row">
               <span class="token-key">color.emerald.500</span>
               <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <code style="font-size: 0.75rem;">#10b981</code>
-                <div class="token-swatch" style="background: #10b981;"></div>
+                <div class="token-swatch swatch-emerald"></div>
               </div>
             </div>
             <div class="token-row">
@@ -304,14 +598,89 @@
               <code style="font-size: 0.75rem;">1px solid subtle</code>
             </div>
             <button id="copyTokensBtn" class="btn-ctrl" style="width: 100%; justify-content: center; margin-block-start: 0.5rem;">
-              <span>📋 Copy Compiled CSS Variables</span>
+              <span>Copy Compiled CSS Variables</span>
             </button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Section 4: Competitor Matrix Table -->
+    <!-- Section 4: High-Density Telemetry & SVG Dashboard -->
+    <section id="dashboard" class="telemetry-section">
+      <div class="container">
+        <div class="section-hdr">
+          <div class="section-pill">HIGH-DENSITY TELEMETRY</div>
+          <h2 class="section-title" id="dashTitle">Zero-CLS Telemetry Console</h2>
+          <p class="section-desc" id="dashDesc">
+            Inline SVG sparklines, memory pressure monitors, and node health displays with zero layout shift and 100% RTL symmetry.
+          </p>
+        </div>
+
+        <div class="telemetry-grid">
+          <!-- Metric 1 -->
+          <div class="telemetry-card">
+            <div class="telemetry-header">
+              <span class="telemetry-lbl" id="m1Lbl">Parallel Gate Latency</span>
+              <span class="skill-badge" style="color: var(--ortho-success);">P99 Optimal</span>
+            </div>
+            <div class="telemetry-val">128ms</div>
+            <div class="telemetry-chart-wrap">
+              <svg class="telemetry-chart-svg" viewBox="0 0 200 48" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0,35 Q20,30 40,32 T80,24 T120,28 T160,18 T200,12" fill="none" stroke="#38bdf8" stroke-width="2.5" />
+                <circle cx="200" cy="12" r="3.5" fill="#38bdf8" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Metric 2 -->
+          <div class="telemetry-card">
+            <div class="telemetry-header">
+              <span class="telemetry-lbl" id="m2Lbl">Cumulative Layout Shift</span>
+              <span class="skill-badge" style="color: var(--ortho-success);">Certified</span>
+            </div>
+            <div class="telemetry-val">0.000</div>
+            <div class="telemetry-chart-wrap">
+              <svg class="telemetry-chart-svg" viewBox="0 0 200 48" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0,40 L200,40" fill="none" stroke="#10b981" stroke-width="2.5" />
+                <circle cx="200" cy="40" r="3.5" fill="#10b981" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Metric 3 -->
+          <div class="telemetry-card">
+            <div class="telemetry-header">
+              <span class="telemetry-lbl" id="m3Lbl">WCAG Contrast Delta</span>
+              <span class="skill-badge">AAA Compliant</span>
+            </div>
+            <div class="telemetry-val">17.1:1</div>
+            <div class="telemetry-chart-wrap">
+              <svg class="telemetry-chart-svg" viewBox="0 0 200 48" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0,25 Q30,15 60,20 T120,16 T160,12 T200,10" fill="none" stroke="#38bdf8" stroke-width="2.5" />
+                <circle cx="200" cy="10" r="3.5" fill="#38bdf8" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Metric 4 -->
+          <div class="telemetry-card">
+            <div class="telemetry-header">
+              <span class="telemetry-lbl" id="m4Lbl">State Machine Deadlocks</span>
+              <span class="skill-badge" style="color: var(--ortho-success);">0 Detected</span>
+            </div>
+            <div class="telemetry-val">0 / 128</div>
+            <div class="telemetry-chart-wrap">
+              <svg class="telemetry-chart-svg" viewBox="0 0 200 48" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0,42 L50,42 L70,30 L90,42 L200,42" fill="none" stroke="#10b981" stroke-width="2.5" />
+                <circle cx="200" cy="42" r="3.5" fill="#10b981" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: Competitor Matrix Table -->
     <section id="matrix" class="matrix-section">
       <div class="container">
         <div class="section-hdr">
@@ -326,55 +695,55 @@
           <table class="matrix-table">
             <thead>
               <tr>
-                <th>Capability</th>
-                <th>Prompt Skills (XIAS, taste)</th>
-                <th>Component Libs (shadcn, MUI)</th>
-                <th>AI UI Generators (v0, Bolt)</th>
-                <th class="col-ortho">Orthotect Architecture</th>
+                <th id="thCap">Capability</th>
+                <th id="thPrompts">Prompt Skills (XIAS, taste)</th>
+                <th id="thLibs">Component Libs (shadcn, MUI)</th>
+                <th id="thAi">AI UI Generators (v0, Bolt)</th>
+                <th class="col-ortho" id="thOrtho">Orthotect Architecture</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td><strong>Verification Model</strong></td>
-                <td>❌ None (Subjective text)</td>
-                <td>❌ Manual QA / Unit tests</td>
-                <td>❌ None (Black-box generation)</td>
-                <td class="col-ortho"><strong>✅ 5 Parallel Deterministic Gates (&lt;400ms)</strong></td>
+                <td><strong id="td1Cap">Verification Model</strong></td>
+                <td id="td1P">None (Subjective text)</td>
+                <td id="td1L">Manual QA / Unit tests</td>
+                <td id="td1A">None (Black-box generation)</td>
+                <td class="col-ortho"><strong id="td1O">5 Parallel Deterministic Gates (&lt;400ms)</strong></td>
               </tr>
               <tr>
-                <td><strong>Bidirectional Layouts (BiDi)</strong></td>
-                <td>⚠️ Unenforced markdown advice</td>
-                <td>❌ Physical classes (ml-*, pr-*)</td>
-                <td>❌ Broken in RTL modes</td>
-                <td class="col-ortho"><strong>✅ 100% Strict CSS Logical Properties</strong></td>
+                <td><strong id="td2Cap">Bidirectional Layouts (BiDi)</strong></td>
+                <td id="td2P">Unenforced markdown advice</td>
+                <td id="td2L">Physical classes (ml-*, pr-*)</td>
+                <td id="td2A">Broken in RTL modes</td>
+                <td class="col-ortho"><strong id="td2O">100% Strict CSS Logical Properties</strong></td>
               </tr>
               <tr>
-                <td><strong>State Machine Integrity</strong></td>
-                <td>❌ Loose boolean flags (isLoading)</td>
-                <td>⚠️ Optional / Complex (XState)</td>
-                <td>❌ Unhandled async race bugs</td>
-                <td class="col-ortho"><strong>✅ Formal FSMs with BFS Reachability</strong></td>
+                <td><strong id="td3Cap">State Machine Integrity</strong></td>
+                <td id="td3P">Loose boolean flags (isLoading)</td>
+                <td id="td3L">Optional / Complex (XState)</td>
+                <td id="td3A">Unhandled async race bugs</td>
+                <td class="col-ortho"><strong id="td3O">Formal FSMs with BFS Reachability</strong></td>
               </tr>
               <tr>
-                <td><strong>WCAG 2.2 Accessibility</strong></td>
-                <td>⚠️ Prompt recommendations</td>
-                <td>⚠️ Radix primitives (breakable)</td>
-                <td>❌ Contrast failures frequent</td>
-                <td class="col-ortho"><strong>✅ Mathematical Luminance Matrix (AAA & AA)</strong></td>
+                <td><strong id="td4Cap">WCAG 2.2 Accessibility</strong></td>
+                <td id="td4P">Prompt recommendations</td>
+                <td id="td4L">Radix primitives (breakable)</td>
+                <td id="td4A">Contrast failures frequent</td>
+                <td class="col-ortho"><strong id="td4O">Mathematical Luminance Matrix (AAA & AA)</strong></td>
               </tr>
               <tr>
-                <td><strong>Core Web Vitals Enforcement</strong></td>
-                <td>❌ None</td>
-                <td>❌ Manual dev responsibility</td>
-                <td>❌ High CLS from unbudgeted media</td>
-                <td class="col-ortho"><strong>✅ Stream DOM Budget & Media Bounding</strong></td>
+                <td><strong id="td5Cap">Core Web Vitals Enforcement</strong></td>
+                <td id="td5P">None</td>
+                <td id="td5L">Manual dev responsibility</td>
+                <td id="td5A">High CLS from unbudgeted media</td>
+                <td class="col-ortho"><strong id="td5O">Stream DOM Budget & Media Bounding</strong></td>
               </tr>
               <tr>
-                <td><strong>External Dependencies</strong></td>
-                <td>Zero (Markdown only)</td>
-                <td>High (React, Radix, Tailwind)</td>
-                <td>Proprietary SaaS cloud</td>
-                <td class="col-ortho"><strong>Zero (Python 3 stdlib + Node built-ins)</strong></td>
+                <td><strong id="td6Cap">External Dependencies</strong></td>
+                <td id="td6P">Zero (Markdown only)</td>
+                <td id="td6L">High (React, Radix, Tailwind)</td>
+                <td id="td6A">Proprietary SaaS cloud</td>
+                <td class="col-ortho"><strong id="td6O">Zero Runtime Dependencies (Pure Web Standards)</strong></td>
               </tr>
             </tbody>
           </table>
@@ -392,11 +761,39 @@
         <a href="https://github.com/seotarek/orthotect/blob/main/MANIFESTO.md" target="_blank" rel="noopener" class="footer-link">The 7 Laws Manifesto</a>
         <a href="https://github.com/seotarek/orthotect/blob/main/LICENSE" target="_blank" rel="noopener" class="footer-link">MIT License</a>
       </div>
-      <div>
+      <div id="footerCopy">
         Orthotect &copy; 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok.
       </div>
     </div>
   </footer>
+</div>
+
+<!-- Accessible Modal Dialog Component (Governed by core/fsm/modal-dialog.json) -->
+<div id="docsModalBackdrop" class="docs-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="docsModalTitle" aria-describedby="docsModalDesc" aria-hidden="true" style="display: none;">
+  <div class="docs-modal-panel">
+    <div class="docs-modal-header">
+      <h2 id="docsModalTitle" class="docs-modal-title">Configure Production Shard</h2>
+      <button id="docsModalCloseBtn" class="btn-ctrl" style="padding-inline: 0.6rem; padding-block: 0.3rem;" aria-label="Close Dialog">✕</button>
+    </div>
+    <div class="docs-modal-body">
+      <p id="docsModalDesc">Adjust distributed shard parameters. Focus is trapped inside this dialog while active.</p>
+      <label for="docsShardInput" style="font-size: 0.8rem; font-weight: 600; color: var(--ortho-text-secondary);">Shard Identifier</label>
+      <input type="text" id="docsShardInput" class="docs-modal-input" value="shard-me-central-04" />
+      <div id="docsModalErrorBanner" class="docs-modal-error" style="display: none;" role="alert">
+        Simulated Network Exception: Gateway timeout (504). Please retry.
+      </div>
+      <div id="docsModalStatusText" style="font-size: 0.8rem; color: var(--ortho-accent-cyan); font-weight: 600;" aria-live="polite"></div>
+    </div>
+    <div class="docs-modal-footer">
+      <button id="docsModalCancelBtn" class="btn-ctrl">Cancel</button>
+      <button id="docsModalRetryBtn" class="btn-ctrl" style="display: none;">Retry</button>
+      <button id="docsModalSaveBtn" class="interactive-action-btn" style="padding-inline: 1.25rem; padding-block: 0.5rem; font-size: 0.85rem;">
+        <span id="docsModalSpinner" class="btn-spinner" style="display: none;"></span>
+        <span id="docsModalSaveLabel">Save Configuration</span>
+      </button>
+    </div>
+  </div>
+</div>
 
   <script src="app.js"></script>
 </body>
