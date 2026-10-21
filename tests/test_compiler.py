@@ -2,6 +2,7 @@ import unittest
 import subprocess
 import tempfile
 import os
+import json
 import shutil
 from core.compiler import compile_tokens, calculate_contrast
 
@@ -37,6 +38,41 @@ class TestTokenCompiler(unittest.TestCase):
         self.assertIn("surface.canvas vs content.primary", css)
         self.assertIn("WCAG AAA", css)
         self.assertIn("gates/gate_contrast_wcag.py", css)
+
+    def test_compile_tokens_with_low_contrast_fails(self):
+        """Negative test: Token compilation must FAIL with ValueError if any semantic pair violates WCAG AA (4.5:1)."""
+        bad_dir = os.path.join(self.temp_dir, 'bad_contrast_tokens')
+        os.makedirs(bad_dir, exist_ok=True)
+        
+        prims = {
+            "color": {
+                "gray": {
+                    "500": { "$value": "#777777" },
+                    "600": { "$value": "#666666" }
+                }
+            }
+        }
+        sems = {
+            "theme": {
+                "light": {
+                    "surface": {
+                        "canvas": { "$value": "{color.gray.600}" }
+                    },
+                    "content": {
+                        # #777777 on #666666 gives approx 1.3:1 contrast (severe failure)
+                        "primary": { "$value": "{color.gray.500}" }
+                    }
+                }
+            }
+        }
+        with open(os.path.join(bad_dir, 'primitives.json'), 'w') as f:
+            json.dump(prims, f)
+        with open(os.path.join(bad_dir, 'semantics.json'), 'w') as f:
+            json.dump(sems, f)
+
+        with self.assertRaises(ValueError) as ctx:
+            compile_tokens(bad_dir)
+        self.assertIn("WCAG 2.2 Contrast Failure", str(ctx.exception))
 
     def test_compile_missing_tokens_raises(self):
         empty_dir = os.path.join(self.temp_dir, 'empty')

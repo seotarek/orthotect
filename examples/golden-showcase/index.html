@@ -343,7 +343,28 @@
     </main>
   </div>
 
+  <!-- Accessible Modal Dialog Component (Governed by core/fsm/modal-dialog.json) -->
+  <div id="modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc" aria-hidden="true">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2 id="modal-title" class="modal-title">Configure Node Shard</h2>
+        <button id="btn-close-modal" class="btn btn-secondary" style="padding-inline: 0.5rem; padding-block: 0.25rem;" aria-label="Close Dialog">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="modal-desc">Adjust node replication parameters. Focus is trapped within this dialog while active.</p>
+        <label for="shard-name-input" style="font-size: 0.8rem; font-weight: 600; display: block; margin-block-start: var(--ot-space-2);">Shard Identifier</label>
+        <input type="text" id="shard-name-input" class="modal-input" value="shard-me-central-04" />
+        <div id="modal-status-text" class="modal-status" style="margin-block-start: var(--ot-space-2);" aria-live="polite"></div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-cancel-modal" class="btn btn-secondary">Cancel</button>
+        <button id="btn-submit-modal" class="btn btn-primary">Save Configuration</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    document.addEventListener("DOMContentLoaded", () => {
     // Theme toggle
     const themeBtn = document.getElementById('toggle-theme');
     themeBtn.addEventListener('click', () => {
@@ -470,27 +491,7 @@
         }
       }
     });
-
+    }); // End DOMContentLoaded
   </script>
-  <!-- Accessible Modal Dialog Component (Governed by core/fsm/modal-dialog.json) -->
-  <div id="modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc" aria-hidden="true">
-    <div class="modal-panel">
-      <div class="modal-header">
-        <h2 id="modal-title" class="modal-title">Configure Node Shard</h2>
-        <button id="btn-close-modal" class="btn btn-secondary" style="padding-inline: 0.5rem; padding-block: 0.25rem;" aria-label="Close Dialog">✕</button>
-      </div>
-      <div class="modal-body">
-        <p id="modal-desc">Adjust node replication parameters. Focus is trapped within this dialog while active.</p>
-        <label for="shard-name-input" style="font-size: 0.8rem; font-weight: 600; display: block; margin-block-start: var(--ot-space-2);">Shard Identifier</label>
-        <input type="text" id="shard-name-input" class="modal-input" value="shard-me-central-04" />
-        <div id="modal-status-text" class="modal-status" style="margin-block-start: var(--ot-space-2);" aria-live="polite"></div>
-      </div>
-      <div class="modal-footer">
-        <button id="btn-cancel-modal" class="btn btn-secondary">Cancel</button>
-        <button id="btn-submit-modal" class="btn btn-primary">Save Configuration</button>
-      </div>
-    </div>
-  </div>
-
 </body>
 </html>

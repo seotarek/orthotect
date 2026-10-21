@@ -4,6 +4,17 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-10-22
+
+### Fixed
+- **Modal Dialog DOM Execution & Lifecycle**: Fixed initialization crash (`TypeError: Cannot read properties of null`) in `examples/golden-showcase/index.html` by placing the modal markup prior to scripts in the DOM and wrapping script attachment inside `DOMContentLoaded`. Added `tests/test_modal_browser.py` asserting DOM sequence and mock headless event attachment.
+- **Strict HTML Attribute Key-Value Parser**: Replaced word-boundary regex (`/\bwidth\s*=/i`) in `gate_cwv_budget.mjs` with an attribute parser isolating exact attribute names. Prevents `data-width="800"` or custom attributes from falsely satisfying width/height requirements, and strictly rejects zero, negative, or non-numeric dimension values.
+- **Declaration-Block CSS Parser for inline styles**: Implemented standalone CSS declaration parser in `gate_cwv_budget.mjs` that isolates exact CSS properties and values. Rejects CSS custom properties like `style="--custom: aspect-ratio: 16/9"` and validates aspect ratios against W3C Box Sizing Level 4 (`auto || <ratio>`).
+- **Comprehensive HTML Stack AST & Boundary Enforcement**: Enhanced `calculateMaxDomDepth` in `gate_cwv_budget.mjs` to detect and flag unclosed non-void tags remaining at EOF, unclosed `<` tags, and mismatched closing tags.
+- **Enforced Token Contrast Quality Gate**: Elevated `core/compiler.py` contrast verification from informational output to an active quality gate. If any surface/content token pair violates the WCAG 2.2 AA (4.5:1) standard, compilation aborts with non-zero exit and explicit violation details.
+- **CI Runner Modernization**: Updated GitHub Actions CI to Node.js 22 LTS to eliminate runner deprecation notices.
+- **53 Automated Tests**: Test suite expanded to 53 comprehensive unit and integration tests with 100% pass rate.
+
 ## [1.3.0] - 2026-10-22
 
 ### Added

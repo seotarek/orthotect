@@ -51,11 +51,21 @@ def resolve_ref(val, primitives):
 
 def verify_theme_contrast(theme_dict, prims, theme_label):
     results = []
-    pairs = [
-        (('surface', 'canvas'), ('content', 'primary')),
-        (('surface', 'panel'), ('content', 'primary')),
-        (('action', 'primary'), ('content', 'inverse'))
-    ]
+    # Dynamic pairing: test all surface tokens against content.primary and content.secondary
+    surfaces = theme_dict.get('surface', {})
+    contents = theme_dict.get('content', {})
+
+    pairs = []
+    for s_name in surfaces.keys():
+        if 'primary' in contents:
+            pairs.append((('surface', s_name), ('content', 'primary')))
+        if 'secondary' in contents:
+            pairs.append((('surface', s_name), ('content', 'secondary')))
+
+    if 'primary' in theme_dict.get('action', {}) and 'inverse' in contents:
+        pairs.append((('action', 'primary'), ('content', 'inverse')))
+    if 'danger' in theme_dict.get('action', {}) and 'inverse' in contents:
+        pairs.append((('action', 'danger'), ('content', 'inverse')))
 
     for (bg_grp, bg_tok), (fg_grp, fg_tok) in pairs:
         bg_val = theme_dict.get(bg_grp, {}).get(bg_tok, {}).get('$value')
@@ -66,7 +76,14 @@ def verify_theme_contrast(theme_dict, prims, theme_label):
             res_fg = resolve_ref(fg_val, prims)
             cr = calculate_contrast(res_bg, res_fg)
             if cr is not None:
-                rating = "WCAG AAA" if cr >= 7.0 else ("WCAG AA" if cr >= 4.5 else "FAIL")
+                # Mandatory enforcement threshold: reject if below WCAG AA (4.5:1)
+                if cr < 4.5:
+                    raise ValueError(
+                        f"WCAG 2.2 Contrast Failure during token compilation: [{theme_label}] "
+                        f"{bg_grp}.{bg_tok} ({res_bg}) vs {fg_grp}.{fg_tok} ({res_fg}) "
+                        f"contrast ratio is {cr:.2f}:1 (Must be >= 4.5:1 to pass WCAG AA)."
+                    )
+                rating = "WCAG AAA" if cr >= 7.0 else "WCAG AA"
                 results.append(f" *   - [{theme_label}] {bg_grp}.{bg_tok} vs {fg_grp}.{fg_tok}: {cr:.1f}:1 ({rating})")
 
     return results

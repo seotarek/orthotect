@@ -20,25 +20,91 @@ let checkedFiles = 0;
 let errors = [];
 
 /**
+ * Parses raw HTML tag attribute string into an object dictionary.
+ * Prevents confusion between 'width' and 'data-width'.
+ */
+export function parseHtmlAttributes(attrsStr) {
+  if (!attrsStr || typeof attrsStr !== 'string') return {};
+  const attrs = {};
+  const regex = /([a-zA-Z0-9_:-]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
+  let match;
+  while ((match = regex.exec(attrsStr)) !== null) {
+    const attrName = match[1].toLowerCase();
+    const val = match[2] !== undefined ? match[2] : (match[3] !== undefined ? match[3] : (match[4] !== undefined ? match[4] : ""));
+    attrs[attrName] = val;
+  }
+  return attrs;
+}
+
+/**
+ * Validates whether an HTML width/height attribute value is a positive number.
+ * Accepts "200", "200px", "150.5".
+ * Rejects "0", "-100", "", "invalid", "auto", "100%".
+ */
+export function isPositiveDimension(val) {
+  if (val === undefined || val === null || typeof val !== 'string') return false;
+  const clean = val.trim().replace(/px$/i, '').trim();
+  if (!clean) return false;
+  if (!/^[0-9]+(?:\.[0-9]+)?$/.test(clean)) return false;
+  const num = parseFloat(clean);
+  return !isNaN(num) && num > 0;
+}
+
+/**
+ * Parses a CSS style string into an object of declared properties.
+ * Handles quoted strings and semicolons properly.
+ */
+export function parseStyleDeclarations(styleStr) {
+  if (!styleStr || typeof styleStr !== 'string') return {};
+  const decls = {};
+  let current = '';
+  let inQuote = null;
+
+  for (let i = 0; i < styleStr.length; i++) {
+    const ch = styleStr[i];
+    if (inQuote) {
+      if (ch === inQuote) inQuote = null;
+      current += ch;
+    } else if (ch === '"' || ch === "'") {
+      inQuote = ch;
+      current += ch;
+    } else if (ch === ';') {
+      const colonIdx = current.indexOf(':');
+      if (colonIdx > 0) {
+        const prop = current.slice(0, colonIdx).trim().toLowerCase();
+        const val = current.slice(colonIdx + 1).trim();
+        decls[prop] = val;
+      }
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  if (current.trim()) {
+    const colonIdx = current.indexOf(':');
+    if (colonIdx > 0) {
+      const prop = current.slice(0, colonIdx).trim().toLowerCase();
+      const val = current.slice(colonIdx + 1).trim();
+      decls[prop] = val;
+    }
+  }
+  return decls;
+}
+
+/**
  * Validates CSS aspect-ratio property value against W3C CSS Box Sizing Level 4.
  * Syntax: auto || <ratio>
  * where <ratio> = <positive-number> [ / <positive-number> ]?
  */
-export function isValidAspectRatio(styleContent) {
-  if (!styleContent || typeof styleContent !== 'string') return false;
+export function isValidAspectRatioValue(rawVal) {
+  if (!rawVal || typeof rawVal !== 'string') return false;
 
-  const match = styleContent.match(/\baspect-ratio\s*:\s*([^;]+)/i);
-  if (!match) return false;
-
-  const rawVal = match[1].trim();
-  // Strip optional 'auto' keyword (CSS Box Sizing: 'auto 16/9' or '16/9 auto')
   let val = rawVal.replace(/^\bauto\b\s*/i, '').replace(/\s*\bauto\b$/i, '').trim();
   if (!val) {
     // 'auto' alone does not provide a fixed aspect-ratio to prevent layout shift
     return false;
   }
 
-  // Ratio format: <positive-number> [ / <positive-number> ]?
   const ratioMatch = val.match(/^([0-9]*\.?[0-9]+)\s*(?:\/\s*([0-9]*\.?[0-9]+))?$/);
   if (!ratioMatch) return false;
 
@@ -49,11 +115,12 @@ export function isValidAspectRatio(styleContent) {
 }
 
 /**
- * Standards-compliant, stack-based HTML DOM depth calculator.
+ * Standards-compliant, stack-based HTML DOM depth and structural integrity validator.
  * - Safely handles attributes with quoted '<' or '>' characters.
- * - Matches open and close tags via a strict LIFO stack.
+ * - Matches open and close tags via strict LIFO stack.
+ * - Rejects mismatched closing tags and unclosed tags at EOF.
+ * - Rejects unclosed '<' opening syntax.
  * - Accounts for HTML5 void elements.
- * - Strips comments, DOCTYPE, <script>, and <style> blocks.
  */
 export function calculateMaxDomDepth(htmlContent, filePath = 'snippet') {
   const voidTags = new Set([
@@ -76,7 +143,6 @@ export function calculateMaxDomDepth(htmlContent, filePath = 'snippet') {
 
   while (i < len) {
     if (cleaned[i] === '<') {
-      // Find end of tag while respecting quoted strings
       let j = i + 1;
       let inQuote = null;
       let tagClosed = false;
@@ -84,11 +150,9 @@ export function calculateMaxDomDepth(htmlContent, filePath = 'snippet') {
       while (j < len) {
         const char = cleaned[j];
         if (inQuote) {
-          if (char === inQuote) {
-            inQuote = null; // Quote closed
-          }
+          if (char === inQuote) inQuote = null;
         } else if (char === '"' || char === "'") {
-          inQuote = char; // Quote opened
+          inQuote = char;
         } else if (char === '>') {
           tagClosed = true;
           break;
@@ -97,7 +161,7 @@ export function calculateMaxDomDepth(htmlContent, filePath = 'snippet') {
       }
 
       if (!tagClosed) {
-        // Unclosed tag syntax
+        errors.push(`${filePath}: Malformed HTML - unclosed tag opening syntax '<' at position ${i}.`);
         break;
       }
 
@@ -110,7 +174,6 @@ export function calculateMaxDomDepth(htmlContent, filePath = 'snippet') {
       const isSelfClosing = tagContent.endsWith('/');
 
       let rawName = isClosing ? tagContent.slice(1).trim() : tagContent;
-      // Extract tag name before whitespace or slash
       const nameMatch = rawName.match(/^([a-zA-Z0-9-]+)/);
       if (!nameMatch) continue;
 
@@ -126,14 +189,11 @@ export function calculateMaxDomDepth(htmlContent, filePath = 'snippet') {
           if (topTag === tagName) {
             tagStack.pop();
           } else {
-            // Mismatched closing tag detected: search stack for matching open tag
+            // Strict rejection of mismatched closing tag
+            errors.push(`${filePath}: Malformed HTML - mismatched closing tag </${tagName}>, expected </${topTag}>.`);
             const idx = tagStack.lastIndexOf(tagName);
             if (idx !== -1) {
-              // Pop down to the matching tag
               tagStack.splice(idx);
-            } else {
-              // Unmatched closing tag
-              errors.push(`${filePath}: Malformed HTML - unmatched closing tag </${tagName}>.`);
             }
           }
         } else {
@@ -150,6 +210,12 @@ export function calculateMaxDomDepth(htmlContent, filePath = 'snippet') {
     }
   }
 
+  // Check for unclosed tags remaining on the stack at EOF (excluding optional html/body)
+  const unclosed = tagStack.filter(t => t !== 'html' && t !== 'body');
+  if (unclosed.length > 0) {
+    errors.push(`${filePath}: Malformed HTML - unclosed tag(s) remaining at end of file: <${unclosed.join('>, <')}>.`);
+  }
+
   return maxDepth;
 }
 
@@ -158,23 +224,37 @@ function checkHtmlFile(filePath) {
   checkedFiles++;
 
   // 1. Strict image dimension check:
-  // Requires BOTH width and height attributes OR a mathematically valid inline CSS aspect-ratio property.
-  const imgRegex = /<img\s+([^>]*?)>/gi;
+  // Requires explicit, valid width and height attributes OR a verified CSS aspect-ratio property declaration.
+  const imgRegex = /<img\b([^>]*?)>/gi;
   let match;
   while ((match = imgRegex.exec(content)) !== null) {
-    const attrs = match[1];
-    const hasWidth = /\bwidth\s*=/i.test(attrs);
-    const hasHeight = /\bheight\s*=/i.test(attrs);
+    const rawAttrs = match[1];
+    const attrs = parseHtmlAttributes(rawAttrs);
 
-    // Strict aspect-ratio check: MUST be a declared and valid CSS property in the style attribute
-    const styleMatch = attrs.match(/\bstyle\s*=\s*["']([^"']*)["']/i);
-    const styleContent = styleMatch ? styleMatch[1] : '';
-    const hasValidAspect = isValidAspectRatio(styleContent);
-    const hasBothDimensions = hasWidth && hasHeight;
+    // Exact attribute name check (data-width will NOT match attrs['width'])
+    const hasValidWidth = isPositiveDimension(attrs['width']);
+    const hasValidHeight = isPositiveDimension(attrs['height']);
+    const hasBothDimensions = hasValidWidth && hasValidHeight;
+
+    // Strict aspect-ratio check on parsed style declarations
+    const styleDecls = parseStyleDeclarations(attrs['style'] || '');
+    let hasValidAspect = false;
+
+    if (Object.prototype.hasOwnProperty.call(styleDecls, 'aspect-ratio')) {
+      const aspectVal = styleDecls['aspect-ratio'];
+      hasValidAspect = isValidAspectRatioValue(aspectVal);
+      if (!hasValidAspect) {
+        errors.push(`${filePath}: <img> has invalid CSS aspect-ratio value in style attribute ("${aspectVal}"). Must be a positive ratio (e.g. "16/9" or "1").`);
+      }
+    }
 
     if (!hasBothDimensions && !hasValidAspect) {
-      if (/\baspect-ratio\b/i.test(styleContent)) {
-        errors.push(`${filePath}: <img> has invalid CSS aspect-ratio value in style attribute ("${styleContent}"). Must be a positive ratio like "16/9" or "1".`);
+      if (attrs['data-width'] || attrs['data-height']) {
+        errors.push(`${filePath}: <img> uses data-width/data-height instead of native HTML width/height attributes or CSS aspect-ratio.`);
+      } else if (!hasValidWidth && 'width' in attrs) {
+        errors.push(`${filePath}: <img> has invalid width attribute value ("${attrs['width']}"). Must be a positive number.`);
+      } else if (!hasValidHeight && 'height' in attrs) {
+        errors.push(`${filePath}: <img> has invalid height attribute value ("${attrs['height']}"). Must be a positive number.`);
       } else {
         errors.push(`${filePath}: <img> tag lacks complete dimensions (requires BOTH width and height attributes, or a valid inline CSS aspect-ratio property to prevent CLS layout shift).`);
       }
@@ -185,14 +265,14 @@ function checkHtmlFile(filePath) {
   const headMatch = content.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
   if (headMatch) {
     const headContent = headMatch[1];
-    const scriptRegex = /<script\s+([^>]*?)>/gi;
+    const scriptRegex = /<script\b([^>]*?)>/gi;
     let sMatch;
     while ((sMatch = scriptRegex.exec(headContent)) !== null) {
-      const sAttrs = sMatch[1];
-      const isAsync = /\basync\b/i.test(sAttrs);
-      const isDefer = /\bdefer\b/i.test(sAttrs);
-      const isModule = /type=["']module["']/i.test(sAttrs);
-      const isInline = !/\bsrc\s*=/i.test(sAttrs);
+      const sAttrs = parseHtmlAttributes(sMatch[1]);
+      const isAsync = 'async' in sAttrs;
+      const isDefer = 'defer' in sAttrs;
+      const isModule = sAttrs['type'] === 'module';
+      const isInline = !('src' in sAttrs);
       if (!isInline && !isAsync && !isDefer && !isModule) {
         errors.push(`${filePath}: Synchronous blocking <script> in <head> without defer/async.`);
       }
