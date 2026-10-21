@@ -1,26 +1,26 @@
 #!/usr/bin/env python3
 """
-Orthotect Gate: Finite State Machine (FSM) Integrity Checker
-Ensures that all async operations and interactive components:
-- Explicitly declare valid initialState and valid states
-- Graph reachability: all states are reachable from initialState
-- Deadlock prevention and async error recovery transitions
-- Prevent double-submission locks during loading
+Orthotect Gate: FSM State Machine Integrity & Deadlock Detector
+Validates that UI state machines:
+  1. Have reachable states from initialState (Graph Reachability)
+  2. All asynchronous in-flight states (loading, submitting, fetching, etc.) enforce interaction locks (allowClick: false)
+  3. Every asynchronous state provides an explicit error recovery transition
+  4. Contain no deadlocks or broken transition targets
 """
-import sys
-import os
 import json
+import os
+import sys
 from collections import deque
 
-def check_fsm_file(fpath):
+def check_fsm_file(file_path):
     violations = []
-    fname = os.path.basename(fpath)
+    fname = os.path.basename(file_path)
 
     try:
-        with open(fpath, 'r', encoding='utf-8') as f:
+        with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
     except Exception as e:
-        return [f"{fname}: Invalid JSON syntax: {e}"]
+        return [f"{fname}: Failed to parse JSON ({e})"]
 
     # 1. Schema integrity
     if not isinstance(data, dict):
@@ -36,8 +36,7 @@ def check_fsm_file(fpath):
     elif initial_state not in states:
         violations.append(f"{fname}: initialState '{initial_state}' does not exist in declared states.")
 
-    # 2. Transition target validity & double-submission check
-    all_targets = set()
+    # 2. Transition target validity
     for state_name, state_def in states.items():
         if not isinstance(state_def, dict):
             violations.append(f"{fname}: State definition for '{state_name}' must be an object.")
@@ -49,21 +48,36 @@ def check_fsm_file(fpath):
             continue
 
         for trigger, target in transitions.items():
-            all_targets.add(target)
             if target not in states:
                 violations.append(f"{fname}: State '{state_name}' has transition '{trigger}' -> undefined target '{target}'.")
 
-    # 3. Loading state lock validation
-    if 'loading' in states:
-        loading_state = states['loading']
-        if loading_state.get('allowClick', False) is True:
-            violations.append(f"{fname}: 'loading' state must lock pointer/keyboard actions (allowClick: false) to prevent race conditions.")
-        
-        # Must have an error transition from loading
-        loading_transitions = list(loading_state.get('on', {}).values())
-        has_error_recovery = any('error' in t.lower() or 'fail' in t.lower() or 'reject' in t.lower() for t in loading_transitions)
-        if not has_error_recovery:
-            violations.append(f"{fname}: 'loading' state must have an explicit error/failure transition for resilience.")
+    # 3. Asynchronous execution & submission lock validation
+    # Generalizes beyond 'loading' to any state representing in-flight work (e.g. submitting, fetching, pending)
+    async_keywords = {'loading', 'submitting', 'pending', 'processing', 'fetching', 'skeletonloading', 'syncing'}
+
+    for state_name, state_def in states.items():
+        if not isinstance(state_def, dict):
+            continue
+
+        name_lower = state_name.lower()
+        is_async_by_name = any(kw in name_lower for kw in async_keywords)
+        is_explicitly_async = (state_def.get('isAsync') is True or
+                               state_def.get('isLocked') is True or
+                               state_def.get('locked') is True or
+                               ('allowClick' in state_def and state_def.get('allowClick') is False))
+
+        if is_async_by_name or is_explicitly_async:
+            # Race condition lock check: MUST lock pointer/keyboard actions (allowClick: false)
+            if state_def.get('allowClick', False) is True:
+                violations.append(f"{fname}: '{state_name}' state must lock pointer/keyboard actions (allowClick: false) to prevent race conditions.")
+            elif 'allowClick' not in state_def and not state_def.get('locked') and not state_def.get('isLocked'):
+                violations.append(f"{fname}: '{state_name}' state must explicitly declare 'allowClick: false' to prevent double-submission race conditions.")
+
+            # Resilience check: Must have an explicit error/failure transition for recovery
+            transitions = list(state_def.get('on', {}).values())
+            has_error_recovery = any('error' in t.lower() or 'fail' in t.lower() or 'reject' in t.lower() for t in transitions)
+            if not has_error_recovery:
+                violations.append(f"{fname}: '{state_name}' state must have an explicit error/failure transition for resilience.")
 
     # 4. Graph reachability check (BFS from initialState)
     if initial_state and initial_state in states:
@@ -139,7 +153,7 @@ def main():
         print(f"\n✅ [PASS] All {len(json_files)} FSM state models verified successfully!")
         sys.exit(0)
     else:
-        print(f"\n❌ [REJECT] Found {len(all_violations)} state machine flaw(s):")
+        print(f"\n❌ [REJECT] Found {len(all_violations)} FSM integrity violation(s):")
         for v in all_violations:
             print(f"   - {v}")
         sys.exit(1)

@@ -299,16 +299,36 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Gate 3: Core Web Vitals & Media Dimensions
+      function isValidAspectRatio(styleContent) {
+        if (!styleContent) return false;
+        const match = styleContent.match(/\baspect-ratio\s*:\s*([^;]+)/i);
+        if (!match) return false;
+        let val = match[1].trim().replace(/^\bauto\b\s*/i, "").replace(/\s*\bauto\b$/i, "").trim();
+        if (!val) return false;
+        const ratioMatch = val.match(/^([0-9]*\.?[0-9]+)\s*(?:\/\s*([0-9]*\.?[0-9]+))?$/);
+        if (!ratioMatch) return false;
+        const w = parseFloat(ratioMatch[1]);
+        const h = ratioMatch[2] !== undefined ? parseFloat(ratioMatch[2]) : 1.0;
+        return !isNaN(w) && !isNaN(h) && w > 0 && h > 0;
+      }
+
       const hasImg = /<img\b[^>]*>/i.test(code);
       if (hasImg) {
         const hasWidth = /\bwidth\s*=/i.test(code);
         const hasHeight = /\bheight\s*=/i.test(code);
-        const hasAspect = /aspect-ratio\s*:/i.test(code);
-        if ((hasWidth && hasHeight) || hasAspect) {
+        const styleMatch = code.match(/style\s*=\s*["']([^"']*)["']/i);
+        const styleContent = styleMatch ? styleMatch[1] : "";
+        const hasValidAspect = isValidAspectRatio(styleContent);
+
+        if ((hasWidth && hasHeight) || hasValidAspect) {
           logLine("<span class='gate-badge pass'>PASS</span> <strong>DOM & Media Aspect-Ratio:</strong> Media dimensions bounded, CLS = 0.00.");
         } else {
           allPassed = false;
-          logLine("<span class='gate-badge fail'>FAIL</span> <strong>DOM & Media Aspect-Ratio:</strong> <code>&lt;img&gt;</code> missing explicit width/height or aspect-ratio (Causes CLS).");
+          if (/\baspect-ratio\b/i.test(styleContent)) {
+            logLine("<span class='gate-badge fail'>FAIL</span> <strong>DOM & Media Aspect-Ratio:</strong> Invalid CSS aspect-ratio syntax. Must be a positive ratio (e.g. <code>16/9</code>).");
+          } else {
+            logLine("<span class='gate-badge fail'>FAIL</span> <strong>DOM & Media Aspect-Ratio:</strong> <code>&lt;img&gt;</code> lacks complete dimensions (requires BOTH width and height attributes, or a valid inline CSS aspect-ratio property).");
+          }
         }
       } else {
         logLine("<span class='gate-badge pass'>PASS</span> <strong>DOM & Media Aspect-Ratio:</strong> No unbudgeted media shifts detected.");

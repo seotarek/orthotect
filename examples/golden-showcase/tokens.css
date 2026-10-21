@@ -1,7 +1,16 @@
 /**
  * Orthotect Design System Tokens
  * Generated deterministically from W3C DTCG token architecture.
- * 100% Directional-Neutral & WCAG 2.2 Compliant.
+ * Directional-Neutral (100% CSS Logical Properties).
+ *
+ * Semantic Contrast Verification (WCAG 2.2 Math):
+ *   - [light] surface.canvas vs content.primary: 17.1:1 (WCAG AAA)
+ *   - [light] surface.panel vs content.primary: 17.9:1 (WCAG AAA)
+ *   - [light] action.primary vs content.inverse: 7.9:1 (WCAG AAA)
+ *   - [dark] surface.canvas vs content.primary: 19.3:1 (WCAG AAA)
+ *   - [dark] surface.panel vs content.primary: 17.1:1 (WCAG AAA)
+ *   - [dark] action.primary vs content.inverse: 6.3:1 (WCAG AA)
+ * Note: Full interface markup contrast is certified via gates/gate_contrast_wcag.py.
  */
 
 :root {

@@ -4,6 +4,16 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-10-22
+
+### Added
+- **CSS aspect-ratio Syntax Validator**: `gate_cwv_budget.mjs` validates full W3C CSS Box Sizing Level 4 syntax (`auto || <ratio>`), rejecting non-numeric values (`invalid-value`, `0/0`, `none`).
+- **Stack-Based HTML DOM Parser**: Replaced tag regex in `calculateMaxDomDepth` with an AST stack tokenizer that tracks open/close tags, balances void elements, and flags mismatched closing tags and malformed HTML.
+- **Generalized FSM Async & Submission Locks**: `gate_fsm_integrity.py` dynamically identifies any async in-flight execution state (`loading`, `submitting`, `pending`, `processing`, `fetching`, etc.) and enforces `allowClick: false` and error recovery transitions.
+- **DTCG Compiler Mathematical Contrast Verification**: `core/compiler.py` computes relative luminance and exact contrast ratios for semantic token pairs during compilation, certifying ratings (AAA / AA) in the generated CSS header comment.
+- **Executable Modal Dialog Reference Component**: Added a fully functional, accessible modal dialog with focus trapping, backdrop lock, and FSM interaction locks in `examples/golden-showcase`.
+- **48 Automated Tests**: Expanded test suite to 48 tests covering invalid aspect ratio syntax, mismatched closing tags, submitting lock enforcement, and compile-time contrast math.
+
 ## [1.2.0] - 2026-10-22
 
 ### Added

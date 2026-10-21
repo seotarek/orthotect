@@ -13,7 +13,8 @@
         "DATA_LOADED": "ready",
         "EMPTY_RESULT": "emptyState",
         "LOAD_FAILED": "errorState"
-      }
+      },
+      "allowClick": false
     },
     "ready": {
       "on": {

@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: 20
 
-      - name: Run 39 Unit & E2E Integration Tests
+      - name: Run 48 Unit & E2E Integration Tests
         run: |
           npm test
 

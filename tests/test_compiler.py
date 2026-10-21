@@ -3,7 +3,7 @@ import subprocess
 import tempfile
 import os
 import shutil
-from core.compiler import compile_tokens
+from core.compiler import compile_tokens, calculate_contrast
 
 class TestTokenCompiler(unittest.TestCase):
     def setUp(self):
@@ -15,13 +15,28 @@ class TestTokenCompiler(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_compile_tokens_python_api(self):
+    def test_contrast_math_calculation(self):
+        # White vs Black should be 21.0:1
+        cr = calculate_contrast('#ffffff', '#000000')
+        self.assertAlmostEqual(cr, 21.0, places=1)
+
+        # Low contrast pair #4b5563 vs #0d1117 should fail WCAG AA (around 2.3:1)
+        cr_low = calculate_contrast('#4b5563', '#0d1117')
+        self.assertLess(cr_low, 3.0)
+
+    def test_compile_tokens_python_api_includes_verified_contrast(self):
         css = compile_tokens(self.tokens_dir)
         self.assertIn(":root {", css)
         self.assertIn('--ot-surface-canvas:', css)
         self.assertIn('--ot-action-primary:', css)
         self.assertIn('[data-theme="dark"] {', css)
         self.assertIn('@media (prefers-color-scheme: dark)', css)
+        
+        # Verify that compiler calculates and logs exact WCAG contrast in header comment
+        self.assertIn("Semantic Contrast Verification (WCAG 2.2 Math):", css)
+        self.assertIn("surface.canvas vs content.primary", css)
+        self.assertIn("WCAG AAA", css)
+        self.assertIn("gates/gate_contrast_wcag.py", css)
 
     def test_compile_missing_tokens_raises(self):
         empty_dir = os.path.join(self.temp_dir, 'empty')
@@ -39,6 +54,7 @@ class TestTokenCompiler(unittest.TestCase):
             content = f.read()
         self.assertIn('--ot-surface-canvas:', content)
         self.assertIn('--ot-action-danger:', content)
+        self.assertIn('Semantic Contrast Verification', content)
 
 if __name__ == '__main__':
     unittest.main()

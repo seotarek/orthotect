@@ -185,6 +185,71 @@
     .is-loading .spinner {
       display: inline-block;
     }
+  
+    /* Modal Dialog FSM styles (Strict Logical Properties & DTCG Tokens) */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-backdrop.is-open {
+      display: flex;
+    }
+    .modal-panel {
+      background-color: var(--ot-surface-panel);
+      border: 1px solid var(--ot-border-subtle);
+      border-radius: var(--ot-radius-lg);
+      padding: var(--ot-space-6);
+      max-width: 480px;
+      width: 90%;
+      display: flex;
+      flex-direction: column;
+      gap: var(--ot-space-4);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      text-align: start;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--ot-content-primary);
+    }
+    .modal-body {
+      font-size: 0.9rem;
+      color: var(--ot-content-secondary);
+      line-height: 1.5;
+    }
+    .modal-input {
+      width: 100%;
+      padding-inline: var(--ot-space-3);
+      padding-block: var(--ot-space-2);
+      border: 1px solid var(--ot-border-subtle);
+      border-radius: var(--ot-radius-md);
+      background-color: var(--ot-surface-subtle);
+      color: var(--ot-content-primary);
+      font-family: inherit;
+      font-size: 0.9rem;
+      margin-block-start: var(--ot-space-2);
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--ot-space-3);
+    }
+    .modal-status {
+      font-size: 0.8rem;
+      color: var(--ot-action-primary);
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -234,6 +299,9 @@
         <button class="btn btn-primary" id="btn-deploy">
           <span class="spinner" aria-hidden="true"></span>
           <span class="btn-label">Deploy Service</span>
+        </button>
+        <button class="btn btn-secondary" id="btn-open-modal">
+          Configure Node Shard
         </button>
         <button class="btn btn-danger" id="btn-rollback">
           Rollback Release
@@ -313,6 +381,116 @@
         }, 1500);
       }, 1200);
     });
+  
+    // Modal Dialog FSM Implementation
+    const openModalBtn = document.getElementById('btn-open-modal');
+    const modalBackdrop = document.getElementById('modal-backdrop');
+    const closeModalBtn = document.getElementById('btn-close-modal');
+    const cancelModalBtn = document.getElementById('btn-cancel-modal');
+    const submitModalBtn = document.getElementById('btn-submit-modal');
+    const modalInput = document.getElementById('shard-name-input');
+    const modalStatus = document.getElementById('modal-status-text');
+
+    let modalFsmState = 'closed';
+
+    function transitionModal(toState) {
+      modalFsmState = toState;
+      if (toState === 'opening') {
+        modalBackdrop.classList.add('is-open');
+        modalBackdrop.setAttribute('aria-hidden', 'false');
+        setTimeout(() => transitionModal('open'), 40);
+      } else if (toState === 'open') {
+        modalInput.disabled = false;
+        submitModalBtn.disabled = false;
+        cancelModalBtn.disabled = false;
+        closeModalBtn.disabled = false;
+        modalStatus.textContent = '';
+        modalInput.focus();
+      } else if (toState === 'submitting') {
+        // allowClick: false (Race condition lock)
+        modalInput.disabled = true;
+        submitModalBtn.disabled = true;
+        cancelModalBtn.disabled = true;
+        closeModalBtn.disabled = true;
+        modalStatus.textContent = 'Submitting configuration (interactions locked)...';
+        setTimeout(() => transitionModal('successFeedback'), 900);
+      } else if (toState === 'successFeedback') {
+        modalStatus.textContent = '✓ Shard configured successfully!';
+        setTimeout(() => transitionModal('closing'), 700);
+      } else if (toState === 'closing') {
+        modalBackdrop.classList.remove('is-open');
+        modalBackdrop.setAttribute('aria-hidden', 'true');
+        modalFsmState = 'closed';
+        openModalBtn.focus();
+      }
+    }
+
+    openModalBtn.addEventListener('click', () => {
+      if (modalFsmState === 'closed') transitionModal('opening');
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+      if (modalFsmState === 'open') transitionModal('closing');
+    });
+
+    cancelModalBtn.addEventListener('click', () => {
+      if (modalFsmState === 'open') transitionModal('closing');
+    });
+
+    submitModalBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (modalFsmState === 'open') transitionModal('submitting');
+    });
+
+    modalBackdrop.addEventListener('click', (e) => {
+      if (e.target === modalBackdrop && modalFsmState === 'open') transitionModal('closing');
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (modalFsmState === 'closed') return;
+
+      if (e.key === 'Escape' && modalFsmState === 'open') {
+        e.preventDefault();
+        transitionModal('closing');
+        return;
+      }
+
+      if (e.key === 'Tab' && (modalFsmState === 'open' || modalFsmState === 'submitting')) {
+        const focusables = modalBackdrop.querySelectorAll('button:not(:disabled), input:not(:disabled)');
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    });
+
   </script>
+  <!-- Accessible Modal Dialog Component (Governed by core/fsm/modal-dialog.json) -->
+  <div id="modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc" aria-hidden="true">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2 id="modal-title" class="modal-title">Configure Node Shard</h2>
+        <button id="btn-close-modal" class="btn btn-secondary" style="padding-inline: 0.5rem; padding-block: 0.25rem;" aria-label="Close Dialog">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="modal-desc">Adjust node replication parameters. Focus is trapped within this dialog while active.</p>
+        <label for="shard-name-input" style="font-size: 0.8rem; font-weight: 600; display: block; margin-block-start: var(--ot-space-2);">Shard Identifier</label>
+        <input type="text" id="shard-name-input" class="modal-input" value="shard-me-central-04" />
+        <div id="modal-status-text" class="modal-status" style="margin-block-start: var(--ot-space-2);" aria-live="polite"></div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-cancel-modal" class="btn btn-secondary">Cancel</button>
+        <button id="btn-submit-modal" class="btn btn-primary">Save Configuration</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
