@@ -237,13 +237,32 @@ class TestCWVBudgetGate(unittest.TestCase):
         self.assertIn("Excessive DOM depth", res.stdout)
         self.assertNotIn("RangeError: Maximum call stack size exceeded", res.stderr)
 
-    def test_no_html_files_rejected(self):
-        """Negative test: directory with no .html files must fail with non-zero exit code."""
-        empty_dir = os.path.join(self.temp_dir, 'empty_sub')
-        os.makedirs(empty_dir, exist_ok=True)
-        res = self.run_gate(empty_dir)
+    def test_empty_html_file_rejected(self):
+        """Negative test: completely empty HTML file must be rejected as non-scannable."""
+        html_file = os.path.join(self.temp_dir, 'empty.html')
+        with open(html_file, 'w') as f:
+            f.write('')
+        res = self.run_gate(self.temp_dir)
         self.assertNotEqual(res.returncode, 0)
-        self.assertIn("No markup (.html) files found to inspect", res.stdout)
+        self.assertIn("Empty or non-scannable HTML file", res.stdout)
+
+    def test_comment_only_html_file_rejected(self):
+        """Negative test: HTML file with only comments must be rejected as non-scannable."""
+        html_file = os.path.join(self.temp_dir, 'comments.html')
+        with open(html_file, 'w') as f:
+            f.write('<!-- Just an HTML comment with no markup -->')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Empty or non-scannable HTML file", res.stdout)
+
+    def test_html5_optional_closing_tags_pass(self):
+        """Standard compliance test: Valid HTML5 optional closing tags (li, p, tr, td) must pass."""
+        html_file = os.path.join(self.temp_dir, 'valid_lists.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Test</title></head><body><ul><li>Item 1<li>Item 2<li>Item 3</ul></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("PASS", res.stdout)
 
 if __name__ == '__main__':
     unittest.main()

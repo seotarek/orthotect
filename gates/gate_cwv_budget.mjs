@@ -5,17 +5,22 @@
  */
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 import * as parse5 from 'parse5';
 
-console.log("═══════════════════════════════════════════════════════════════");
-console.log("  ORTHOTECT GATE: DOM Structure & Layout-Shift Budget");
-console.log("═══════════════════════════════════════════════════════════════");
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
-const targetDir = process.argv[2] || 'examples';
-if (!fs.existsSync(targetDir)) {
-  console.error(`❌ [REJECT] Target path not found: ${targetDir}`);
-  process.exit(1);
+let targetDir = 'examples';
+if (isMain) {
+  console.log("═══════════════════════════════════════════════════════════════");
+  console.log("  ORTHOTECT GATE: DOM Structure & Layout-Shift Budget");
+  console.log("═══════════════════════════════════════════════════════════════");
+  targetDir = process.argv[2] || 'examples';
+  if (!fs.existsSync(targetDir)) {
+    console.error(`❌ [REJECT] Target path not found: ${targetDir}`);
+    process.exit(1);
+  }
 }
 
 let checkedFiles = 0;
@@ -257,6 +262,11 @@ function checkHtmlFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8');
   checkedFiles++;
 
+  if (!content || !content.trim() || !content.replace(/<!--[\s\S]*?-->/g, '').trim()) {
+    errors.push(`${filePath}: Empty or non-scannable HTML file (empty, whitespace-only, or comment-only). Orthotect requires valid markup to verify DOM and layout budgets.`);
+    return;
+  }
+
   const doc = parse5.parse(content);
 
   // 1. Strict image dimension check on parsed AST:
@@ -322,33 +332,35 @@ function checkHtmlFile(filePath) {
   }
 }
 
-if (fs.statSync(targetDir).isFile() && targetDir.endsWith('.html')) {
-  checkHtmlFile(targetDir);
-} else {
-  const scan = (dir) => {
-    for (const f of fs.readdirSync(dir)) {
-      const full = path.join(dir, f);
-      if (fs.statSync(full).isDirectory()) {
-        if (!['node_modules', '.git', 'dist'].includes(f)) scan(full);
-      } else if (f.endsWith('.html')) {
-        checkHtmlFile(full);
+if (isMain) {
+  if (fs.statSync(targetDir).isFile() && targetDir.endsWith('.html')) {
+    checkHtmlFile(targetDir);
+  } else {
+    const scan = (dir) => {
+      for (const f of fs.readdirSync(dir)) {
+        const full = path.join(dir, f);
+        if (fs.statSync(full).isDirectory()) {
+          if (!['node_modules', '.git', 'dist'].includes(f)) scan(full);
+        } else if (f.endsWith('.html')) {
+          checkHtmlFile(full);
+        }
       }
-    }
-  };
-  scan(targetDir);
-}
+    };
+    scan(targetDir);
+  }
 
-if (checkedFiles === 0) {
-  console.log(`\n❌ [REJECT] No markup (.html) files found to inspect in: ${targetDir}`);
-  console.log("   Orthotect requires markup files to verify DOM budgets and CLS avoidance.");
-  process.exit(1);
-}
+  if (checkedFiles === 0) {
+    console.log(`\n❌ [REJECT] No markup (.html) files found to inspect in: ${targetDir}`);
+    console.log("   Orthotect requires markup files to verify DOM budgets and CLS avoidance.");
+    process.exit(1);
+  }
 
-if (errors.length === 0) {
-  console.log(`\n✅ [PASS] Layout-Shift & DOM budgets passed across ${checkedFiles} file(s)!`);
-  process.exit(0);
-} else {
-  console.log(`\n❌ [REJECT] Found ${errors.length} structural budget violation(s):`);
-  errors.forEach(e => console.log(`   - ${e}`));
-  process.exit(1);
+  if (errors.length === 0) {
+    console.log(`\n✅ [PASS] Layout-Shift & DOM budgets passed across ${checkedFiles} file(s)!`);
+    process.exit(0);
+  } else {
+    console.log(`\n❌ [REJECT] Found ${errors.length} structural budget violation(s):`);
+    errors.forEach(e => console.log(`   - ${e}`));
+    process.exit(1);
+  }
 }

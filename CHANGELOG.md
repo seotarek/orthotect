@@ -4,6 +4,23 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2026-10-22
+
+### Fixed
+- **Skill Builder Real Validation (`docs/app.js`)**: `updateSkillBuilderPreview()` now separates raw field values from display-fallback values. Badge correctly shows **Incomplete Fields** (not **Valid Structure**) when name/description/steps are empty. Download and Copy buttons run `validateSkillBuilderFields()` before acting — empty or invalid inputs inject `aria-invalid` + red `<span role="alert">` error messages next to each field and **block the download entirely**, preventing incomplete `SKILL.md` generation. Errors clear automatically when the user types in the fixed field.
+- **Gate Simulator Honesty — NOT_EVALUATED (`docs/app.js`)**: Replaced three false PASS results with proper states:
+  - **WCAG Contrast**: shows `⏭ NOT_EVALUATED` when fewer than two hex color values are found in the input instead of the previous silent `✅ PASS`.
+  - **FSM Integrity**: now attempts to `JSON.parse()` the input looking for an object with `states` and `initialState`; shows `⏭ NOT_EVALUATED` when no FSM JSON is detected (was a hardcoded `✅ PASS`).
+  - **DOM Depth**: replaced `div`-tag count heuristic with a real tag-scanner that walks open/close tags (skipping void elements) and tracks maximum nesting depth; now also emits `✅ PASS` when depth is within budget.
+- **Gate Simulator Disclaimer (`docs/app.js`)**: Header line now reads "Educational Client-Side Simulation — not actual gate execution" (was ambiguously "Educational Client-Side Evaluation").
+- **`gate_cwv_budget.mjs` Side-Effect Guard**: Added `isMain` guard and `fileURLToPath` import so the file can be imported in tests without triggering CLI side effects.
+- **Empty / Comment-Only HTML Rejection (`gate_cwv_budget.mjs`)**: Gate now rejects HTML files that are blank or contain only comments with a clear error message.
+
+### Added
+- **Skill Builder Empty-Form Rejection Browser Test (`tests/test_docs_browser.py`)**: New Playwright test (`test_skill_builder_empty_form_rejection`) verifies that clicking Download with empty required fields: (1) does NOT fire a download event, (2) injects `#sbNameError` with a descriptive message, (3) badge shows **Incomplete**; then re-validates that filling all fields makes the badge say **Valid**.
+- **Skills Sync Test (`tests/test_skills_sync.py`)**: 3 new tests validating every `skills/*/SKILL.md` has valid YAML frontmatter and that `docs/app.js` skill catalog IDs exactly match the `skills/` directory on disk.
+- **86 Automated Tests**: Test suite expanded from 75 to 86 unit, AST, browser, and sync integration tests with 100% pass rate.
+
 ## [1.5.0] - 2026-10-22
 
 ### Added

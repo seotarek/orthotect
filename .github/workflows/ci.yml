@@ -26,7 +26,7 @@ jobs:
         run: |
           npm ci
 
-      - name: Run 75 Unit & E2E Integration Tests
+      - name: Run 86 Unit & E2E Integration Tests
         run: |
           npm test
 

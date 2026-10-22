@@ -535,10 +535,10 @@ document.addEventListener("DOMContentLoaded", () => {
           <!-- State Switcher Bar for Playground Inspection -->
           <div style="display: flex; align-items: center; gap: 0.5rem; background-color: var(--ortho-surface-2); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.8rem;">
             <span style="font-weight: 600;">Simulate FSM State:</span>
-            <button class="btn-ctrl active-dt-state" data-state="ready" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Ready (Normal)</button>
-            <button class="btn-ctrl" data-state="loading" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Loading</button>
-            <button class="btn-ctrl" data-state="empty" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Empty</button>
-            <button class="btn-ctrl" data-state="error" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Error</button>
+            <button class="btn-ctrl active-dt-state" data-state="ready" id="dtBtnActive" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Ready (Normal)</button>
+            <button class="btn-ctrl" data-state="loading" id="dtBtnSkeleton" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Loading</button>
+            <button class="btn-ctrl" data-state="empty" id="dtBtnEmpty" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Empty</button>
+            <button class="btn-ctrl" data-state="error" id="dtBtnError" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Error</button>
           </div>
 
           <div id="dtDynamicArea" class="data-table-wrap">
@@ -703,18 +703,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Attach interactive listeners for the rendered component
     if (activePlaygroundComponent === "datatable") {
-      document.querySelectorAll(".active-dt-state").forEach(b => {
+      document.querySelectorAll("[data-state]").forEach(b => {
         b.addEventListener("click", () => {
           // Switch state simulation
           const st = b.getAttribute("data-state");
           const area = document.getElementById("dtDynamicArea");
           if (!area) return;
           if (st === "loading") {
-            area.innerHTML = `<div style="padding: 3rem; text-align: center;"><div class="btn-spinner" style="inline-size: 24px; block-size: 24px;"></div><p style="margin-block-start: 0.5rem; font-size: 0.85rem; color: var(--ortho-text-muted);">Fetching cluster records...</p></div>`;
+            area.innerHTML = `
+              <div class="skeleton-loading-rows" style="display: flex; flex-direction: column; gap: 0.75rem; padding: 1.5rem; background-color: var(--ortho-surface-1);">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-block-end: 0.5rem;">
+                  <div class="btn-spinner" style="inline-size: 16px; block-size: 16px;"></div>
+                  <span style="font-size: 0.8rem; color: var(--ortho-text-muted);">Fetching cluster records (Skeleton loading state)...</span>
+                </div>
+                <div class="skeleton-bar" style="inline-size: 100%; block-size: 24px; background-color: var(--ortho-surface-2); border-radius: var(--radius-sm);"></div>
+                <div class="skeleton-bar" style="inline-size: 85%; block-size: 24px; background-color: var(--ortho-surface-2); border-radius: var(--radius-sm);"></div>
+                <div class="skeleton-bar" style="inline-size: 92%; block-size: 24px; background-color: var(--ortho-surface-2); border-radius: var(--radius-sm);"></div>
+              </div>
+            `;
           } else if (st === "empty") {
-            area.innerHTML = `<div style="padding: 3rem; text-align: center; color: var(--ortho-text-muted);"><p>No records match the active criteria.</p></div>`;
+            area.innerHTML = `<div style="padding: 3rem; text-align: center; color: var(--ortho-text-muted);"><p>No matching records found in active cluster partition.</p></div>`;
           } else if (st === "error") {
-            area.innerHTML = `<div style="padding: 2rem; background-color: var(--ortho-danger-bg); color: var(--ortho-danger); text-align: center; border-radius: var(--radius-sm);"><p>Gateway 504: Failed to load records.</p><button class="btn-ctrl" style="margin-block-start: 0.5rem;" onclick="location.hash='#playground'">Retry</button></div>`;
+            area.innerHTML = `<div style="padding: 2rem; background-color: var(--ortho-danger-bg); color: var(--ortho-danger); text-align: center; border-radius: var(--radius-sm);"><p>Gateway 504: Data Pipeline Failure. Failed to stream records.</p><button class="btn-ctrl" style="margin-block-start: 0.5rem;" onclick="location.hash='#playground'">Retry</button></div>`;
           } else {
             updatePlayground();
           }
@@ -729,11 +739,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Playground tab switching
-  document.querySelectorAll(".pg-tab").forEach(tab => {
+  document.querySelectorAll(".pg-tab, .pg-btn").forEach(tab => {
     tab.addEventListener("click", () => {
-      document.querySelectorAll(".pg-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".pg-tab, .pg-btn").forEach(t => t.classList.remove("active"));
       tab.classList.add("active");
-      activePlaygroundComponent = tab.getAttribute("data-pg") || "analytics";
+      activePlaygroundComponent = tab.getAttribute("data-pg") || tab.getAttribute("data-comp") || "analytics";
       updatePlayground();
     });
   });
@@ -822,11 +832,63 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================================================================
   // 6. SKILL BUILDER ENGINE
   // =========================================================================
+  function validateSkillBuilderFields() {
+    const errors = [];
+    const nameEl = document.getElementById("sbName");
+    const descEl = document.getElementById("sbDesc");
+    const stepsEl = document.getElementById("sbSteps");
+
+    const rawName = nameEl ? nameEl.value.trim() : "";
+    const rawDesc = descEl ? descEl.value.trim() : "";
+    const rawSteps = stepsEl ? stepsEl.value.trim() : "";
+
+    if (!rawName) errors.push({ field: "sbName", msg: "Skill name is required." });
+    else if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(rawName)) errors.push({ field: "sbName", msg: "Name must be kebab-case (e.g. my-skill)." });
+
+    if (!rawDesc) errors.push({ field: "sbDesc", msg: "Description is required." });
+    else if (rawDesc.length > 1024) errors.push({ field: "sbDesc", msg: "Description must be under 1024 characters." });
+
+    if (!rawSteps) errors.push({ field: "sbSteps", msg: "At least one execution step is required." });
+
+    return errors;
+  }
+
+  function showSkillBuilderFieldErrors(errors) {
+    // Clear all previous errors
+    ["sbName", "sbDesc", "sbInputs", "sbSteps", "sbDod"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.style.borderColor = "";
+        el.removeAttribute("aria-invalid");
+      }
+      const errEl = document.getElementById(id + "Error");
+      if (errEl) errEl.remove();
+    });
+
+    errors.forEach(({ field, msg }) => {
+      const el = document.getElementById(field);
+      if (!el) return;
+      el.style.borderColor = "var(--ortho-error, #ef4444)";
+      el.setAttribute("aria-invalid", "true");
+      // Insert error message after the field
+      const errEl = document.createElement("span");
+      errEl.id = field + "Error";
+      errEl.role = "alert";
+      errEl.style.cssText = "color: var(--ortho-error, #ef4444); font-size: 0.78rem; display: block; margin-top: 2px;";
+      errEl.textContent = msg;
+      el.insertAdjacentElement("afterend", errEl);
+    });
+  }
+
   function updateSkillBuilderPreview() {
-    const name = (document.getElementById("sbName") ? document.getElementById("sbName").value.trim() : "") || "my-custom-skill";
-    const desc = (document.getElementById("sbDesc") ? document.getElementById("sbDesc").value.trim() : "") || "Skill description";
+    const nameRaw = document.getElementById("sbName") ? document.getElementById("sbName").value.trim() : "";
+    const descRaw = document.getElementById("sbDesc") ? document.getElementById("sbDesc").value.trim() : "";
+    const stepsRaw = document.getElementById("sbSteps") ? document.getElementById("sbSteps").value.trim() : "";
+
+    const name = nameRaw || "my-custom-skill";
+    const desc = descRaw || "Skill description";
     const inputs = (document.getElementById("sbInputs") ? document.getElementById("sbInputs").value.trim() : "") || "Component requirements";
-    const steps = (document.getElementById("sbSteps") ? document.getElementById("sbSteps").value.trim() : "") || "1. Step one\n2. Step two";
+    const steps = stepsRaw || "1. Step one\n2. Step two";
     const dod = (document.getElementById("sbDod") ? document.getElementById("sbDod").value.trim() : "") || "All quality gates pass.";
 
     const agents = [];
@@ -878,24 +940,34 @@ ${dod}
 
     const badge = document.getElementById("previewStatusBadge");
     if (badge) {
-      if (name && desc && steps) {
+      // Use raw values to determine real validity
+      if (nameRaw && descRaw && stepsRaw) {
         badge.textContent = "Valid Structure";
         badge.style.backgroundColor = "var(--ortho-success-bg)";
         badge.style.color = "var(--ortho-success)";
       } else {
         badge.textContent = "Incomplete Fields";
-        badge.style.backgroundColor = "var(--ortho-warning-bg)";
-        badge.style.color = "var(--ortho-warning)";
+        badge.style.backgroundColor = "var(--ortho-warning-bg, #f59e0b22)";
+        badge.style.color = "var(--ortho-warning, #f59e0b)";
       }
     }
 
     return markdown;
   }
 
-  // Attach input listeners
+  // Attach input listeners — clear field errors on typing
   ["sbName", "sbDesc", "sbInputs", "sbSteps", "sbDod"].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.addEventListener("input", updateSkillBuilderPreview);
+    if (el) {
+      el.addEventListener("input", () => {
+        // Clear error for this specific field on input
+        const errEl = document.getElementById(id + "Error");
+        if (errEl) errEl.remove();
+        if (el.style.borderColor) el.style.borderColor = "";
+        el.removeAttribute("aria-invalid");
+        updateSkillBuilderPreview();
+      });
+    }
   });
   ["agentAgy", "agentClaude", "agentCursor", "agentCodex", "gateContrast", "gateBidi", "gateFsm", "gateCwv", "gateSlop"].forEach(id => {
     const el = document.getElementById(id);
@@ -905,6 +977,9 @@ ${dod}
   const btnCopySkill = document.getElementById("btnCopySkill");
   if (btnCopySkill) {
     btnCopySkill.addEventListener("click", () => {
+      const errors = validateSkillBuilderFields();
+      showSkillBuilderFieldErrors(errors);
+      if (errors.length > 0) return; // Block copy if invalid
       const md = updateSkillBuilderPreview();
       navigator.clipboard.writeText(md).then(() => {
         const original = btnCopySkill.innerHTML;
@@ -917,6 +992,14 @@ ${dod}
   const btnDownloadSkill = document.getElementById("btnDownloadSkill");
   if (btnDownloadSkill) {
     btnDownloadSkill.addEventListener("click", () => {
+      const errors = validateSkillBuilderFields();
+      showSkillBuilderFieldErrors(errors);
+      if (errors.length > 0) {
+        // Scroll the first invalid field into view
+        const firstField = document.getElementById(errors[0].field);
+        if (firstField) firstField.scrollIntoView({ behavior: "smooth", block: "center" });
+        return; // Block download if invalid
+      }
       const md = updateSkillBuilderPreview();
       const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
       const url = URL.createObjectURL(blob);
@@ -1150,7 +1233,7 @@ ${dod}
       }
 
       logLine("<strong style='color: #38bdf8;'>[ORTHOTECT DETERMINISTIC QUALITY GATES]</strong>");
-      logLine("<em>Educational Client-Side Evaluation (Authoritative runs execute in CI via 'orthotect verify')</em>");
+      logLine("<em style='color: #94a3b8;'>⚠ Educational Client-Side Simulation — not actual gate execution. Run <code>orthotect verify</code> in CI for authoritative results.</em>");
       logLine("───────────────────────────────────────────────────────────────");
 
       let allPassed = true;
@@ -1187,11 +1270,29 @@ ${dod}
           logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>WCAG 2.2 Contrast:</strong> ${cr}:1 (Below 4.5:1 minimum threshold)`);
         }
       } else {
-        logLine("<span style='color: #10b981;'>✅ PASS</span> <strong>WCAG 2.2 Contrast:</strong> Verified compliant.");
+        logLine("<span style='color: #94a3b8;'>⏭ NOT_EVALUATED</span> <strong>WCAG 2.2 Contrast:</strong> Provide at least two hex color values to evaluate.");
       }
 
-      // 3. FSM Integrity Gate
-      logLine("<span style='color: #10b981;'>✅ PASS</span> <strong>Finite State Machine Integrity:</strong> Graph reachability & deadlock free.");
+      // 3. FSM Integrity Gate — only evaluates when FSM JSON with 'states'+'initialState' is present
+      (function() {
+        let fsmJson = null;
+        try {
+          // eslint-disable-next-line no-useless-escape
+          const jsonMatch = code.match(/\{[\s\S]*?"states"[\s\S]*?"initialState"[\s\S]*?\}/);
+          if (jsonMatch) fsmJson = JSON.parse(jsonMatch[0]);
+        } catch (_) { /* not valid JSON — skip */ }
+        if (fsmJson && fsmJson.states && fsmJson.initialState) {
+          const stateKeys = Object.keys(fsmJson.states);
+          if (stateKeys.includes(fsmJson.initialState)) {
+            logLine(`<span style='color: #10b981;'>✅ PASS</span> <strong>Finite State Machine Integrity:</strong> ${stateKeys.length} states, initialState "${fsmJson.initialState}" declared.`);
+          } else {
+            allPassed = false;
+            logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>FSM Integrity:</strong> initialState "${fsmJson.initialState}" not declared in states object.`);
+          }
+        } else {
+          logLine("<span style='color: #94a3b8;'>⏭ NOT_EVALUATED</span> <strong>Finite State Machine Integrity:</strong> No FSM JSON with 'states' + 'initialState' detected.");
+        }
+      })();
 
       // 4. Anti-Slop Gate
       const hasAiGradient = /(linear-gradient|from-purple|via-pink)/i.test(code);
@@ -1219,13 +1320,26 @@ ${dod}
         logLine("<span style='color: #10b981;'>✅ PASS</span> <strong>DOM & Media Aspect-Ratio:</strong> Zero unbudgeted layout shift detected.");
       }
 
-      // DOM Depth
-      const depthMatches = code.match(/<div/gi);
-      const count = depthMatches ? depthMatches.length : 0;
-      if (count > 32) {
-        allPassed = false;
-        logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>DOM Depth Budget:</strong> Tree depth (${count}) exceeds maximum allowable budget of 32 levels.`);
-      }
+      // DOM Depth — real nesting depth via tag scanner (not a div count heuristic)
+      (function() {
+        let maxDepth = 0, currentDepth = 0;
+        const tagRe = /<(\/?)([a-zA-Z][a-zA-Z0-9]*)[^>]*\/?>/g;
+        const voidTags = new Set(["area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"]);
+        let m;
+        while ((m = tagRe.exec(code)) !== null) {
+          const isClose = m[1] === "/";
+          const tagName = m[2].toLowerCase();
+          if (voidTags.has(tagName)) continue;
+          if (isClose) { currentDepth = Math.max(0, currentDepth - 1); }
+          else { currentDepth++; maxDepth = Math.max(maxDepth, currentDepth); }
+        }
+        if (maxDepth > 32) {
+          allPassed = false;
+          logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>DOM Depth Budget:</strong> Max nesting depth (${maxDepth}) exceeds maximum allowable 32 levels.`);
+        } else if (maxDepth > 0) {
+          logLine(`<span style='color: #10b981;'>✅ PASS</span> <strong>DOM Depth Budget:</strong> Max nesting depth ${maxDepth} ≤ 32.`);
+        }
+      })();
 
       const elapsed = (performance.now() - startTime).toFixed(1);
       logLine("───────────────────────────────────────────────────────────────");
