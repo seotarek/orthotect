@@ -1839,6 +1839,7 @@ ${dod}
         let totalStatesCount = 0;
         const fsmErrors = [];
         const asyncKeywords = ["loading", "submitting", "pending", "processing", "fetching", "skeletonloading", "syncing"];
+        const transitionKeywords = ["opening", "closing", "transitioning"];
 
         if (productionFsms.length === 0) {
           fsmPassed = false;
@@ -1873,17 +1874,23 @@ ${dod}
             // 3. Asynchronous execution & submission lock validation matching gate_fsm_integrity.py
             const nameLower = stName.toLowerCase();
             const isAsyncByName = asyncKeywords.some(kw => nameLower.includes(kw));
+            const isTransitionByName = transitionKeywords.some(kw => nameLower.includes(kw));
             const isExplicitlyAsync = (
               stDef.isAsync === true ||
               stDef.async === true ||
-              stDef.type === "async" ||
+              stDef.type === "async"
+            );
+            const requiresLock = (
+              isAsyncByName ||
+              isExplicitlyAsync ||
+              isTransitionByName ||
               stDef.locksInteraction === true ||
               stDef.isLocked === true ||
               stDef.locked === true ||
               ("allowClick" in stDef && stDef.allowClick === false)
             );
 
-            if (isAsyncByName || isExplicitlyAsync) {
+            if (requiresLock) {
               const isLocked = (
                 stDef.allowClick === false ||
                 stDef.locksInteraction === true ||
@@ -1899,12 +1906,14 @@ ${dod}
                 fsmErrors.push(`${model.name}: state '${stName}' must explicitly declare 'allowClick: false'`);
               }
 
-              // Resilience check: Must have an explicit error/failure transition for recovery
-              const targets = Object.values(transitions);
-              const hasRecovery = targets.some(t => /error|fail|reject/i.test(t));
-              if (!hasRecovery) {
-                fsmPassed = false;
-                fsmErrors.push(`${model.name}: async state '${stName}' missing error recovery transition`);
+              // Resilience check: Asynchronous operations (data/network) MUST have explicit error/failure transition
+              if (isAsyncByName || isExplicitlyAsync) {
+                const targets = Object.values(transitions);
+                const hasRecovery = targets.some(t => /error|fail|reject/i.test(t));
+                if (!hasRecovery) {
+                  fsmPassed = false;
+                  fsmErrors.push(`${model.name}: async state '${stName}' missing error recovery transition`);
+                }
               }
             }
           }
@@ -2033,9 +2042,13 @@ ${dod}
 
         const isValidCssDim = (val) => {
           if (!val || typeof val !== "string") return false;
-          const clean = val.trim().toLowerCase();
+          const clean = val.trim().toLowerCase().replace(/\s*!important\s*$/i, "").trim();
           if (["auto", "none", "initial", "inherit", "unset", "0", "0px", ""].includes(clean)) return false;
-          return /^(?:[1-9]\d*(?:\.\d+)?(?:px|rem|em|vw|vh|%|cqi|cqw)|calc\(.+\))$/.test(clean);
+          if (/^calc\s*\(\s*0(?:px|rem|em|vw|vh|%)?\s*\)$/i.test(clean)) return false;
+          const m = clean.match(/^(?:([1-9]\d*(?:\.\d+)?)(px|rem|em|vw|vh|%|cqi|cqw)|calc\((.+)\))$/i);
+          if (!m) return false;
+          if (m[3] && !/[1-9]/.test(m[3])) return false;
+          return true;
         };
 
         const isValidAspectRatio = (val) => {
@@ -2079,6 +2092,27 @@ ${dod}
             const cs = window.getComputedStyle(el);
             if (cs && cs.aspectRatio && isValidAspectRatio(cs.aspectRatio)) {
               hasComputedAspectOrDims = true;
+            }
+            if (!hasAttrDims && !hasInlineAspect && !hasInlineDims && !hasComputedAspectOrDims) {
+              for (const sheet of Array.from(document.styleSheets)) {
+                try {
+                  for (const rule of Array.from(sheet.cssRules || [])) {
+                    if (rule.selectorText && el.matches(rule.selectorText)) {
+                      if (rule.style.aspectRatio && isValidAspectRatio(rule.style.aspectRatio)) {
+                        hasComputedAspectOrDims = true;
+                        break;
+                      }
+                      if (rule.style.width && rule.style.height &&
+                          isValidCssDim(rule.style.width) && isValidCssDim(rule.style.height) &&
+                          parseFloat(cs.width) > 0 && parseFloat(cs.height) > 0) {
+                        hasComputedAspectOrDims = true;
+                        break;
+                      }
+                    }
+                  }
+                } catch (_) {}
+                if (hasComputedAspectOrDims) break;
+              }
             }
           } catch (_) {}
 

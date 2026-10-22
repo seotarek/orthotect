@@ -783,7 +783,7 @@ class TestDocsBrowserPlatform(unittest.TestCase):
         self.assertIn("SUCCESS_REJECT_CONTRAST", res.stdout)
 
     def test_hero_benchmark_rejects_fsm_integrity_violation(self):
-        """Negative test: Removing allowClick lock from canonical FSM submitting state must trigger Gate 3 rejection."""
+        """Negative test: Removing allowClick lock from canonical FSM transition state must trigger Gate 3 rejection."""
         node_script = f"""
         import('playwright-core').then(async ({{ chromium }}) => {{
           const browser = await chromium.launch({{
@@ -794,10 +794,10 @@ class TestDocsBrowserPlatform(unittest.TestCase):
           await page.goto('file://{self.docs_html}');
           await page.waitForTimeout(100);
 
-          // Mutate canonical FSM submitting state in window.ORTHOTECT_CORE to remove allowClick lock
+          // Mutate canonical FSM transition state (opening) in window.ORTHOTECT_CORE to remove allowClick lock
           await page.evaluate(() => {{
             if (window.ORTHOTECT_CORE && window.ORTHOTECT_CORE.fsm && window.ORTHOTECT_CORE.fsm['modal-dialog.json']) {{
-              delete window.ORTHOTECT_CORE.fsm['modal-dialog.json'].states.submitting.allowClick;
+              delete window.ORTHOTECT_CORE.fsm['modal-dialog.json'].states.opening.allowClick;
             }}
           }});
 
@@ -827,6 +827,52 @@ class TestDocsBrowserPlatform(unittest.TestCase):
                              capture_output=True, text=True)
         self.assertEqual(res.returncode, 0, f"Hero benchmark negative FSM test failed: {res.stderr}\n{res.stdout}")
         self.assertIn("SUCCESS_REJECT_FSM_INTEGRITY", res.stdout)
+
+    def test_hero_benchmark_rejects_calc_zero_media_violation(self):
+        """Negative test: Injecting media with non-reserving calc(0px) must trigger Gate 5 rejection."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          await page.goto('file://{self.docs_html}');
+          await page.waitForTimeout(100);
+
+          // Inject media with non-reserving calc(0px) dimensions
+          await page.evaluate(() => {{
+            const img = document.createElement('img');
+            img.setAttribute('src', 'zero_res.png');
+            img.style.width = 'calc(0px)';
+            img.style.height = 'calc(0px)';
+            document.body.appendChild(img);
+          }});
+
+          // Run benchmark
+          await page.click('#btnRunHeroBenchmark');
+          await page.waitForTimeout(300);
+
+          const s5 = await page.$eval('#heroStatusGate5', el => el.textContent);
+          const badge = await page.$eval('#heroTerminalBadge', el => el.textContent);
+          const cert = await page.$eval('#heroTerminalCert', el => el.textContent);
+
+          await browser.close();
+
+          if (!s5.includes('FAIL')) throw new Error(`Expected Gate 5 to FAIL, got: ${{s5}}`);
+          if (badge !== 'GATE VIOLATIONS DETECTED') throw new Error(`Expected GATE VIOLATIONS DETECTED badge, got: ${{badge}}`);
+          if (cert !== 'REJECTED') throw new Error(`Expected REJECTED cert, got: ${{cert}}`);
+
+          console.log('SUCCESS_REJECT_CALC_ZERO_MEDIA');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Hero benchmark negative calc(0px) media test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_REJECT_CALC_ZERO_MEDIA", res.stdout)
 
 if __name__ == '__main__':
     unittest.main()

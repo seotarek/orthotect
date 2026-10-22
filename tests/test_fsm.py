@@ -69,6 +69,26 @@ class TestFsmValidator(unittest.TestCase):
         viols = check_fsm_file(fpath)
         self.assertTrue(any("must explicitly declare 'allowClick: false'" in v for v in viols))
 
+    def test_transition_state_omitting_allow_click_fails(self):
+        """Negative test: transition state ('opening' / 'closing') omitting allowClick: false must be rejected."""
+        fsm_transition = {
+            "name": "TestTransitionLockMissing",
+            "initialState": "closed",
+            "states": {
+                "closed": { "on": { "OPEN": "opening" } },
+                "opening": {
+                    # Missing allowClick: false!
+                    "on": { "ANIMATION_END": "open" }
+                },
+                "open": { "on": { "CLOSE": "closed" } }
+            }
+        }
+        fpath = os.path.join(self.temp_dir.name, "opening_missing_lock.json")
+        with open(fpath, "w") as f:
+            json.dump(fsm_transition, f)
+        viols = check_fsm_file(fpath)
+        self.assertTrue(any("must explicitly declare 'allowClick: false'" in v for v in viols))
+
     def test_async_state_lacking_error_recovery_fails(self):
         """Negative test: async state without error/failure recovery must be rejected."""
         fsm_no_error = {

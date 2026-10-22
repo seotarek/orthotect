@@ -72,6 +72,7 @@
         },
         "opening": {
           "description": "Entrance transition running (scale/fade spring). Focus lock initiated.",
+          "allowClick": false,
           "on": {
             "ANIMATION_END": "open"
           }
@@ -113,6 +114,7 @@
         },
         "closing": {
           "description": "Exit transition running. Restores focus to trigger element.",
+          "allowClick": false,
           "on": {
             "ANIMATION_END": "closed"
           }

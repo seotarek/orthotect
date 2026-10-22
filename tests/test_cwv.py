@@ -264,6 +264,33 @@ class TestCWVBudgetGate(unittest.TestCase):
         self.assertEqual(res.returncode, 0)
         self.assertIn("PASS", res.stdout)
 
+    def test_unbudgeted_video_element_fails(self):
+        """Negative test: <video> element without width/height or aspect-ratio must fail Gate 5."""
+        html_file = os.path.join(self.temp_dir, 'video.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Video</title></head><body><video src="hero.mp4"></video></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("<video> tag lacks complete dimensions", res.stdout)
+
+    def test_unbudgeted_iframe_element_fails(self):
+        """Negative test: <iframe> element without width/height or aspect-ratio must fail Gate 5."""
+        html_file = os.path.join(self.temp_dir, 'iframe.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Frame</title></head><body><iframe src="https://example.com"></iframe></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("<iframe> tag lacks complete dimensions", res.stdout)
+
+    def test_calc_zero_dimension_fails(self):
+        """Negative test: media element with non-reserving calc(0px) dimensions must fail Gate 5."""
+        html_file = os.path.join(self.temp_dir, 'calc_zero.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Calc Zero</title></head><body><img src="logo.png" style="width: calc(0px); height: calc(0px);" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("invalid non-reserving CSS dimensions in style", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
 
