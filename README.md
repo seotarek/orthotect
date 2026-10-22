@@ -63,10 +63,11 @@ orthotect/
 │   ├── orthotect-bidi            # Directional Neutrality & RTL Engineering
 │   ├── orthotect-dashboard       # High-Density Console Design
 │   └── orthotect-gates           # Gate Execution Workflows
-├── tests/               # Comprehensive Unit, Browser & Negative Test Suite (104 Tests)
+├── tests/               # Comprehensive Unit, Browser & Negative Test Suite (108 Tests)
 │   ├── test_contrast.py          # Relative luminance & contrast threshold unit tests
 │   ├── test_bidi.py              # BiDi logical scanner positive/negative tests
 │   ├── test_fsm.py               # FSM graph reachability and deadlock tests
+│   ├── test_core_sync.py         # Canonical FSM schemas & DTCG tokens single-source-of-truth tests
 │   ├── test_cwv.py               # Media dimension, aspect-ratio & iterative parse5 DOM depth tests
 │   ├── test_slop.py              # AI purple gradient & raw emoji anti-pattern tests
 │   ├── test_compiler.py          # W3C DTCG CSS custom property compiler tests
@@ -75,7 +76,7 @@ orthotect/
 │   ├── test_modal_browser.py     # Playwright headless Chrome focus trap & FSM tests
 │   └── test_cli_e2e.py           # E2E CLI verification, boundary & negative rejection tests
 ├── .github/workflows/   # Automated CI & GitHub Pages Deployment Pipelines
-│   ├── ci.yml                    # 104 Unit, Browser & Negative Gate Tests & Full Gate Verification
+│   ├── ci.yml                    # 108 Unit, Browser & Negative Gate Tests & Full Gate Verification
 │   └── pages.yml                 # Automated GitHub Pages Deployment
 ├── agents/
 │   └── orthotect-auditor.md      # Adversarial Quality Auditor Role
@@ -102,8 +103,8 @@ npx orthotect verify ./src --json
 npx orthotect verify ./src --md
 ```
 
-Reference Verification Output (Target: `examples/golden-showcase`):
-> *Note: Parallel gate execution latencies are measured dynamically per run and scale with repository size and host hardware (typically 120ms – 590ms).*
+Illustrative Reference Verification Output (Target: `examples/golden-showcase`):
+> *Note: Parallel gate execution latencies are measured dynamically per run and scale with repository size and host hardware (typically 120ms – 590ms; latest GitHub Actions CI run executed in ~126ms).*
 
 ```text
 ╔═══════════════════════════════════════════════════════════════╗

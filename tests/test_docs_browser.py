@@ -738,5 +738,95 @@ class TestDocsBrowserPlatform(unittest.TestCase):
         self.assertEqual(res.returncode, 0, f"Hero benchmark negative slop test failed: {res.stderr}\n{res.stdout}")
         self.assertIn("SUCCESS_REJECT_ANTI_SLOP", res.stdout)
 
+    def test_hero_benchmark_rejects_contrast_violation(self):
+        """Negative test: Mutating --ortho-text-primary to low-contrast color must trigger Gate 1 rejection."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          await page.goto('file://{self.docs_html}');
+          await page.waitForTimeout(100);
+
+          // Mutate primary text token to low contrast value matching canvas
+          await page.evaluate(() => {{
+            document.documentElement.style.setProperty('--ortho-text-primary', '#090d18');
+          }});
+
+          // Run benchmark
+          await page.click('#btnRunHeroBenchmark');
+          await page.waitForTimeout(300);
+
+          const s1 = await page.$eval('#heroStatusGate1', el => el.textContent);
+          const badge = await page.$eval('#heroTerminalBadge', el => el.textContent);
+          const cert = await page.$eval('#heroTerminalCert', el => el.textContent);
+          const detail = await page.$eval('#heroDetailGate1', el => el.textContent);
+
+          await browser.close();
+
+          if (!s1.includes('FAIL')) throw new Error(`Expected Gate 1 to FAIL, got: ${{s1}}`);
+          if (badge !== 'GATE VIOLATIONS DETECTED') throw new Error(`Expected GATE VIOLATIONS DETECTED badge, got: ${{badge}}`);
+          if (cert !== 'REJECTED') throw new Error(`Expected REJECTED cert, got: ${{cert}}`);
+          if (!detail.includes('Contrast Violation')) throw new Error(`Expected Contrast Violation detail, got: ${{detail}}`);
+
+          console.log('SUCCESS_REJECT_CONTRAST');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Hero benchmark negative contrast test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_REJECT_CONTRAST", res.stdout)
+
+    def test_hero_benchmark_rejects_fsm_integrity_violation(self):
+        """Negative test: Removing allowClick lock from canonical FSM submitting state must trigger Gate 3 rejection."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          await page.goto('file://{self.docs_html}');
+          await page.waitForTimeout(100);
+
+          // Mutate canonical FSM submitting state in window.ORTHOTECT_CORE to remove allowClick lock
+          await page.evaluate(() => {{
+            if (window.ORTHOTECT_CORE && window.ORTHOTECT_CORE.fsm && window.ORTHOTECT_CORE.fsm['modal-dialog.json']) {{
+              delete window.ORTHOTECT_CORE.fsm['modal-dialog.json'].states.submitting.allowClick;
+            }}
+          }});
+
+          // Run benchmark
+          await page.click('#btnRunHeroBenchmark');
+          await page.waitForTimeout(300);
+
+          const s3 = await page.$eval('#heroStatusGate3', el => el.textContent);
+          const badge = await page.$eval('#heroTerminalBadge', el => el.textContent);
+          const cert = await page.$eval('#heroTerminalCert', el => el.textContent);
+          const detail = await page.$eval('#heroDetailGate3', el => el.textContent);
+
+          await browser.close();
+
+          if (!s3.includes('FAIL')) throw new Error(`Expected Gate 3 to FAIL, got: ${{s3}}`);
+          if (badge !== 'GATE VIOLATIONS DETECTED') throw new Error(`Expected GATE VIOLATIONS DETECTED badge, got: ${{badge}}`);
+          if (cert !== 'REJECTED') throw new Error(`Expected REJECTED cert, got: ${{cert}}`);
+          if (!detail.includes('FSM Integrity Error')) throw new Error(`Expected FSM Integrity Error detail, got: ${{detail}}`);
+
+          console.log('SUCCESS_REJECT_FSM_INTEGRITY');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Hero benchmark negative FSM test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_REJECT_FSM_INTEGRITY", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()

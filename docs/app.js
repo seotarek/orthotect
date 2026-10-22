@@ -158,7 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
       proofGates: "Deterministic Gates",
       proofTests: "Automated Unit & E2E Tests",
       proofLatency: "Parallel Gate Latency",
-      proofDeps: "Runtime Dependencies",
+      proofDeps: "Browser UI Dependencies",
       proofBidi: "CSS Logical Properties",
       pipelinePill: "Autonomous Engineering Lifecycle",
       pipelineTitle: "The Orthotect Runtime Pipeline",
@@ -216,7 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
       proofGates: "بوابات فحص حتمية",
       proofTests: "اختبارات نجحت بنسبة 100%",
       proofLatency: "زمن الفحص المتوازي",
-      proofDeps: "اعتماديات التشغيل (صفر حشو)",
+      proofDeps: "اعتماديات واجهة المتصفح (صفر حشو)",
       proofBidi: "خواص CSS المنطقية",
       pipelinePill: "دورة حياة الهندسة الذاتية",
       pipelineTitle: "مسار عمل أورثوتكت أثناء التشغيل",
@@ -1655,63 +1655,89 @@ ${dod}
         // 1. Gate 1: WCAG 2.2 Mathematical Contrast Matrix on Theme Tokens
         // ---------------------------------------------------------------------
         const t1Start = performance.now();
-        const comp = window.getComputedStyle(document.documentElement);
-        const getTok = (varName, fallback) => {
-          const val = comp.getPropertyValue(varName).trim();
-          return val ? val : fallback;
-        };
-
-        const themeMatrices = [
-          {
-            theme: "dark",
-            canvas: getTok("--ortho-canvas", "#090d16"),
-            panel: getTok("--ortho-surface-1", "#0f1626"),
-            surface2: getTok("--ortho-surface-2", "#162035"),
-            textPrimary: getTok("--ortho-text-primary", "#f8fafc"),
-            textSecondary: getTok("--ortho-text-secondary", "#94a3b8"),
-            actionPrimary: getTok("--ortho-accent-cyan", "#00d2ff"),
-            actionDanger: getTok("--ortho-danger", "#ef4444")
-          },
-          {
-            theme: "light",
-            canvas: "#f8fafc",
-            panel: "#ffffff",
-            surface2: "#f1f5f9",
-            textPrimary: "#0f172a",
-            textSecondary: "#334155",
-            actionPrimary: "#0284c7",
-            actionDanger: "#dc2626"
-          }
-        ];
-
         let testedPairs = 0;
         let passedAA = 0;
         let passedAAA = 0;
         let contrastFailures = 0;
 
-        for (const tm of themeMatrices) {
-          const pairs = [
-            { name: "Primary Text on Canvas", fg: tm.textPrimary, bg: tm.canvas, reqAA: 4.5, reqAAA: 7.0 },
-            { name: "Primary Text on Panel", fg: tm.textPrimary, bg: tm.panel, reqAA: 4.5, reqAAA: 7.0 },
-            { name: "Secondary Text on Canvas", fg: tm.textSecondary, bg: tm.canvas, reqAA: 4.5, reqAAA: 7.0 },
-            { name: "Secondary Text on Panel", fg: tm.textSecondary, bg: tm.panel, reqAA: 4.5, reqAAA: 7.0 },
-            { name: "Action Control on Canvas", fg: tm.actionPrimary, bg: tm.canvas, reqAA: 3.0, reqAAA: 4.5 },
-            { name: "Destructive Control on Canvas", fg: tm.actionDanger, bg: tm.canvas, reqAA: 3.0, reqAAA: 4.5 }
-          ];
+        // A. Mathematical evaluation of canonical DTCG tokens from core/tokens/
+        const coreTokens = (typeof window !== "undefined" && window.ORTHOTECT_CORE && window.ORTHOTECT_CORE.tokens)
+          ? window.ORTHOTECT_CORE.tokens
+          : null;
 
-          for (const p of pairs) {
-            testedPairs++;
-            const ratio = parseFloat(getContrastRatio(p.fg, p.bg) || "0");
-            if (ratio >= p.reqAA) {
-              passedAA++;
-              if (ratio >= p.reqAAA) passedAAA++;
-            } else {
-              contrastFailures++;
+        const resolveRef = (val, prims) => {
+          if (typeof val === "string" && val.startsWith("{") && val.endsWith("}")) {
+            const parts = val.slice(1, -1).split(".");
+            let curr = prims;
+            for (const p of parts) {
+              if (!curr) return val;
+              curr = curr[p];
+            }
+            return curr && curr.$value ? curr.$value : val;
+          }
+          return val;
+        };
+
+        if (coreTokens && coreTokens.semantics && coreTokens.semantics.theme && coreTokens.primitives) {
+          const prims = coreTokens.primitives;
+          const semThemes = coreTokens.semantics.theme;
+
+          for (const [themeName, themeData] of Object.entries(semThemes)) {
+            const canvasHex = resolveRef(themeData.surface.canvas.$value, prims);
+            const panelHex = resolveRef(themeData.surface.panel.$value, prims);
+            const actionPrimaryHex = resolveRef(themeData.action.primary.$value, prims);
+
+            const canonicalPairs = [
+              { name: `[${themeName.toUpperCase()}] Primary Text on Canvas`, fg: resolveRef(themeData.content.primary.$value, prims), bg: canvasHex, reqAA: 4.5, reqAAA: 7.0 },
+              { name: `[${themeName.toUpperCase()}] Secondary Text on Canvas`, fg: resolveRef(themeData.content.secondary.$value, prims), bg: canvasHex, reqAA: 4.5, reqAAA: 7.0 },
+              { name: `[${themeName.toUpperCase()}] Action Primary on Canvas`, fg: actionPrimaryHex, bg: canvasHex, reqAA: 3.0, reqAAA: 4.5 },
+              { name: `[${themeName.toUpperCase()}] Action Danger on Canvas`, fg: resolveRef(themeData.action.danger.$value, prims), bg: canvasHex, reqAA: 3.0, reqAAA: 4.5 },
+              { name: `[${themeName.toUpperCase()}] Border Strong on Panel`, fg: resolveRef(themeData.border.strong.$value, prims), bg: panelHex, reqAA: 3.0, reqAAA: 4.5 },
+              { name: `[${themeName.toUpperCase()}] Inverse Text on Action Primary`, fg: resolveRef(themeData.content.inverse.$value, prims), bg: actionPrimaryHex, reqAA: 4.5, reqAAA: 7.0 }
+            ];
+
+            for (const p of canonicalPairs) {
+              testedPairs++;
+              const ratio = parseFloat(getContrastRatio(p.fg, p.bg) || "0");
+              if (ratio >= p.reqAA) {
+                passedAA++;
+                if (ratio >= p.reqAAA) passedAAA++;
+              } else {
+                contrastFailures++;
+              }
             }
           }
         }
 
-        const passed1 = contrastFailures === 0 && testedPairs > 0;
+        // B. Active computed styles evaluation on document.documentElement
+        const activeComp = window.getComputedStyle(document.documentElement);
+        const activeCanvas = activeComp.getPropertyValue("--ortho-canvas").trim() || "#090d16";
+        const activePanel = activeComp.getPropertyValue("--ortho-surface-1").trim() || "#0f1626";
+        const activeTextPrimary = activeComp.getPropertyValue("--ortho-text-primary").trim() || "#f8fafc";
+        const activeTextSecondary = activeComp.getPropertyValue("--ortho-text-secondary").trim() || "#94a3b8";
+        const activeActionPrimary = activeComp.getPropertyValue("--ortho-accent-cyan").trim() || "#00d2ff";
+        const activeActionDanger = activeComp.getPropertyValue("--ortho-danger").trim() || "#ef4444";
+
+        const liveDomPairs = [
+          { name: "Live Primary Text on Canvas", fg: activeTextPrimary, bg: activeCanvas, reqAA: 4.5, reqAAA: 7.0 },
+          { name: "Live Primary Text on Panel", fg: activeTextPrimary, bg: activePanel, reqAA: 4.5, reqAAA: 7.0 },
+          { name: "Live Secondary Text on Canvas", fg: activeTextSecondary, bg: activeCanvas, reqAA: 4.5, reqAAA: 7.0 },
+          { name: "Live Action Control on Canvas", fg: activeActionPrimary, bg: activeCanvas, reqAA: 3.0, reqAAA: 4.5 },
+          { name: "Live Destructive Control on Canvas", fg: activeActionDanger, bg: activeCanvas, reqAA: 3.0, reqAAA: 4.5 }
+        ];
+
+        for (const p of liveDomPairs) {
+          testedPairs++;
+          const ratio = parseFloat(getContrastRatio(p.fg, p.bg) || "0");
+          if (ratio >= p.reqAA) {
+            passedAA++;
+            if (ratio >= p.reqAAA) passedAAA++;
+          } else {
+            contrastFailures++;
+          }
+        }
+
+        const passed1 = contrastFailures === 0 && testedPairs >= 12;
         const t1End = performance.now();
         const t1 = Math.max(0.4, t1End - t1Start);
 
@@ -1796,80 +1822,33 @@ ${dod}
         }
 
         // ---------------------------------------------------------------------
-        // 3. Gate 3: State Machine BFS Reachability & Lock Engine (3 Production FSMs)
+        // 3. Gate 3: State Machine BFS Reachability & Lock Engine (Canonical FSMs)
         // ---------------------------------------------------------------------
         const t3Start = performance.now();
-        const productionFsms = [
-          {
-            name: "OrthotectDataTableFSM (core/fsm/data-table-loader.json)",
-            initialState: "uninitialized",
-            states: {
-              uninitialized: { on: { INIT: "skeletonLoading" } },
-              skeletonLoading: {
-                allowClick: false,
-                on: { DATA_LOADED: "ready", EMPTY_RESULT: "emptyState", LOAD_FAILED: "errorState" }
-              },
-              ready: {
-                on: { SORT: "sortingOptimistic", PAGE_CHANGE: "pageTransition", FILTER: "filtering" }
-              },
-              sortingOptimistic: { on: { SORT_COMPLETE: "ready" } },
-              pageTransition: { on: { PAGE_LOADED: "ready" } },
-              emptyState: { on: { CREATE_ITEM: "ready", RESET_FILTER: "ready" } },
-              errorState: { on: { RETRY: "skeletonLoading" } },
-              filtering: { on: { FILTER_COMPLETE: "ready", FILTER_FAILED: "errorState" } }
-            }
-          },
-          {
-            name: "OrthotectModalFSM (core/fsm/modal-dialog.json)",
-            initialState: "closed",
-            states: {
-              closed: { on: { OPEN: "opening" } },
-              opening: { allowClick: false, on: { ANIMATION_END: "open" } },
-              open: {
-                on: { CLOSE: "closing", ESCAPE: "closing", BACKDROP_CLICK: "closing", SUBMIT: "submitting" }
-              },
-              submitting: {
-                allowClick: false,
-                isAsync: true,
-                on: { RESOLVE_SUCCESS: "successFeedback", REJECT_ERROR: "errorFeedback" }
-              },
-              successFeedback: { on: { TIMEOUT: "closing", CLOSE: "closing" } },
-              errorFeedback: {
-                on: { RETRY: "submitting", DISMISS_ERROR: "open", CLOSE: "closing", ESCAPE: "closing" }
-              },
-              closing: { allowClick: false, on: { ANIMATION_END: "closed" } }
-            }
-          },
-          {
-            name: "OrthotectButtonFSM (core/fsm/button-states.json)",
-            initialState: "idle",
-            states: {
-              idle: {
-                on: { POINTER_ENTER: "hover", FOCUS: "focusVisible", CLICK: "loading", DISABLE: "disabled" }
-              },
-              hover: { on: { POINTER_LEAVE: "idle", PRESS: "pressed" } },
-              focusVisible: { on: { BLUR: "idle", KEY_PRESS: "loading" } },
-              pressed: { on: { RELEASE: "loading", CANCEL: "idle" } },
-              loading: {
-                allowClick: false,
-                on: { RESOLVE_SUCCESS: "successFeedback", REJECT_ERROR: "errorFeedback" }
-              },
-              successFeedback: { on: { TIMEOUT: "idle" } },
-              errorFeedback: { on: { RETRY: "loading", RESET: "idle" } },
-              disabled: { on: { ENABLE: "idle" } }
-            }
-          }
-        ];
+        const coreFsmObj = (typeof window !== "undefined" && window.ORTHOTECT_CORE && window.ORTHOTECT_CORE.fsm)
+          ? window.ORTHOTECT_CORE.fsm
+          : {};
+
+        const productionFsms = Object.entries(coreFsmObj).map(([fname, schema]) => ({
+          name: `${schema.name || fname} (core/fsm/${fname})`,
+          initialState: schema.initialState,
+          states: schema.states || {}
+        }));
 
         let fsmPassed = true;
         let totalStatesCount = 0;
         const fsmErrors = [];
         const asyncKeywords = ["loading", "submitting", "pending", "processing", "fetching", "skeletonloading", "syncing"];
 
+        if (productionFsms.length === 0) {
+          fsmPassed = false;
+          fsmErrors.push("No FSM specifications loaded from window.ORTHOTECT_CORE.fsm");
+        }
+
         for (const model of productionFsms) {
           if (!model.initialState || !model.states || !model.states[model.initialState]) {
             fsmPassed = false;
-            fsmErrors.push(`${model.name}: invalid initialState`);
+            fsmErrors.push(`${model.name}: invalid or missing initialState`);
             break;
           }
           const stateKeys = Object.keys(model.states);
@@ -1891,20 +1870,36 @@ ${dod}
               fsmErrors.push(`${model.name}: deadlock in non-final state '${stName}'`);
             }
 
-            // 3. Interaction lock on async and transitional states
+            // 3. Asynchronous execution & submission lock validation matching gate_fsm_integrity.py
             const nameLower = stName.toLowerCase();
-            const isAsyncOperation = asyncKeywords.some(kw => nameLower.includes(kw)) || stDef.isAsync === true;
-            const isAnimationLock = ["opening", "closing"].includes(nameLower);
+            const isAsyncByName = asyncKeywords.some(kw => nameLower.includes(kw));
+            const isExplicitlyAsync = (
+              stDef.isAsync === true ||
+              stDef.async === true ||
+              stDef.type === "async" ||
+              stDef.locksInteraction === true ||
+              stDef.isLocked === true ||
+              stDef.locked === true ||
+              ("allowClick" in stDef && stDef.allowClick === false)
+            );
 
-            if (isAsyncOperation || isAnimationLock) {
-              if (stDef.allowClick !== false) {
+            if (isAsyncByName || isExplicitlyAsync) {
+              const isLocked = (
+                stDef.allowClick === false ||
+                stDef.locksInteraction === true ||
+                stDef.isLocked === true ||
+                stDef.locked === true
+              );
+
+              if (stDef.allowClick === true) {
                 fsmPassed = false;
-                fsmErrors.push(`${model.name}: state '${stName}' missing allowClick: false`);
+                fsmErrors.push(`${model.name}: state '${stName}' must lock pointer/keyboard actions (allowClick: false)`);
+              } else if (!isLocked) {
+                fsmPassed = false;
+                fsmErrors.push(`${model.name}: state '${stName}' must explicitly declare 'allowClick: false'`);
               }
-            }
 
-            // 4. Resilience: async operations must have an explicit error/failure recovery transition
-            if (isAsyncOperation) {
+              // Resilience check: Must have an explicit error/failure transition for recovery
               const targets = Object.values(transitions);
               const hasRecovery = targets.some(t => /error|fail|reject/i.test(t));
               if (!hasRecovery) {
@@ -1914,7 +1909,7 @@ ${dod}
             }
           }
 
-          // 5. BFS Reachability from initialState
+          // 4. BFS Reachability from initialState
           const queue = [model.initialState];
           const visited = new Set();
           while (queue.length > 0) {
@@ -1935,7 +1930,7 @@ ${dod}
           if (visited.size !== stateKeys.length) {
             fsmPassed = false;
             const unreachable = stateKeys.filter(k => !visited.has(k));
-            fsmErrors.push(`${model.name}: unreachable states [${unreachable.join(", ")}]`);
+            fsmErrors.push(`${model.name}: unreachable orphaned state(s): [${unreachable.join(", ")}]`);
           }
         }
 
@@ -1950,7 +1945,7 @@ ${dod}
         }
         if (elDetail3) {
           elDetail3.textContent = passed3
-            ? `All ${totalStatesCount} states reachable across 3 production FSMs (0 deadlocks, interaction locks verified)`
+            ? `All ${totalStatesCount} states reachable across ${productionFsms.length} production FSMs (0 deadlocks, interaction locks verified)`
             : `FSM Integrity Error: ${fsmErrors[0] || "unreachable or unlocked states"}`;
         }
 
@@ -2030,19 +2025,64 @@ ${dod}
         const allMedia = document.querySelectorAll("img, video, iframe");
         let unbudgetedMedia = 0;
 
+        const isPositiveDimAttr = (val) => {
+          if (!val || typeof val !== "string") return false;
+          const clean = val.trim();
+          return /^[1-9]\d*$/.test(clean);
+        };
+
+        const isValidCssDim = (val) => {
+          if (!val || typeof val !== "string") return false;
+          const clean = val.trim().toLowerCase();
+          if (["auto", "none", "initial", "inherit", "unset", "0", "0px", ""].includes(clean)) return false;
+          return /^(?:[1-9]\d*(?:\.\d+)?(?:px|rem|em|vw|vh|%|cqi|cqw)|calc\(.+\))$/.test(clean);
+        };
+
+        const isValidAspectRatio = (val) => {
+          if (!val || typeof val !== "string") return false;
+          let clean = val.trim().toLowerCase().replace(/^\bauto\b\s*/i, "").replace(/\s*\bauto\b$/i, "").trim();
+          clean = clean.replace(/\s*!important\s*$/i, "").trim();
+          if (!clean || ["auto", "none", "initial", "inherit", "unset"].includes(clean)) return false;
+          const m = clean.match(/^([0-9]*\.?[0-9]+)\s*(?:\/\s*([0-9]*\.?[0-9]+))?$/);
+          if (!m) return false;
+          const w = parseFloat(m[1]);
+          const h = m[2] !== undefined ? parseFloat(m[2]) : 1.0;
+          return !isNaN(w) && !isNaN(h) && w > 0 && h > 0;
+        };
+
         allMedia.forEach(el => {
-          // Check explicit HTML positive integer attributes per HTML5 spec (§ 4.8.4.1.3)
+          // A. HTML positive integer attributes per HTML5 spec (§ 4.8.4.1.3)
           const wAttr = el.getAttribute("width") || "";
           const hAttr = el.getAttribute("height") || "";
-          const hasAttrDims = /^[1-9]\d*$/.test(wAttr.trim()) && /^[1-9]\d*$/.test(hAttr.trim());
+          const hasAttrDims = isPositiveDimAttr(wAttr) && isPositiveDimAttr(hAttr);
 
-          // Check explicit inline style dimensions or aspect-ratio
-          const inlineStyle = el.getAttribute("style") || "";
-          const hasInlineAspect = /aspect-ratio\s*:\s*[^;]+/i.test(inlineStyle);
-          const hasInlineDims = /width\s*:\s*[^;]+/i.test(inlineStyle) && /height\s*:\s*[^;]+/i.test(inlineStyle);
+          // B. Inline CSS style declarations
+          const styleAttr = el.getAttribute("style") || "";
+          let hasInlineAspect = false;
+          let hasInlineDims = false;
 
-          // An element must have pre-layout reservation (HTML attributes or explicit inline aspect/dims)
-          if (!hasAttrDims && !hasInlineAspect && !hasInlineDims) {
+          if (styleAttr) {
+            const aspectMatch = styleAttr.match(/(?:^|;|\s)aspect-ratio\s*:\s*([^;]+)/i);
+            if (aspectMatch && isValidAspectRatio(aspectMatch[1])) {
+              hasInlineAspect = true;
+            }
+            const widthMatch = styleAttr.match(/(?:^|;|\s)width\s*:\s*([^;]+)/i);
+            const heightMatch = styleAttr.match(/(?:^|;|\s)height\s*:\s*([^;]+)/i);
+            if (widthMatch && heightMatch && isValidCssDim(widthMatch[1]) && isValidCssDim(heightMatch[1])) {
+              hasInlineDims = true;
+            }
+          }
+
+          // C. Stylesheet or computed rules
+          let hasComputedAspectOrDims = false;
+          try {
+            const cs = window.getComputedStyle(el);
+            if (cs && cs.aspectRatio && isValidAspectRatio(cs.aspectRatio)) {
+              hasComputedAspectOrDims = true;
+            }
+          } catch (_) {}
+
+          if (!hasAttrDims && !hasInlineAspect && !hasInlineDims && !hasComputedAspectOrDims) {
             unbudgetedMedia++;
           }
         });

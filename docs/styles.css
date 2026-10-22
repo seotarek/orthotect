@@ -3,7 +3,8 @@
    Architecture: 100% CSS Logical Properties | W3C DTCG Tokens | WCAG 2.2 AAA
    ========================================================================== */
 
-:root {
+:root,
+[data-theme="dark"] {
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "JetBrains Mono", monospace;
 
