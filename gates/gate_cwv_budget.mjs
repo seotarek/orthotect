@@ -147,8 +147,8 @@ export function calculateMaxDomDepth(htmlContent, filePath = 'snippet') {
   });
 
   for (const pe of parseErrors) {
-    if (pe.code === 'eof-in-tag' || pe.code === 'eof-before-tag-name') {
-      errors.push(`${filePath}: Malformed HTML - unclosed tag opening syntax '<' at position ${pe.startOffset || 0}.`);
+    if (pe.code === 'eof-in-tag' || pe.code === 'eof-before-tag-name' || pe.code === 'eof-in-attribute-value') {
+      errors.push(`${filePath}: Malformed HTML - unclosed tag opening or attribute syntax '<' at position ${pe.startOffset || 0}.`);
     } else if (pe.code === 'non-void-html-element-start-tag-with-trailing-solidus') {
       errors.push(`${filePath}: Malformed HTML - non-void HTML element start tag with trailing solidus (<div/> is not self-closing in HTML5).`);
     } else if (pe.code === 'end-tag-without-matching-open-element') {
@@ -203,31 +203,51 @@ export function calculateMaxDomDepth(htmlContent, filePath = 'snippet') {
     errors.push(`${filePath}: Malformed HTML - unclosed tag(s) remaining at end of file: <${unclosed.join('>, <')}>.`);
   }
 
-  // 3. Tree Depth Calculation from the parsed HTML5 AST
-  function getDepth(node) {
-    if (!node.childNodes || node.childNodes.length === 0) {
-      return (node.nodeName && !node.nodeName.startsWith('#')) ? 1 : 0;
+  // 3. Iterative Tree Depth Calculation from the parsed HTML5 AST using an explicit stack
+  let maxTreeDepth = 0;
+  let nodesVisited = 0;
+  const MAX_NODE_VISIT_LIMIT = 200000;
+  const traversalStack = [{ node: doc, depth: 0 }];
+
+  while (traversalStack.length > 0) {
+    const { node, depth } = traversalStack.pop();
+    nodesVisited++;
+
+    if (nodesVisited > MAX_NODE_VISIT_LIMIT) {
+      errors.push(`${filePath}: Resource limit exceeded during AST traversal (> ${MAX_NODE_VISIT_LIMIT} nodes visited). Adversarial DOM structure rejected.`);
+      break;
     }
-    let maxChild = 0;
-    for (const child of node.childNodes) {
-      if (child.nodeName && !child.nodeName.startsWith('#')) {
-        const d = getDepth(child);
-        if (d > maxChild) maxChild = d;
+
+    const isElem = node.nodeName && !node.nodeName.startsWith('#');
+    const currentDepth = isElem ? depth + 1 : depth;
+
+    if (currentDepth > maxTreeDepth) {
+      maxTreeDepth = currentDepth;
+    }
+
+    if (node.childNodes && node.childNodes.length > 0) {
+      for (let i = node.childNodes.length - 1; i >= 0; i--) {
+        const child = node.childNodes[i];
+        if (child.nodeName && !child.nodeName.startsWith('#')) {
+          traversalStack.push({ node: child, depth: currentDepth });
+        }
       }
     }
-    const isElem = node.nodeName && !node.nodeName.startsWith('#');
-    return (isElem ? 1 : 0) + maxChild;
   }
 
-  return getDepth(doc);
+  return maxTreeDepth;
 }
 
-function findElements(node, tagName) {
+function findElements(rootNode, tagName) {
   const results = [];
-  if (node.nodeName === tagName) results.push(node);
-  if (node.childNodes) {
-    for (const child of node.childNodes) {
-      results.push(...findElements(child, tagName));
+  const stack = [rootNode];
+  while (stack.length > 0) {
+    const node = stack.pop();
+    if (node.nodeName === tagName) results.push(node);
+    if (node.childNodes && node.childNodes.length > 0) {
+      for (let i = node.childNodes.length - 1; i >= 0; i--) {
+        stack.push(node.childNodes[i]);
+      }
     }
   }
   return results;

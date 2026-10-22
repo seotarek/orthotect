@@ -109,9 +109,29 @@ class TestModalBrowserExecution(unittest.TestCase):
 
     def test_real_browser_playwright_modal_interaction(self):
         """Execute genuine headless browser interaction tests via Playwright and Chrome."""
-        chrome_path = '/usr/bin/google-chrome'
-        if not os.path.exists(chrome_path):
-            self.skipTest("Google Chrome binary not found at /usr/bin/google-chrome")
+        import shutil
+        candidates = [
+            os.environ.get('CHROME_BIN'),
+            os.environ.get('BROWSER_PATH'),
+            '/usr/bin/google-chrome',
+            '/usr/bin/chromium',
+            '/usr/bin/chromium-browser',
+            shutil.which('google-chrome'),
+            shutil.which('chromium'),
+            shutil.which('chromium-browser')
+        ]
+        chrome_path = None
+        for c in candidates:
+            if c and os.path.exists(c):
+                chrome_path = c
+                break
+
+        is_ci = os.environ.get('CI') == 'true' or 'GITHUB_ACTIONS' in os.environ
+        if not chrome_path:
+            if is_ci:
+                self.fail("Mandatory Browser Execution Failed: No Chrome/Chromium browser binary found in CI environment. Silent skipping is prohibited.")
+            else:
+                self.skipTest("Google Chrome binary not found on local system")
 
         test_script = f"""
         import('playwright-core').then(async ({{ chromium }}) => {{
@@ -136,7 +156,21 @@ class TestModalBrowserExecution(unittest.TestCase):
             throw new Error(`Open state failure: open=${{isOpen}}, focus=${{focusedId}}, inert=${{appShellInert}}`);
           }}
 
-          // 3. Escape key handling and focus restoration
+          // 3. Focus trap: pressing Tab cycles inside modal, does not escape into app-shell
+          await page.keyboard.press('Tab');
+          await page.keyboard.press('Tab');
+          await page.keyboard.press('Tab');
+          await page.keyboard.press('Tab');
+          const trappedInModal = await page.evaluate(() => {{
+            const active = document.activeElement;
+            const modal = document.getElementById('modal-backdrop');
+            return modal && modal.contains(active);
+          }});
+          if (!trappedInModal) {{
+            throw new Error('Focus escaped modal dialog during keyboard Tab traversal');
+          }}
+
+          // 4. Escape key handling and focus restoration
           await page.keyboard.press('Escape');
           await page.waitForTimeout(100);
           const closedAfterEsc = await page.$eval('#modal-backdrop', el => el.getAttribute('aria-hidden') === 'true' && el.style.display === 'none');

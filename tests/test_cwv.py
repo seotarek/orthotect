@@ -117,7 +117,7 @@ class TestCWVBudgetGate(unittest.TestCase):
             f.write('<!DOCTYPE html><html><head></head><body><div>Hello <span class=')
         res = self.run_gate(self.temp_dir)
         self.assertNotEqual(res.returncode, 0)
-        self.assertIn("unclosed tag opening syntax", res.stdout)
+        self.assertIn("unclosed tag opening or attribute syntax", res.stdout)
 
     def test_attributes_with_tag_characters_handled_correctly(self):
         html_file = os.path.join(self.temp_dir, 'index.html')
@@ -198,6 +198,52 @@ class TestCWVBudgetGate(unittest.TestCase):
         res = self.run_gate(self.temp_dir)
         self.assertEqual(res.returncode, 0)
         self.assertIn("PASS", res.stdout)
+
+    def test_negative_width_rejected(self):
+        """Negative test: width="-50" must be rejected per HTML5 positive integer dimension rules."""
+        html_file = os.path.join(self.temp_dir, 'index.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head></head><body><img src="logo.png" width="-50" height="100" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("invalid width attribute value", res.stdout)
+
+    def test_aspect_ratio_auto_alone_rejected(self):
+        """Negative test: 'aspect-ratio: auto' without a fixed ratio does not reserve layout space."""
+        html_file = os.path.join(self.temp_dir, 'index.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head></head><body><img src="logo.png" style="aspect-ratio: auto;" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("lacks complete dimensions", res.stdout)
+
+    def test_unclosed_attribute_at_eof_fails(self):
+        """Negative test: unclosed attribute string at EOF triggers parse error."""
+        html_file = os.path.join(self.temp_dir, 'index.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head></head><body><div id="open_attr')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Malformed HTML", res.stdout)
+
+    def test_adversarial_deep_nesting_handled_without_call_stack_overflow(self):
+        """Stress test: 500 levels of nested tags must be handled iteratively without Node.js stack overflow."""
+        html_file = os.path.join(self.temp_dir, 'index.html')
+        nested = "<div>" * 500 + "Leaf Node" + "</div>" * 500
+        with open(html_file, 'w') as f:
+            f.write(f"<!DOCTYPE html><html><head></head><body>{nested}</body></html>")
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Excessive DOM depth", res.stdout)
+        self.assertNotIn("RangeError: Maximum call stack size exceeded", res.stderr)
+
+    def test_no_html_files_rejected(self):
+        """Negative test: directory with no .html files must fail with non-zero exit code."""
+        empty_dir = os.path.join(self.temp_dir, 'empty_sub')
+        os.makedirs(empty_dir, exist_ok=True)
+        res = self.run_gate(empty_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("No markup (.html) files found to inspect", res.stdout)
 
 if __name__ == '__main__':
     unittest.main()

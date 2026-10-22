@@ -4,6 +4,24 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-10-22
+
+### Added
+- **7-View Skill Studio Platform (`docs/`)**: Full architectural transformation of GitHub Pages into a professional 7-view interactive workbench:
+  - **Home (`#home`)**: Autonomous engineering lifecycle pipeline (Prompt → Execution → Gates → Certified Code), proof metrics bar, and competitor teardown matrix.
+  - **Skill Catalog (`#catalog`)**: Synchronized with `skills/` (all 6 skills: `orthotect-doctrine`, `orthotect-gates`, `orthotect-bidi`, `orthotect-tokens`, `orthotect-fsm`, `orthotect-dashboard`), category filtering, search, copyable agent prompts, and direct GitHub links.
+  - **Interactive Skill Playground (`#playground`)**: 7 live pre-validated enterprise components (SaaS Analytics Console with inline SVG telemetry, CRM Pipeline Board, E-Commerce Product Card, Multi-State High-Density Data Table, Account Settings Form, FSM Modal Dialog, Responsive Landing Hero) with live runtime Theme, BiDi, and Density controls, plus one-click template code downloads.
+  - **Skill Builder (`#builder`)**: Interactive authoring tool generating validated `SKILL.md` specifications meeting official AI coding agent standards with real-time markdown preview and download.
+  - **Examples Gallery (`#gallery`)**: Curated production templates with design tokens, FSM models, and downloads.
+  - **Quality Gates (`#gates`)**: Transparent, evidence-based specification of all 5 gates with what they check and do NOT check, plus an educational client-side gate inspector simulator.
+  - **Installation & Usage (`#install`)**: Verified CLI commands, CI integration snippets, and troubleshooting guide.
+
+### Fixed & Hardened
+- **Iterative parse5 Stack Traversal & Resource Bounds (`gates/gate_cwv_budget.mjs`)**: Converted recursive tree traversal in `calculateMaxDomDepth` and `findElements` to explicit FIFO/LIFO stack loops with `MAX_NODE_VISIT_LIMIT = 200,000` to prevent Node.js call stack exhaustion on malicious or deeply nested inputs. Added detection for `eof-in-attribute-value` to flag unclosed attribute quotes at EOF.
+- **Deterministic Token Compiler & Output Guard (`core/compiler.py`)**: Added deterministic key sorting across motion tokens, ergonomics, light semantics, and dark semantics ensuring byte-for-byte reproducibility across platforms. Implemented `is_safe_output_path(output_path)` guard preventing accidental overwrites of repository files (`package.json`, `.git`, gate source files). Dynamic contrast pairing focuses on `content.primary` and `content.secondary`, exempting `content.tertiary` (incidental/disabled text) per WCAG SC 1.4.3.
+- **CI-Resilient Headless Chromium Browser Tests (`tests/test_modal_browser.py`)**: Multi-path resolution for browser binaries (`CHROME_BIN`, `BROWSER_PATH`, system paths, `which`). Hard `self.fail()` in CI environments (`CI=true` or GitHub Actions) if browser binary is missing, banning silent test skips. Real browser keyboard `Tab` traversal focus trap assertions verifying focus never escapes modal boundaries.
+- **75 Automated Tests**: Test suite expanded from 67 to 75 unit, AST, and browser integration tests with 100% pass rate.
+
 ## [1.4.0] - 2026-10-22
 
 ### Added

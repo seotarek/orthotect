@@ -204,5 +204,26 @@ class TestTokenCompiler(unittest.TestCase):
         self.assertIn('--ot-action-danger:', content)
         self.assertIn('Semantic Contrast Verification', content)
 
+    def test_invalid_hex_syntax_returns_none(self):
+        """Negative test: calculate_contrast on non-hex or malformed strings returns None without raising exceptions."""
+        self.assertIsNone(calculate_contrast('invalid', '#ffffff'))
+        self.assertIsNone(calculate_contrast('#12', '#ffffff'))
+        self.assertIsNone(calculate_contrast(None, '#ffffff'))
+        self.assertIsNone(calculate_contrast('#ffffff', '#gggggg'))
+
+    def test_protected_file_overwrite_prevention(self):
+        """Negative test: Attempting to output compiled tokens to package.json or .git must be blocked."""
+        from core.compiler import is_safe_output_path
+        self.assertFalse(is_safe_output_path('package.json'))
+        self.assertFalse(is_safe_output_path('.git/config'))
+        self.assertFalse(is_safe_output_path('CHANGELOG.md'))
+        self.assertTrue(is_safe_output_path(os.path.join(self.temp_dir, 'custom_theme.css')))
+
+    def test_deterministic_compilation_reproducibility(self):
+        """Ensure token compiler generates byte-for-byte identical output on successive runs."""
+        css_run_1 = compile_tokens(self.tokens_dir)
+        css_run_2 = compile_tokens(self.tokens_dir)
+        self.assertEqual(css_run_1, css_run_2)
+
 if __name__ == '__main__':
     unittest.main()

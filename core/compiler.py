@@ -113,7 +113,7 @@ def verify_theme_contrast(theme_dict, prims, theme_label):
 
     # 2. Dynamic pairing: test all surface tokens against content.primary and content.secondary
     pairs = []
-    for s_name in surfaces.keys():
+    for s_name in sorted(surfaces.keys()):
         if 'primary' in contents:
             pairs.append((('surface', s_name), ('content', 'primary'), 'normal_text'))
         if 'secondary' in contents:
@@ -214,29 +214,34 @@ def compile_tokens(tokens_dir):
         ":root {"
     ])
 
-    # 1. Motion tokens
-    if 'motion' in motion:
+    # 1. Motion tokens (sorted deterministically)
+    if 'motion' in motion and isinstance(motion['motion'], dict):
         lines.append("  /* --- Motion Springs --- */")
-        for k, v in motion['motion'].items():
+        for k in sorted(motion['motion'].keys()):
+            v = motion['motion'][k]
             val = v.get('$value', '')
             lines.append(f"  --ot-motion-{k}: {val};")
         lines.append("")
 
-    # 2. Ergonomics tokens
-    if 'ergonomics' in ergo:
+    # 2. Ergonomics tokens (sorted deterministically)
+    if 'ergonomics' in ergo and isinstance(ergo['ergonomics'], dict):
         lines.append("  /* --- Cognitive Ergonomics & Fitts Law --- */")
-        for category, items in ergo['ergonomics'].items():
+        for category in sorted(ergo['ergonomics'].keys()):
+            items = ergo['ergonomics'][category]
             if isinstance(items, dict):
-                for k, v in items.items():
+                for k in sorted(items.keys()):
+                    v = items[k]
                     val = v.get('$value', '')
                     lines.append(f"  --ot-{category}-{k}: {val};")
         lines.append("")
 
-    # 3. Light Semantic Theme
+    # 3. Light Semantic Theme (sorted deterministically)
     lines.append("  /* --- Semantic Tokens (Light Default) --- */")
-    for group_name, group_data in light_theme.items():
+    for group_name in sorted(light_theme.keys()):
+        group_data = light_theme[group_name]
         if isinstance(group_data, dict):
-            for token_name, token_data in group_data.items():
+            for token_name in sorted(group_data.keys()):
+                token_data = group_data[token_name]
                 if isinstance(token_data, dict) and '$value' in token_data:
                     raw_val = token_data['$value']
                     resolved = resolve_ref(raw_val, prims)
@@ -244,13 +249,15 @@ def compile_tokens(tokens_dir):
     lines.append("}")
     lines.append("")
 
-    # 4. Dark Semantic Theme
+    # 4. Dark Semantic Theme (sorted deterministically)
     if dark_theme:
         lines.append("/* --- Semantic Tokens (Dark Mode) --- */")
         lines.append('[data-theme="dark"] {')
-        for group_name, group_data in dark_theme.items():
+        for group_name in sorted(dark_theme.keys()):
+            group_data = dark_theme[group_name]
             if isinstance(group_data, dict):
-                for token_name, token_data in group_data.items():
+                for token_name in sorted(group_data.keys()):
+                    token_data = group_data[token_name]
                     if isinstance(token_data, dict) and '$value' in token_data:
                         raw_val = token_data['$value']
                         resolved = resolve_ref(raw_val, prims)
@@ -260,9 +267,11 @@ def compile_tokens(tokens_dir):
 
         lines.append("@media (prefers-color-scheme: dark) {")
         lines.append("  :root:not([data-theme=\"light\"]) {")
-        for group_name, group_data in dark_theme.items():
+        for group_name in sorted(dark_theme.keys()):
+            group_data = dark_theme[group_name]
             if isinstance(group_data, dict):
-                for token_name, token_data in group_data.items():
+                for token_name in sorted(group_data.keys()):
+                    token_data = group_data[token_name]
                     if isinstance(token_data, dict) and '$value' in token_data:
                         raw_val = token_data['$value']
                         resolved = resolve_ref(raw_val, prims)
@@ -273,9 +282,31 @@ def compile_tokens(tokens_dir):
 
     return "\n".join(lines)
 
+PROTECTED_FILES = {
+    'package.json', 'package-lock.json', 'CHANGELOG.md', 'README.md',
+    'LICENSE', 'CONTRIBUTING.md', 'MANIFESTO.md', 'COMPETITORS.md',
+    'bin/orthotect.js', 'core/compiler.py'
+}
+
+def is_safe_output_path(output_path):
+    if not output_path:
+        return False
+    norm = os.path.normpath(os.path.abspath(output_path))
+    for p in PROTECTED_FILES:
+        target = os.path.normpath(os.path.abspath(p))
+        if norm == target:
+            return False
+    if '/.git' in norm or norm.endswith('/.git'):
+        return False
+    return True
+
 def main():
     tokens_dir = sys.argv[1] if len(sys.argv) > 1 else 'core/tokens'
     output_path = sys.argv[2] if len(sys.argv) > 2 else 'tokens.css'
+
+    if not is_safe_output_path(output_path):
+        print(f"❌ Error compiling tokens: Refusing to overwrite protected repository file: '{output_path}'", file=sys.stderr)
+        sys.exit(1)
 
     try:
         css = compile_tokens(tokens_dir)

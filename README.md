@@ -2,7 +2,7 @@
 
 ### The Deterministic Interface Engineering & Runtime Gate Architecture for AI Coding Agents
 
-[![Version](https://img.shields.io/badge/version-1.4.0-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.4.0)
+[![Version](https://img.shields.io/badge/version-1.5.0-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.5.0)
 [![Live Showcase](https://img.shields.io/badge/Live_Showcase-GitHub_Pages-0ea5e9?style=for-the-badge)](https://seotarek.github.io/orthotect/)
 [![CI Status](https://github.com/seotarek/orthotect/actions/workflows/ci.yml/badge.svg)](https://github.com/seotarek/orthotect/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)](LICENSE)
@@ -45,16 +45,16 @@ orthotect/
 │   ├── compiler.py      # W3C DTCG Token Compiler (:root light and [data-theme="dark"])
 │   ├── tokens/          # W3C DTCG 3-Tier Design Tokens (Primitives, Semantics, Motion, Ergonomics)
 │   └── fsm/             # State Machine Specifications (Buttons, Data Tables, Modal Dialogs)
-├── docs/                # Interactive Showcase & In-Browser Gate Simulator (GitHub Pages)
-│   ├── index.html       # Bilingual (EN/AR) interactive documentation
-│   ├── styles.css       # 100% CSS Logical Properties & DTCG variables
-│   └── app.js           # Client-side optical contrast, BiDi AST, and FSM simulator
+├── docs/                # 7-View Skill Studio Platform & Interactive Showcase (GitHub Pages)
+│   ├── index.html       # 7-view bilingual (EN/AR) interactive workbench
+│   ├── styles.css       # 100% CSS Logical Properties & DTCG token variables
+│   └── app.js           # Client-side router, catalog, playground, builder, and gate simulator
 ├── gates/               # Objective Deterministic Checkers (Python & Node.js)
 │   ├── gate_contrast_wcag.py     # Mathematical Relative Luminance (WCAG 2.2 AAA/AA)
 │   ├── gate_bidi_logical.py      # Strict Enforcement of CSS Logical Properties
 │   ├── gate_fsm_integrity.py     # State Machine Graph Reachability & Lock Integrity
 │   ├── gate_no_slop.py           # Lexical & Pattern Slop Inspector
-│   ├── gate_cwv_budget.mjs       # DOM & Layout-Shift (CLS) Structural Budget
+│   ├── gate_cwv_budget.mjs       # WHATWG-Compliant DOM & Layout-Shift Budget
 │   └── run_all_gates.py          # Parallel Master Gate Orchestrator (ThreadPoolExecutor)
 ├── skills/              # Agent Skills (Progressive Disclosure)
 │   ├── orthotect-doctrine        # The 7 Non-Negotiable Laws
@@ -63,21 +63,21 @@ orthotect/
 │   ├── orthotect-bidi            # Directional Neutrality & RTL Engineering
 │   ├── orthotect-dashboard       # High-Density Console Design
 │   └── orthotect-gates           # Gate Execution Workflows
-├── tests/               # Comprehensive Unit & Integration Test Suite (53 Tests)
+├── tests/               # Comprehensive Unit & Integration Test Suite (75 Tests)
 │   ├── test_contrast.py          # Relative luminance & contrast threshold unit tests
 │   ├── test_bidi.py              # BiDi logical scanner positive/negative tests
 │   ├── test_fsm.py               # FSM graph reachability and deadlock tests
-│   ├── test_cwv.py               # Media dimension, aspect-ratio & minified HTML DOM depth tests
+│   ├── test_cwv.py               # Media dimension, aspect-ratio & iterative parse5 DOM depth tests
 │   ├── test_slop.py              # AI purple gradient & raw emoji anti-pattern tests
 │   ├── test_compiler.py          # W3C DTCG CSS custom property compiler tests
-│   ├── test_modal_browser.py     # Modal dialog DOM order, null safety, and FSM lifecycle tests
+│   ├── test_modal_browser.py     # Playwright headless Chrome focus trap & FSM tests
 │   └── test_cli_e2e.py           # E2E CLI verification, boundary & negative rejection tests
 ├── .github/workflows/   # Automated CI & GitHub Pages Deployment Pipelines
-│   ├── ci.yml                    # 53 Unit Tests & Full Gate Verification
+│   ├── ci.yml                    # 75 Unit Tests & Full Gate Verification
 │   └── pages.yml                 # Automated GitHub Pages Deployment
 ├── agents/
 │   └── orthotect-auditor.md      # Adversarial Quality Auditor Role
-├── CHANGELOG.md         # Full version history (v1.0.0 → v1.3.1)
+├── CHANGELOG.md         # Full version history (v1.0.0 → v1.5.0)
 ├── CONTRIBUTING.md      # Enterprise engineering guidelines
 ├── COMPETITORS.md       # Exhaustive architectural competitor teardown
 ├── MANIFESTO.md         # The 7 Laws of Interface Engineering
