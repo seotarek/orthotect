@@ -16,7 +16,6 @@
       <div class="container nav-wrap">
         <a href="#home" class="brand-group" aria-label="Orthotect Home">
           <img src="assets/brand/logo.svg" alt="Orthotect" class="brand-logo-img" width="148" height="38" />
-          <span class="brand-badge" id="brandDesc">v1.5.2</span>
         </a>
 
         <!-- Desktop Navigation -->
@@ -34,7 +33,12 @@
 
         <!-- Header Action Controls -->
         <div class="control-group">
-          <button id="themeToggleBtn" class="btn-ctrl" aria-label="Toggle Color Theme">
+          <button id="themeToggleBtn" class="btn-ctrl theme-toggle-btn" aria-label="Toggle Color Theme" title="Toggle theme (Dark / Light / Contrast)">
+            <span id="themeBtnIcon" class="theme-btn-icon" aria-hidden="true">
+              <svg class="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+              <svg class="icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+              <svg class="icon-contrast" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 0 0 20z" fill="currentColor"></path></svg>
+            </span>
             <span id="themeBtnText">Dark</span>
           </button>
           <button id="bidiToggleBtn" class="btn-ctrl" aria-label="Toggle Language and Direction">
@@ -575,79 +579,106 @@
               <p class="section-desc" id="builderSub">Author production-ready SKILL.md definitions tailored for Google Antigravity, Claude Code, Cursor, and Codex. Form inputs generate validated markdown with instant live preview.</p>
             </div>
 
-            <div class="builder-split-layout" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start;">
+            <div class="builder-split-layout">
               <!-- Authoring Form -->
-              <div class="skill-card">
-                <h3 style="font-size: 1.1rem; margin-block-end: 1rem;">Skill Properties</h3>
+              <div class="skill-card builder-form-card">
+                <div class="builder-card-hdr">
+                  <h3 class="builder-card-title">Skill Properties</h3>
+                  <span class="skill-badge">Contract Builder</span>
+                </div>
 
-                <label for="sbName" style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--ortho-text-secondary); margin-block-end: 0.3rem;">Skill Identifier (kebab-case)</label>
-                <input type="text" id="sbName" class="docs-modal-input" value="custom-data-grid" style="margin-block-end: 1rem;" />
+                <div class="builder-field-group">
+                  <label for="sbName" class="builder-field-lbl">Skill Identifier (kebab-case)</label>
+                  <input type="text" id="sbName" class="docs-modal-input" value="custom-data-grid" />
+                </div>
 
-                <label for="sbDesc" style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--ortho-text-secondary); margin-block-end: 0.3rem;">Description / Purpose</label>
-                <textarea id="sbDesc" class="docs-modal-input" rows="3" style="margin-block-end: 1rem;">Engineer enterprise data grids with virtual scrolling and FSM loading states.</textarea>
+                <div class="builder-field-group">
+                  <label for="sbDesc" class="builder-field-lbl">Description / Purpose</label>
+                  <textarea id="sbDesc" class="docs-modal-input" rows="3">Engineer enterprise data grids with virtual scrolling and FSM loading states.</textarea>
+                </div>
 
-                <label for="sbInputs" style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--ortho-text-secondary); margin-block-end: 0.3rem;">Inputs &amp; Prerequisites</label>
-                <input type="text" id="sbInputs" class="docs-modal-input" value="Column schema JSON, dataset array, pagination limits." style="margin-block-end: 1rem;" />
+                <div class="builder-field-group">
+                  <label for="sbInputs" class="builder-field-lbl">Inputs &amp; Prerequisites</label>
+                  <input type="text" id="sbInputs" class="docs-modal-input" value="Column schema JSON, dataset array, pagination limits." />
+                </div>
 
-                <label for="sbSteps" style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--ortho-text-secondary); margin-block-end: 0.3rem;">Operational Workflow Steps</label>
-                <textarea id="sbSteps" class="docs-modal-input" rows="4" style="margin-block-end: 1rem;">1. Parse schema and map field widths to DTCG spacing tokens.
+                <div class="builder-field-group">
+                  <label for="sbSteps" class="builder-field-lbl">Operational Workflow Steps</label>
+                  <textarea id="sbSteps" class="docs-modal-input" rows="4">1. Parse schema and map field widths to DTCG spacing tokens.
 2. Initialize FSM transitions (idle, loading, sorting, error).
 3. Enforce 100% CSS logical properties for RTL alignment.
 4. Run orthotect verification gates before emitting markup.</textarea>
+                </div>
 
-                <label for="sbDod" style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--ortho-text-secondary); margin-block-end: 0.3rem;">Definition of Done (DoD)</label>
-                <input type="text" id="sbDod" class="docs-modal-input" value="Zero layout shift (CLS = 0.00), keyboard sortable, all 5 quality gates pass." style="margin-block-end: 1.25rem;" />
+                <div class="builder-field-group">
+                  <label for="sbDod" class="builder-field-lbl">Definition of Done (DoD)</label>
+                  <input type="text" id="sbDod" class="docs-modal-input" value="Zero layout shift (CLS = 0.00), keyboard sortable, all 5 quality gates pass." />
+                </div>
 
-                <h4 style="font-size: 0.85rem; margin-block-end: 0.5rem;">Target Agent Environments</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-block-end: 1.25rem;">
-                  <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-                    <input type="checkbox" id="agentAgy" checked /> Antigravity (AGY)
+                <h4 class="builder-section-subhdr">Target Agent Environments</h4>
+                <div class="builder-check-grid">
+                  <label class="builder-check-card">
+                    <input type="checkbox" id="agentAgy" checked />
+                    <span>Antigravity (AGY)</span>
                   </label>
-                  <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-                    <input type="checkbox" id="agentClaude" checked /> Claude Code
+                  <label class="builder-check-card">
+                    <input type="checkbox" id="agentClaude" checked />
+                    <span>Claude Code</span>
                   </label>
-                  <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-                    <input type="checkbox" id="agentCursor" checked /> Cursor Agent
+                  <label class="builder-check-card">
+                    <input type="checkbox" id="agentCursor" checked />
+                    <span>Cursor Agent</span>
                   </label>
-                  <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-                    <input type="checkbox" id="agentCodex" checked /> OpenAI Codex
+                  <label class="builder-check-card">
+                    <input type="checkbox" id="agentCodex" checked />
+                    <span>OpenAI Codex</span>
                   </label>
                 </div>
 
-                <h4 style="font-size: 0.85rem; margin-block-end: 0.5rem;">Required Quality Gates</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-block-end: 1.5rem;">
-                  <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-                    <input type="checkbox" id="gateContrast" checked /> WCAG 2.2 AAA Contrast
+                <h4 class="builder-section-subhdr">Required Quality Gates</h4>
+                <div class="builder-check-grid" style="margin-block-end: 1.5rem;">
+                  <label class="builder-check-card">
+                    <input type="checkbox" id="gateContrast" checked />
+                    <span>WCAG 2.2 AAA Contrast</span>
                   </label>
-                  <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-                    <input type="checkbox" id="gateBidi" checked /> True BiDi Logical Properties
+                  <label class="builder-check-card">
+                    <input type="checkbox" id="gateBidi" checked />
+                    <span>True BiDi Logical Properties</span>
                   </label>
-                  <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-                    <input type="checkbox" id="gateFsm" checked /> FSM Graph Integrity
+                  <label class="builder-check-card">
+                    <input type="checkbox" id="gateFsm" checked />
+                    <span>FSM Graph Integrity</span>
                   </label>
-                  <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-                    <input type="checkbox" id="gateCwv" checked /> DOM &amp; Layout Shift Budget
+                  <label class="builder-check-card">
+                    <input type="checkbox" id="gateCwv" checked />
+                    <span>DOM &amp; Layout Shift Budget</span>
                   </label>
-                  <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-                    <input type="checkbox" id="gateSlop" checked /> Anti-Slop Inspector
+                  <label class="builder-check-card">
+                    <input type="checkbox" id="gateSlop" checked />
+                    <span>Anti-Slop Inspector</span>
                   </label>
                 </div>
 
-                <div style="display: flex; gap: 0.5rem;">
-                  <button id="btnResetSkill" class="btn-ctrl" style="flex: 1;">Reset Defaults</button>
-                  <button id="btnCopySkill" class="btn-ctrl" style="flex: 1;">Copy SKILL.md</button>
-                  <button id="btnDownloadSkill" class="btn-ctrl-accent" style="flex: 1;">Download File</button>
+                <div class="builder-btn-group">
+                  <button id="btnResetSkill" class="btn-ctrl">Reset Defaults</button>
+                  <button id="btnCopySkill" class="btn-ctrl">Copy SKILL.md</button>
+                  <button id="btnDownloadSkill" class="btn-ctrl-accent">Download File</button>
                 </div>
               </div>
 
               <!-- Live Preview -->
-              <div class="skill-card" style="padding: 0; overflow: hidden;">
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background-color: var(--ortho-surface-2); border-block-end: 1px solid var(--ortho-border-subtle);">
-                  <span style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; color: var(--ortho-accent-cyan);">LIVE SKILL.MD PREVIEW</span>
+              <div class="skill-card builder-preview-card" style="padding: 0; overflow: hidden;">
+                <div class="builder-preview-header">
+                  <div class="terminal-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                  </div>
+                  <span class="preview-filename">custom-data-grid/SKILL.md</span>
                   <span id="previewStatusBadge" class="skill-badge">Valid Specification</span>
                 </div>
-                <div style="padding: 1rem; max-block-size: 640px; overflow-y: auto; background-color: var(--ortho-canvas);">
-                  <pre style="margin: 0; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5; color: var(--ortho-text-primary);"><code id="sbMarkdownPreview"></code></pre>
+                <div class="builder-code-body">
+                  <pre class="builder-pre"><code id="sbMarkdownPreview"></code></pre>
                 </div>
               </div>
             </div>

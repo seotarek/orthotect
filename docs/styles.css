@@ -429,6 +429,35 @@ body.nav-open {
   border-color: rgba(0, 0, 0, 0.2);
 }
 
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.theme-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ortho-accent-cyan);
+}
+
+.theme-btn-icon svg {
+  display: none;
+}
+
+[data-theme="dark"] .theme-btn-icon .icon-moon {
+  display: block;
+}
+
+[data-theme="light"] .theme-btn-icon .icon-sun {
+  display: block;
+}
+
+[data-theme="contrast"] .theme-btn-icon .icon-contrast {
+  display: block;
+}
+
 .btn-ctrl-accent {
   background: rgba(0, 210, 255, 0.12);
   color: var(--ortho-accent-cyan);
@@ -2151,13 +2180,249 @@ body.nav-open {
 
 .docs-modal-input {
   inline-size: 100%;
-  background-color: var(--ortho-surface-2);
-  border: 1px solid var(--ortho-border-medium);
+  background-color: rgba(13, 19, 33, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--ortho-text-primary);
-  border-radius: var(--radius-sm);
-  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  padding-inline: 0.85rem;
+  padding-block: 0.65rem;
   font-family: inherit;
   font-size: 0.85rem;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.docs-modal-input:focus {
+  outline: none;
+  border-color: var(--ortho-accent-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.15), inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .docs-modal-input {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .docs-modal-input:focus {
+  border-color: var(--ortho-accent-cyan);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+/* ==========================================================================
+   Skill Builder Layout & Interactive Cards
+   ========================================================================== */
+.builder-split-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .builder-split-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.builder-form-card {
+  padding-inline: 1.75rem;
+  padding-block: 1.75rem;
+}
+
+.builder-card-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: 1.25rem;
+  padding-block-end: 0.75rem;
+  border-block-end: 1px solid var(--ortho-border-subtle);
+}
+
+.builder-card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ortho-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.builder-field-group {
+  margin-block-end: 1.1rem;
+}
+
+.builder-field-lbl {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ortho-text-secondary);
+  margin-block-end: 0.35rem;
+  letter-spacing: 0.01em;
+}
+
+.builder-section-subhdr {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ortho-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-block-end: 0.6rem;
+  margin-block-start: 1.25rem;
+}
+
+.builder-check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.6rem;
+  margin-block-end: 1.25rem;
+}
+
+.builder-check-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline: 0.75rem;
+  padding-block: 0.55rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ortho-text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.builder-check-card:hover {
+  border-color: rgba(0, 210, 255, 0.35);
+  background: rgba(0, 210, 255, 0.04);
+}
+
+.builder-check-card input[type="checkbox"] {
+  accent-color: var(--ortho-accent-cyan);
+  cursor: pointer;
+  inline-size: 15px;
+  block-size: 15px;
+}
+
+[data-theme="light"] .builder-check-card {
+  border-color: rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="light"] .builder-check-card:hover {
+  border-color: rgba(2, 132, 199, 0.35);
+  background: rgba(2, 132, 199, 0.04);
+}
+
+.builder-btn-group {
+  display: flex;
+  gap: 0.65rem;
+  margin-block-start: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.builder-btn-group button {
+  flex: 1 1 120px;
+  justify-content: center;
+}
+
+/* Terminal Live Preview Card */
+.builder-preview-card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.builder-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 1.25rem;
+  padding-block: 0.85rem;
+  background-color: rgba(22, 32, 53, 0.85);
+  border-block-end: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .builder-preview-header {
+  background-color: rgba(241, 245, 249, 0.95);
+  border-block-end: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.terminal-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dot {
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-red { background: #ff5f56; }
+.dot-yellow { background: #ffbd2e; }
+.dot-green { background: #27c93f; }
+
+.preview-filename {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ortho-text-secondary);
+}
+
+.builder-code-body {
+  padding-inline: 1.25rem;
+  padding-block: 1.25rem;
+  max-block-size: 640px;
+  overflow-y: auto;
+  background-color: #080c14;
+}
+
+[data-theme="light"] .builder-code-body {
+  background-color: #f1f5f9;
+}
+
+.builder-pre {
+  margin-block: 0;
+  margin-inline: 0;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+[data-theme="light"] .builder-pre {
+  color: #1e293b;
+}
+
+/* Page View Universal Ambient Glow */
+.page-view .section-pad {
+  position: relative;
+}
+
+.page-view .section-pad::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  margin-inline: auto;
+  inset-block-start: -30px;
+  inline-size: 85%;
+  max-inline-size: 1100px;
+  block-size: 260px;
+  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(0, 210, 255, 0.07), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-theme="light"] .page-view .section-pad::before {
+  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(2, 132, 199, 0.05), transparent 70%);
+}
+
+.page-view .container {
+  position: relative;
+  z-index: 1;
 }
 
 .docs-modal-error {
