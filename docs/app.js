@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================================================================
   const bidiDict = {
     en: {
-      brandDesc: "Skill Studio v1.5.2",
+      brandDesc: "v1.5.2",
       navHome: "Home",
       navCatalog: "Skill Catalog",
       navPlayground: "Playground",
@@ -192,7 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
       footerCopy: "Orthotect v1.5.2 © 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok."
     },
     ar: {
-      brandDesc: "استوديو المهارات v1.5.2",
+      brandDesc: "v1.5.2",
       navHome: "الرئيسية",
       navCatalog: "كتالوج المهارات",
       navPlayground: "المختبر التفاعلي",
