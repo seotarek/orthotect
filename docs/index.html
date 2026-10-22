@@ -231,48 +231,51 @@
               <p class="section-desc" id="pipelineSub">How agent instructions transform into verifiable, certified enterprise code through deterministic gates.</p>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;">
-              <div class="skill-card">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-block-end: 0.75rem;">
-                  <span style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: var(--ortho-accent-cyan);">STAGE 01</span>
+            <div class="pipeline-grid">
+              <div class="skill-card pipeline-card">
+                <div class="pipeline-card-top">
+                  <span class="pipeline-stage-tag">STAGE 01</span>
                   <span class="skill-badge">Contract</span>
                 </div>
-                <h3 style="font-size: 1.1rem; margin-block-end: 0.5rem;" id="step1Title">Skill Specification</h3>
-                <p style="font-size: 0.85rem; color: var(--ortho-text-secondary); line-height: 1.5;" id="step1Desc">Agent loads domain doctrine, DTCG token contracts, and FSM transition schemas.</p>
+                <h3 class="pipeline-card-title" id="step1Title">Skill Specification</h3>
+                <p class="pipeline-card-desc" id="step1Desc">Agent loads domain doctrine, DTCG token contracts, and FSM transition schemas.</p>
+                <div class="pipeline-step-arrow" aria-hidden="true">→</div>
               </div>
 
-              <div class="skill-card">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-block-end: 0.75rem;">
-                  <span style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: var(--ortho-accent-cyan);">STAGE 02</span>
+              <div class="skill-card pipeline-card">
+                <div class="pipeline-card-top">
+                  <span class="pipeline-stage-tag">STAGE 02</span>
                   <span class="skill-badge">Synthesis</span>
                 </div>
-                <h3 style="font-size: 1.1rem; margin-block-end: 0.5rem;" id="step2Title">Agent Generation</h3>
-                <p style="font-size: 0.85rem; color: var(--ortho-text-secondary); line-height: 1.5;" id="step2Desc">AI model synthesizes UI code strictly referencing semantic tokens and FSM handlers.</p>
+                <h3 class="pipeline-card-title" id="step2Title">Agent Generation</h3>
+                <p class="pipeline-card-desc" id="step2Desc">AI model synthesizes UI code strictly referencing semantic tokens and FSM handlers.</p>
+                <div class="pipeline-step-arrow" aria-hidden="true">→</div>
               </div>
 
-              <div class="skill-card">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-block-end: 0.75rem;">
-                  <span style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: var(--ortho-accent-cyan);">STAGE 03</span>
+              <div class="skill-card pipeline-card pipeline-card-active">
+                <div class="pipeline-card-top">
+                  <span class="pipeline-stage-tag">STAGE 03</span>
                   <span class="skill-badge">Verification</span>
                 </div>
-                <h3 style="font-size: 1.1rem; margin-block-end: 0.5rem;" id="step3Title">5 Deterministic Gates</h3>
-                <p style="font-size: 0.85rem; color: var(--ortho-text-secondary); line-height: 1.5;" id="step3Desc">Parallel mathematical AST verification: WCAG contrast, BiDi coordinates, FSM graphs, CWV budgets, and anti-slop.</p>
+                <h3 class="pipeline-card-title" id="step3Title">5 Deterministic Gates</h3>
+                <p class="pipeline-card-desc" id="step3Desc">Parallel mathematical AST verification: WCAG contrast, BiDi coordinates, FSM graphs, CWV budgets, and anti-slop.</p>
+                <div class="pipeline-step-arrow" aria-hidden="true">→</div>
               </div>
 
-              <div class="skill-card">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-block-end: 0.75rem;">
-                  <span style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: var(--ortho-accent-cyan);">STAGE 04</span>
+              <div class="skill-card pipeline-card">
+                <div class="pipeline-card-top">
+                  <span class="pipeline-stage-tag">STAGE 04</span>
                   <span class="skill-badge">Landing</span>
                 </div>
-                <h3 style="font-size: 1.1rem; margin-block-end: 0.5rem;" id="step4Title">Certified Production Release</h3>
-                <p style="font-size: 0.85rem; color: var(--ortho-text-secondary); line-height: 1.5;" id="step4Desc">Validated zero-CLS code committed directly to main, deployable without human rework.</p>
+                <h3 class="pipeline-card-title" id="step4Title">Certified Production Release</h3>
+                <p class="pipeline-card-desc" id="step4Desc">Validated zero-CLS code committed directly to main, deployable without human rework.</p>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Competitor Comparison Matrix -->
-        <div class="section-pad" style="background-color: var(--ortho-surface-1); border-block-start: 1px solid var(--ortho-border-subtle);">
+        <div class="section-pad teardown-section">
           <div class="container">
             <div class="section-hdr">
               <div class="section-pill">COMPETITOR TEARDOWN</div>
@@ -284,55 +287,169 @@
               <table class="comp-table">
                 <thead>
                   <tr>
-                    <th>Engineering Criterion</th>
-                    <th>Prompt Libraries (XIAS / taste-skill)</th>
-                    <th>Component Libraries (shadcn/ui)</th>
-                    <th>AI UI Generators (v0, Bolt)</th>
-                    <th class="col-ortho">Orthotect Architecture</th>
+                    <th class="col-criterion">
+                      <span class="th-title">Engineering Criterion</span>
+                      <span class="th-sub">Core architectural dimension</span>
+                    </th>
+                    <th class="col-competitor">
+                      <div class="th-badge-group">
+                        <span class="th-title">Prompt Libraries</span>
+                        <span class="th-sub">(XIAS / taste-skill)</span>
+                      </div>
+                    </th>
+                    <th class="col-competitor">
+                      <div class="th-badge-group">
+                        <span class="th-title">Component Libraries</span>
+                        <span class="th-sub">(shadcn/ui / Radix)</span>
+                      </div>
+                    </th>
+                    <th class="col-competitor">
+                      <div class="th-badge-group">
+                        <span class="th-title">AI UI Generators</span>
+                        <span class="th-sub">(v0, Bolt)</span>
+                      </div>
+                    </th>
+                    <th class="col-ortho">
+                      <div class="ortho-th-badge">
+                        <span class="ortho-star">✦</span> RECOMMENDED STANDARD
+                      </div>
+                      <div class="th-title-ortho">Orthotect Architecture</div>
+                      <span class="th-sub-ortho">Deterministic Enterprise Engine</span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td><strong>Verification Model</strong></td>
-                    <td>None (Subjective text)</td>
-                    <td>Manual QA / Unit tests</td>
-                    <td>None (Black-box generation)</td>
-                    <td class="col-ortho"><strong>5 Parallel Deterministic Gates (&lt;600ms)</strong></td>
+                    <td class="col-criterion">
+                      <div class="crit-title">Verification Model</div>
+                      <div class="crit-desc">Mathematical proof vs. subjective advice</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-fail"><span class="pill-icon">✕</span> None</span></div>
+                      <div class="cell-sub">Subjective text without compiler or runtime check</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-warn"><span class="pill-icon">⚠</span> Manual QA</span></div>
+                      <div class="cell-sub">Manual QA / Unit tests created per application</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-fail"><span class="pill-icon">✕</span> None</span></div>
+                      <div class="cell-sub">Black-box generation with hallucinated attributes</div>
+                    </td>
+                    <td class="col-ortho">
+                      <div class="cell-status"><span class="pill-ortho-win"><span class="pill-icon">✓</span> 5 Parallel Deterministic Gates (&lt;600ms)</span></div>
+                      <div class="cell-sub-win">AST verification running in parallel &lt;600ms with zero runtime overhead</div>
+                    </td>
                   </tr>
                   <tr>
-                    <td><strong>Bidirectional Layouts (BiDi)</strong></td>
-                    <td>Unenforced markdown advice</td>
-                    <td>Physical classes (ml-*, pr-*)</td>
-                    <td>Broken in RTL modes</td>
-                    <td class="col-ortho"><strong>100% Strict CSS Logical Properties</strong></td>
+                    <td class="col-criterion">
+                      <div class="crit-title">Bidirectional Layouts (BiDi)</div>
+                      <div class="crit-desc">Arabic / Hebrew RTL symmetry &amp; vector isolation</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-warn"><span class="pill-icon">—</span> Unenforced</span></div>
+                      <div class="cell-sub">Unenforced markdown advice; models still emit physical coordinates</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-fail"><span class="pill-icon">✕</span> Physical CSS</span></div>
+                      <div class="cell-sub">Physical classes (ml-*, pr-*) that invert and break in RTL</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-fail"><span class="pill-icon">✕</span> Broken in RTL modes</span></div>
+                      <div class="cell-sub">Broken in RTL modes; coordinates mirror destructively</div>
+                    </td>
+                    <td class="col-ortho">
+                      <div class="cell-status"><span class="pill-ortho-win"><span class="pill-icon">✓</span> 100% Strict CSS Logical Properties</span></div>
+                      <div class="cell-sub-win">Zero physical properties allowed; compile-time check for inline/block axes</div>
+                    </td>
                   </tr>
                   <tr>
-                    <td><strong>State Machine Integrity</strong></td>
-                    <td>Loose boolean flags (isLoading)</td>
-                    <td>Optional / Complex (XState)</td>
-                    <td>Unhandled async race bugs</td>
-                    <td class="col-ortho"><strong>Formal FSMs with BFS Reachability</strong></td>
+                    <td class="col-criterion">
+                      <div class="crit-title">State Machine Integrity</div>
+                      <div class="crit-desc">Race condition prevention &amp; transition graphs</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-fail"><span class="pill-icon">✕</span> Loose boolean flags</span></div>
+                      <div class="cell-sub">Loose boolean flags (isLoading) leading to illegal state combinations</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-warn"><span class="pill-icon">⚠</span> Optional / Complex</span></div>
+                      <div class="cell-sub">Optional / Complex (XState) rarely implemented in real codebases</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-fail"><span class="pill-icon">✕</span> Unhandled async race bugs</span></div>
+                      <div class="cell-sub">Unhandled async race bugs and vulnerable double-submission forms</div>
+                    </td>
+                    <td class="col-ortho">
+                      <div class="cell-status"><span class="pill-ortho-win"><span class="pill-icon">✓</span> Formal FSMs with BFS Reachability</span></div>
+                      <div class="cell-sub-win">Formal FSMs with BFS Reachability, double-submission locks &amp; dead-end guards</div>
+                    </td>
                   </tr>
                   <tr>
-                    <td><strong>WCAG 2.2 Accessibility</strong></td>
-                    <td>Prompt recommendations</td>
-                    <td>Radix primitives (breakable)</td>
-                    <td>Contrast failures frequent</td>
-                    <td class="col-ortho"><strong>Mathematical Luminance Matrix (AAA &amp; AA on Token Pairs)</strong></td>
+                    <td class="col-criterion">
+                      <div class="crit-title">WCAG 2.2 Accessibility</div>
+                      <div class="crit-desc">Mathematical contrast verification &amp; keyboard traps</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-warn"><span class="pill-icon">—</span> Prompt recommendations</span></div>
+                      <div class="cell-sub">Prompt recommendations with no luminance calculation or verification</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-warn"><span class="pill-icon">⚠</span> Radix primitives (breakable)</span></div>
+                      <div class="cell-sub">Radix primitives (breakable); developers regularly break contrast during restyling</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-fail"><span class="pill-icon">✕</span> Contrast failures frequent</span></div>
+                      <div class="cell-sub">Contrast failures frequent on generated dark-mode palettes</div>
+                    </td>
+                    <td class="col-ortho">
+                      <div class="cell-status"><span class="pill-ortho-win"><span class="pill-icon">✓</span> Mathematical Luminance Matrix</span></div>
+                      <div class="cell-sub-win">Mathematical Luminance Matrix (AAA &amp; AA on Token Pairs)</div>
+                    </td>
                   </tr>
                   <tr>
-                    <td><strong>Core Web Vitals Enforcement</strong></td>
-                    <td>None</td>
-                    <td>Manual dev responsibility</td>
-                    <td>High CLS from unbudgeted media</td>
-                    <td class="col-ortho"><strong>DOM Budget &amp; Media Bounding (CLS Pre-Emption)</strong></td>
+                    <td class="col-criterion">
+                      <div class="crit-title">Core Web Vitals Enforcement</div>
+                      <div class="crit-desc">DOM node budget, pre-emptive CLS &amp; media bounding</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-fail"><span class="pill-icon">✕</span> None</span></div>
+                      <div class="cell-sub">No awareness of layout shift budgets or DOM depth constraints</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-warn"><span class="pill-icon">⚠</span> Manual dev responsibility</span></div>
+                      <div class="cell-sub">Manual dev responsibility to set aspect ratios and prevent CLS</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-fail"><span class="pill-icon">✕</span> High CLS from unbudgeted media</span></div>
+                      <div class="cell-sub">High CLS from unbudgeted media and late client hydration shifts</div>
+                    </td>
+                    <td class="col-ortho">
+                      <div class="cell-status"><span class="pill-ortho-win"><span class="pill-icon">✓</span> DOM Budget &amp; Media Bounding</span></div>
+                      <div class="cell-sub-win">DOM Budget &amp; Media Bounding (CLS Pre-Emption)</div>
+                    </td>
                   </tr>
                   <tr>
-                    <td><strong>External Dependencies</strong></td>
-                    <td>Zero (Markdown only)</td>
-                    <td>High (React, Radix, Tailwind)</td>
-                    <td>Proprietary SaaS cloud</td>
-                    <td class="col-ortho"><strong>Zero Client-Side UI Dependencies (Pure Web Standards; CLI uses parse5 for AST analysis)</strong></td>
+                    <td class="col-criterion">
+                      <div class="crit-title">External Dependencies</div>
+                      <div class="crit-desc">Runtime footprint, lock-in &amp; framework bloat</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-win"><span class="pill-icon">✓</span> Zero (Markdown only)</span></div>
+                      <div class="cell-sub">Zero runtime (pure Markdown prompts only)</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-fail"><span class="pill-icon">✕</span> High (React, Radix, Tailwind)</span></div>
+                      <div class="cell-sub">Heavy dependencies (React, Radix, Tailwind, Lucide, clsx)</div>
+                    </td>
+                    <td class="col-competitor">
+                      <div class="cell-status"><span class="pill-subtle-fail"><span class="pill-icon">✕</span> Proprietary SaaS cloud</span></div>
+                      <div class="cell-sub">Proprietary SaaS cloud with vendor lock-in</div>
+                    </td>
+                    <td class="col-ortho">
+                      <div class="cell-status"><span class="pill-ortho-win"><span class="pill-icon">✓</span> Zero Client-Side UI Dependencies</span></div>
+                      <div class="cell-sub-win">Zero Client-Side UI Dependencies (Pure Web Standards; CLI uses parse5 for AST analysis)</div>
+                    </td>
                   </tr>
                 </tbody>
               </table>
