@@ -7,15 +7,22 @@ Ratio = (L1 + 0.05) / (L2 + 0.05)
 """
 import sys
 import json
+import re
 import os
 
+HEX_REGEX = re.compile(r'^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$')
+
 def parse_hex_color(hex_str):
-    hex_str = hex_str.strip().lstrip('#')
-    if len(hex_str) == 3:
-        hex_str = ''.join([c*2 for c in hex_str])
-    if len(hex_str) != 6:
+    if not isinstance(hex_str, str):
         raise ValueError(f"Invalid hex color: {hex_str}")
-    return tuple(int(hex_str[i:i+2], 16) for i in (0, 2, 4))
+    clean = hex_str.strip()
+    m = HEX_REGEX.match(clean)
+    if not m:
+        raise ValueError(f"Invalid hex color: {hex_str}")
+    hex_body = m.group(1)
+    if len(hex_body) == 3:
+        hex_body = ''.join([c * 2 for c in hex_body])
+    return tuple(int(hex_body[i:i+2], 16) for i in (0, 2, 4))
 
 def channel_to_luminance(c):
     s = c / 255.0
@@ -45,13 +52,8 @@ def find_target_tokens(target_path):
     target_abs = os.path.abspath(target_path)
     root_pkg = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-    def is_inside(target, parent):
-        try:
-            return os.path.commonpath([target, parent]) == parent
-        except ValueError:
-            return False
-
-    is_self = is_inside(target_abs, root_pkg)
+    # Root fallback is strictly allowed ONLY when auditing the root repo itself or the documentation site
+    is_root_or_docs = (target_abs == root_pkg or target_abs == os.path.join(root_pkg, 'docs'))
 
     candidates = [
         target_abs,
@@ -59,7 +61,7 @@ def find_target_tokens(target_path):
         os.path.join(target_abs, 'tokens'),
         os.path.join(target_abs, '.orthotect', 'tokens')
     ]
-    if is_self:
+    if is_root_or_docs:
         candidates.append(os.path.join(root_pkg, 'core', 'tokens'))
 
     for c in candidates:
@@ -69,6 +71,7 @@ def find_target_tokens(target_path):
             return p_file, s_file
             
     return None, None
+
 
 def main():
     target_path = sys.argv[1] if len(sys.argv) > 1 else '.'
@@ -106,12 +109,14 @@ def main():
         
         pairs = [
             ("Content Primary on Canvas", resolve_ref(theme_data['content']['primary']['$value'], prims), canvas, 4.5, 7.0, "Body Text"),
+            ("Content Primary on Panel", resolve_ref(theme_data['content']['primary']['$value'], prims), panel, 4.5, 7.0, "Panel Body Text"),
             ("Content Secondary on Canvas", resolve_ref(theme_data['content']['secondary']['$value'], prims), canvas, 4.5, 7.0, "Secondary Text"),
             ("Action Primary on Canvas", resolve_ref(theme_data['action']['primary']['$value'], prims), canvas, 3.0, 4.5, "Primary Control"),
             ("Action Danger on Canvas", resolve_ref(theme_data['action']['danger']['$value'], prims), canvas, 3.0, 4.5, "Destructive Control"),
             ("Border Strong on Panel", resolve_ref(theme_data['border']['strong']['$value'], prims), panel, 3.0, 4.5, "UI Component Border"),
             ("Inverse Text on Action Primary", resolve_ref(theme_data['content']['inverse']['$value'], prims), action_primary, 4.5, 7.0, "Button Label")
         ]
+
 
         for label, fg_hex, bg_rgb, aa_req, aaa_req, usage in pairs:
             fg_rgb = parse_hex_color(fg_hex) if isinstance(fg_hex, str) else fg_hex

@@ -9,18 +9,25 @@ import json
 import os
 import sys
 
+import re
+
+HEX_REGEX = re.compile(r'^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$')
+
 def parse_hex(hex_str):
     if not isinstance(hex_str, str):
         return None
-    clean = hex_str.strip().lstrip('#')
-    if len(clean) == 3:
-        clean = ''.join([c * 2 for c in clean])
-    if len(clean) != 6:
+    clean = hex_str.strip()
+    m = HEX_REGEX.match(clean)
+    if not m:
         return None
+    hex_body = m.group(1)
+    if len(hex_body) == 3:
+        hex_body = ''.join([c * 2 for c in hex_body])
     try:
-        return tuple(int(clean[i:i+2], 16) for i in (0, 2, 4))
+        return tuple(int(hex_body[i:i+2], 16) for i in (0, 2, 4))
     except ValueError:
         return None
+
 
 def relative_luminance(rgb):
     """
@@ -134,15 +141,20 @@ def verify_theme_contrast(theme_dict, prims, theme_label):
             cr = calculate_contrast(res_bg, res_fg)
             required_threshold = CONTRAST_TIERS.get(tier, 4.5)
 
-            if cr is not None:
-                if cr < required_threshold:
-                    raise ValueError(
-                        f"WCAG 2.2 Contrast Failure during token compilation: [{theme_label}] "
-                        f"{bg_grp}.{bg_tok} ({res_bg}) vs {fg_grp}.{fg_tok} ({res_fg}) "
-                        f"contrast ratio is {cr:.2f}:1 (Must be >= {required_threshold}:1 for {tier})."
-                    )
-                rating = "WCAG AAA" if cr >= 7.0 else "WCAG AA"
-                results.append(f" *   - [{theme_label}] {bg_grp}.{bg_tok} vs {fg_grp}.{fg_tok}: {cr:.1f}:1 ({rating} - Tier: {tier})")
+            if cr is None:
+                raise ValueError(
+                    f"Invalid or uncomputable color format for contrast pair: [{theme_label}] "
+                    f"{bg_grp}.{bg_tok} ({res_bg}) vs {fg_grp}.{fg_tok} ({res_fg})"
+                )
+            if cr < required_threshold:
+                raise ValueError(
+                    f"WCAG 2.2 Contrast Failure during token compilation: [{theme_label}] "
+                    f"{bg_grp}.{bg_tok} ({res_bg}) vs {fg_grp}.{fg_tok} ({res_fg}) "
+                    f"contrast ratio is {cr:.2f}:1 (Must be >= {required_threshold}:1 for {tier})."
+                )
+            rating = "WCAG AAA" if cr >= 7.0 else "WCAG AA"
+            results.append(f" *   - [{theme_label}] {bg_grp}.{bg_tok} vs {fg_grp}.{fg_tok}: {cr:.1f}:1 ({rating} - Tier: {tier})")
+
 
     return results
 
@@ -285,20 +297,51 @@ def compile_tokens(tokens_dir):
 PROTECTED_FILES = {
     'package.json', 'package-lock.json', 'CHANGELOG.md', 'README.md',
     'LICENSE', 'CONTRIBUTING.md', 'MANIFESTO.md', 'COMPETITORS.md',
-    'bin/orthotect.js', 'core/compiler.py'
+    'bin/orthotect.js', 'core/compiler.py', 'docs/app.js', 'docs/index.html'
 }
 
+PROTECTED_DIRS = {'core', 'gates', 'tests', 'bin', 'skills', 'docs'}
+PROTECTED_EXTENSIONS = {'.py', '.js', '.mjs', '.json', '.md', '.sh', '.yml', '.yaml', '.html'}
+
 def is_safe_output_path(output_path):
-    if not output_path:
+    if not output_path or not isinstance(output_path, str):
         return False
-    norm = os.path.normpath(os.path.abspath(output_path))
+    # A CSS token compiler must output CSS files only
+    if not output_path.lower().endswith('.css'):
+        return False
+
+    abs_out = os.path.abspath(output_path)
+    real_out = os.path.realpath(abs_out)
+
+    # Check git directory
+    if '/.git' in real_out or real_out.endswith('/.git') or '/.git' in abs_out:
+        return False
+
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+    # Check against individual protected files (both nominal and real destination)
     for p in PROTECTED_FILES:
-        target = os.path.normpath(os.path.abspath(p))
-        if norm == target:
+        target_abs = os.path.abspath(os.path.join(repo_root, p))
+        target_real = os.path.realpath(target_abs)
+        if abs_out == target_abs or real_out == target_real or real_out == target_abs:
             return False
-    if '/.git' in norm or norm.endswith('/.git'):
-        return False
+
+    # Check if target or realpath points to protected source files in repository
+    for p in (abs_out, real_out):
+        try:
+            rel = os.path.relpath(p, repo_root)
+            if not rel.startswith('..'):
+                top_segment = rel.split(os.sep)[0]
+                ext = os.path.splitext(p)[1].lower()
+                if ext in PROTECTED_EXTENSIONS:
+                    return False
+                if top_segment in PROTECTED_DIRS:
+                    return False
+        except ValueError:
+            pass
+
     return True
+
 
 def main():
     tokens_dir = sys.argv[1] if len(sys.argv) > 1 else 'core/tokens'

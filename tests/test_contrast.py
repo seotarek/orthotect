@@ -104,5 +104,31 @@ class TestContrastGateE2E(unittest.TestCase):
         self.assertIn("❌", res.stdout)
         self.assertIn("failed mandatory WCAG 2.2 AA criteria", res.stdout)
 
+    def test_parse_hex_color_rejects_double_hash(self):
+        """Negative test: parse_hex_color must reject double-hash or invalid prefix."""
+        with self.assertRaises(ValueError):
+            parse_hex_color("##ffffff")
+        with self.assertRaises(ValueError):
+            parse_hex_color("#fffffff")
+        with self.assertRaises(ValueError):
+            parse_hex_color("ffffff")
+
+    def test_empty_subdirectory_in_repo_fails_without_tokens(self):
+        """Negative test: A subdirectory located inside the repository tree without its own tokens must NOT borrow root tokens."""
+        bin_dir = os.path.join(self.root_dir, 'bin')
+        res = self.run_gate(bin_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Missing required Design Token files", res.stdout)
+
+
+    def test_contrast_checks_content_primary_on_panel(self):
+        """Positive test: Gate 1 must evaluate 'Content Primary on Panel' and test 14 total pairs across light & dark themes."""
+        showcase_dir = os.path.join(self.root_dir, 'examples', 'golden-showcase')
+        res = self.run_gate(showcase_dir)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("Content Primary on Panel", res.stdout)
+        self.assertIn("14 semantic token pairs evaluated", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
+

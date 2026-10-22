@@ -585,6 +585,55 @@ export function extractCssRulesFromHtmlAndLinkedSheets(htmlContent, htmlFilePath
   return cssTexts.join('\n');
 }
 
+export function calculateSelectorSpecificity(selectorStr) {
+  let a = 0, b = 0, c = 0;
+  if (!selectorStr || typeof selectorStr !== 'string') return [0, 0, 0];
+  const normalized = selectorStr.replace(/\s*>\s*/g, ' > ').trim();
+  const compounds = normalized.split(/\s+/).filter(t => t !== '>');
+  for (const comp of compounds) {
+    if (comp === '*' || !comp) continue;
+    const ids = comp.match(/#[a-zA-Z0-9_-]+/g);
+    if (ids) a += ids.length;
+    const classes = comp.match(/\.[a-zA-Z0-9_-]+/g);
+    if (classes) b += classes.length;
+    const attrs = comp.match(/\[[^\]]+\]/g);
+    if (attrs) b += attrs.length;
+    const tagMatch = comp.match(/^([a-zA-Z0-9_-]+)/);
+    if (tagMatch && tagMatch[1] !== '*') {
+      c += 1;
+    }
+  }
+  return [a, b, c];
+}
+
+export function compareSpecificity(specA, specB) {
+  if (specA[0] !== specB[0]) return specA[0] - specB[0];
+  if (specA[1] !== specB[1]) return specA[1] - specB[1];
+  return specA[2] - specB[2];
+}
+
+export function parseCssOrderedRules(cssText) {
+  const rules = [];
+  if (!cssText) return rules;
+  const stripped = cssText.replace(/\/\*[\s\S]*?\*\//g, '');
+  const ruleRegex = /([^{}]+)\{([^{}]+)\}/g;
+  let match;
+  let order = 0;
+  while ((match = ruleRegex.exec(stripped)) !== null) {
+    const selectors = match[1].split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    const decls = parseStyleDeclarations(match[2]);
+    for (const sel of selectors) {
+      rules.push({
+        selector: sel,
+        decls,
+        specificity: calculateSelectorSpecificity(sel),
+        order: order++
+      });
+    }
+  }
+  return rules;
+}
+
 export function parseCssSelectorRules(cssText) {
   const selectorMap = {};
   if (!cssText) return selectorMap;
@@ -601,6 +650,7 @@ export function parseCssSelectorRules(cssText) {
   }
   return selectorMap;
 }
+
 
 export function elementMatchesCompound(node, compound) {
   if (!node || !node.nodeName || node.nodeName.startsWith('#')) return false;
@@ -697,10 +747,11 @@ function checkHtmlFile(filePath) {
 
   const doc = parse5.parse(content);
   const combinedCss = extractCssRulesFromHtmlAndLinkedSheets(content, filePath);
-  const cssRules = parseCssSelectorRules(combinedCss);
+  const orderedCssRules = parseCssOrderedRules(combinedCss);
 
   // 1. Strict media dimension check on parsed AST:
   // Inspects <img>, <video>, and <iframe> elements to prevent CLS layout shift.
+  // Resolves full CSS cascade: HTML presentation attributes -> stylesheet rules (specificity + source order) -> inline styles.
   const mediaElements = findElementsWithAncestors(doc, ['img', 'video', 'iframe']);
   for (const { node: el, ancestors } of mediaElements) {
     const tag = el.nodeName.toLowerCase();
@@ -709,63 +760,101 @@ function checkHtmlFile(filePath) {
       attrs[a.name.toLowerCase()] = a.value;
     }
 
-    const hasValidWidth = isPositiveDimension(attrs['width']);
-    const hasValidHeight = isPositiveDimension(attrs['height']);
+    // Base presentation attributes
+    let cascadedWidth = Object.prototype.hasOwnProperty.call(attrs, 'width') ? { val: attrs['width'], isHtmlAttr: true, isImportant: false } : null;
+    let cascadedHeight = Object.prototype.hasOwnProperty.call(attrs, 'height') ? { val: attrs['height'], isHtmlAttr: true, isImportant: false } : null;
+    let cascadedAspect = null;
+
+    // Matching CSS stylesheet rules sorted by specificity ascending, then source order ascending
+    const matchingRules = [];
+    for (const rule of orderedCssRules) {
+      if (matchesSelectorChain(el, ancestors, rule.selector)) {
+        matchingRules.push(rule);
+      }
+    }
+    matchingRules.sort((r1, r2) => {
+      const cmp = compareSpecificity(r1.specificity, r2.specificity);
+      if (cmp !== 0) return cmp;
+      return r1.order - r2.order;
+    });
+
+    for (const rule of matchingRules) {
+      if (rule.decls['width']) {
+        const isImp = /!important\s*$/i.test(rule.decls['width']);
+        if (!cascadedWidth || !cascadedWidth.isImportant || isImp) {
+          cascadedWidth = { val: rule.decls['width'], isHtmlAttr: false, isImportant: isImp };
+        }
+      }
+      if (rule.decls['height']) {
+        const isImp = /!important\s*$/i.test(rule.decls['height']);
+        if (!cascadedHeight || !cascadedHeight.isImportant || isImp) {
+          cascadedHeight = { val: rule.decls['height'], isHtmlAttr: false, isImportant: isImp };
+        }
+      }
+      if (rule.decls['aspect-ratio']) {
+        const isImp = /!important\s*$/i.test(rule.decls['aspect-ratio']);
+        if (!cascadedAspect || !cascadedAspect.isImportant || isImp) {
+          cascadedAspect = { val: rule.decls['aspect-ratio'], isHtmlAttr: false, isImportant: isImp };
+        }
+      }
+    }
+
+    // Inline style attribute declarations (specificity (1, 0, 0, 0))
+    const styleDecls = parseStyleDeclarations(attrs['style'] || '');
+    if (Object.prototype.hasOwnProperty.call(styleDecls, 'width')) {
+      const isImp = /!important\s*$/i.test(styleDecls['width']);
+      if (!cascadedWidth || !cascadedWidth.isImportant || isImp) {
+        cascadedWidth = { val: styleDecls['width'], isHtmlAttr: false, isImportant: isImp, isInline: true };
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(styleDecls, 'height')) {
+      const isImp = /!important\s*$/i.test(styleDecls['height']);
+      if (!cascadedHeight || !cascadedHeight.isImportant || isImp) {
+        cascadedHeight = { val: styleDecls['height'], isHtmlAttr: false, isImportant: isImp, isInline: true };
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(styleDecls, 'aspect-ratio')) {
+      const isImp = /!important\s*$/i.test(styleDecls['aspect-ratio']);
+      if (!cascadedAspect || !cascadedAspect.isImportant || isImp) {
+        cascadedAspect = { val: styleDecls['aspect-ratio'], isHtmlAttr: false, isImportant: isImp, isInline: true };
+      }
+    }
+
+    // Now evaluate winning cascaded values
+    let hasValidAspect = false;
+    if (cascadedAspect) {
+      hasValidAspect = isValidAspectRatioValue(cascadedAspect.val);
+      if (!hasValidAspect && cascadedAspect.isInline) {
+        errors.push(`${filePath}: <${tag}> has invalid CSS aspect-ratio value in style attribute ("${cascadedAspect.val}"). Must be a positive ratio (e.g. "16/9" or "1").`);
+      }
+    }
+
+    let hasValidWidth = false;
+    if (cascadedWidth) {
+      hasValidWidth = cascadedWidth.isHtmlAttr ? isPositiveDimension(cascadedWidth.val) : isValidCssDimensionValue(cascadedWidth.val);
+    }
+    let hasValidHeight = false;
+    if (cascadedHeight) {
+      hasValidHeight = cascadedHeight.isHtmlAttr ? isPositiveDimension(cascadedHeight.val) : isValidCssDimensionValue(cascadedHeight.val);
+    }
+
     const hasBothDimensions = hasValidWidth && hasValidHeight;
 
-    const styleDecls = parseStyleDeclarations(attrs['style'] || '');
-    let hasValidAspect = false;
-    let hasValidCssDims = false;
-
-    // Check inline style aspect-ratio
-    if (Object.prototype.hasOwnProperty.call(styleDecls, 'aspect-ratio')) {
-      const aspectVal = styleDecls['aspect-ratio'];
-      hasValidAspect = isValidAspectRatioValue(aspectVal);
-      if (!hasValidAspect) {
-        errors.push(`${filePath}: <${tag}> has invalid CSS aspect-ratio value in style attribute ("${aspectVal}"). Must be a positive ratio (e.g. "16/9" or "1").`);
+    if (!hasBothDimensions && !hasValidAspect) {
+      if (cascadedWidth && cascadedHeight && (cascadedWidth.isInline || cascadedHeight.isInline)) {
+        errors.push(`${filePath}: <${tag}> has invalid non-reserving CSS dimensions in style ("width: ${cascadedWidth.val}; height: ${cascadedHeight.val}"). Must be positive dimensions with valid units.`);
+      } else if (attrs['data-width'] || attrs['data-height']) {
+        errors.push(`${filePath}: <${tag}> uses data-width/data-height instead of native HTML width/height attributes or CSS aspect-ratio.`);
+      } else if ('width' in attrs && !hasValidWidth && cascadedWidth && cascadedWidth.isHtmlAttr) {
+        errors.push(`${filePath}: <${tag}> has invalid width attribute value ("${attrs['width']}"). Must be a positive integer.`);
+      } else if ('height' in attrs && !hasValidHeight && cascadedHeight && cascadedHeight.isHtmlAttr) {
+        errors.push(`${filePath}: <${tag}> has invalid height attribute value ("${attrs['height']}"). Must be a positive integer.`);
+      } else {
+        errors.push(`${filePath}: <${tag}> tag lacks complete dimensions (requires BOTH width and height attributes, valid CSS width/height, or a valid CSS aspect-ratio property to prevent CLS layout shift).`);
       }
     }
+  }
 
-    // Check inline style width and height
-    if (Object.prototype.hasOwnProperty.call(styleDecls, 'width') && Object.prototype.hasOwnProperty.call(styleDecls, 'height')) {
-      const wVal = styleDecls['width'];
-      const hVal = styleDecls['height'];
-      if (isValidCssDimensionValue(wVal) && isValidCssDimensionValue(hVal)) {
-        hasValidCssDims = true;
-      } else if (!hasBothDimensions && !hasValidAspect) {
-        errors.push(`${filePath}: <${tag}> has invalid non-reserving CSS dimensions in style ("width: ${wVal}; height: ${hVal}"). Must be positive dimensions with valid units.`);
-      }
-    }
-
-    // Check external/embedded CSS stylesheet rules matching tag, compound, child, or descendant selectors
-    if (!hasBothDimensions && !hasValidAspect && !hasValidCssDims) {
-      for (const [selector, ruleDecls] of Object.entries(cssRules)) {
-        if (matchesSelectorChain(el, ancestors, selector)) {
-          if (ruleDecls['aspect-ratio'] && isValidAspectRatioValue(ruleDecls['aspect-ratio'])) {
-            hasValidAspect = true;
-            break;
-          }
-          if (ruleDecls['width'] && ruleDecls['height'] &&
-              isValidCssDimensionValue(ruleDecls['width']) && isValidCssDimensionValue(ruleDecls['height'])) {
-            hasValidCssDims = true;
-            break;
-          }
-        }
-      }
-    }
-
-      if (!hasBothDimensions && !hasValidAspect && !hasValidCssDims) {
-        if (attrs['data-width'] || attrs['data-height']) {
-          errors.push(`${filePath}: <${tag}> uses data-width/data-height instead of native HTML width/height attributes or CSS aspect-ratio.`);
-        } else if (!hasValidWidth && 'width' in attrs) {
-          errors.push(`${filePath}: <${tag}> has invalid width attribute value ("${attrs['width']}"). Must be a positive integer.`);
-        } else if (!hasValidHeight && 'height' in attrs) {
-          errors.push(`${filePath}: <${tag}> has invalid height attribute value ("${attrs['height']}"). Must be a positive integer.`);
-        } else {
-          errors.push(`${filePath}: <${tag}> tag lacks complete dimensions (requires BOTH width and height attributes, valid CSS width/height, or a valid CSS aspect-ratio property to prevent CLS layout shift).`);
-        }
-      }
-    }
 
   // 2. Blocking synchronous <script> tags in <head>
   const headNodes = findElements(doc, 'head');
@@ -794,21 +883,58 @@ function checkHtmlFile(filePath) {
 }
 
 if (isMain) {
-  if (fs.statSync(targetDir).isFile() && targetDir.endsWith('.html')) {
+  const resolvedTarget = path.resolve(targetDir);
+  const targetStat = fs.statSync(targetDir);
+  if (targetStat.isFile() && targetDir.endsWith('.html')) {
     checkHtmlFile(targetDir);
   } else {
+    const visitedRealDirs = new Set();
     const scan = (dir) => {
-      for (const f of fs.readdirSync(dir)) {
+      let realDir;
+      try {
+        realDir = fs.realpathSync(dir);
+      } catch (_) {
+        return;
+      }
+      if (visitedRealDirs.has(realDir)) return;
+      visitedRealDirs.add(realDir);
+
+      let entries;
+      try {
+        entries = fs.readdirSync(dir);
+      } catch (_) {
+        return;
+      }
+
+      for (const f of entries) {
         const full = path.join(dir, f);
-        if (fs.statSync(full).isDirectory()) {
-          if (!['node_modules', '.git', 'dist'].includes(f)) scan(full);
-        } else if (f.endsWith('.html')) {
-          checkHtmlFile(full);
-        }
+        try {
+          const lstat = fs.lstatSync(full);
+          if (lstat.isSymbolicLink()) {
+            const realTarget = fs.realpathSync(full);
+            // Check if symlink points outside the target tree
+            const rel = path.relative(resolvedTarget, realTarget);
+            if (rel.startsWith('..') || path.isAbsolute(rel)) {
+              // External symlink - do not traverse outside targetDir
+              continue;
+            }
+            const realStat = fs.statSync(realTarget);
+            if (realStat.isDirectory()) {
+              if (!['node_modules', '.git', 'dist'].includes(f)) scan(full);
+            } else if (f.endsWith('.html')) {
+              checkHtmlFile(full);
+            }
+          } else if (lstat.isDirectory()) {
+            if (!['node_modules', '.git', 'dist'].includes(f)) scan(full);
+          } else if (f.endsWith('.html')) {
+            checkHtmlFile(full);
+          }
+        } catch (_) {}
       }
     };
     scan(targetDir);
   }
+
 
   if (checkedFiles === 0) {
     console.log(`\n❌ [REJECT] No markup (.html) files found to inspect in: ${targetDir}`);

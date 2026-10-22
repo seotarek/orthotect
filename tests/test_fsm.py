@@ -254,6 +254,14 @@ class TestFsmGateE2E(unittest.TestCase):
         self.assertEqual(res.returncode, 0)
         self.assertIn("FSM state models verified successfully", res.stdout)
 
+    def test_empty_subdirectory_in_repo_fails_without_fsm(self):
+        """Negative test: A subdirectory located inside the repository tree without its own FSM must NOT borrow root FSM."""
+        bin_dir = os.path.join(self.root_dir, 'bin')
+        res = self.run_gate(bin_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Missing required FSM specifications in target", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
+
 

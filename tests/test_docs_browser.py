@@ -1168,5 +1168,58 @@ class TestDocsBrowserPlatform(unittest.TestCase):
         self.assertEqual(res.returncode, 0, f"Hero benchmark positive decimal dimensions test failed: {res.stderr}\n{res.stdout}")
         self.assertIn("SUCCESS_ACCEPT_DIRECT_DECIMAL", res.stdout)
 
+    def test_mobile_drawer_dialog_and_focus_trap(self):
+        """Verify mobile navigation drawer role="dialog", aria-modal="true", keyboard focus trap, and Escape restoration."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage({{ viewport: {{ width: 375, height: 667 }} }});
+          await page.goto('file://{self.docs_html}');
+
+          // Verify accessibility attributes on drawer
+          const role = await page.$eval('#mobileNavDrawer', el => el.getAttribute('role'));
+          const modal = await page.$eval('#mobileNavDrawer', el => el.getAttribute('aria-modal'));
+          if (role !== 'dialog') throw new Error(`Expected role="dialog", got ${{role}}`);
+          if (modal !== 'true') throw new Error(`Expected aria-modal="true", got ${{modal}}`);
+
+          // Open drawer via hamburger button
+          await page.click('#mobileMenuBtn');
+          await page.waitForTimeout(100);
+
+          const isOpen = await page.$eval('#mobileNavDrawer', el => el.classList.contains('open'));
+          const ariaHidden = await page.$eval('#mobileNavDrawer', el => el.getAttribute('aria-hidden'));
+          if (!isOpen || ariaHidden !== 'false') throw new Error('Drawer failed to open properly');
+
+          // Verify focus is inside drawer (mobileMenuCloseBtn)
+          const focusedId = await page.evaluate(() => document.activeElement ? document.activeElement.id : null);
+          if (focusedId !== 'mobileMenuCloseBtn') throw new Error(`Expected focus on mobileMenuCloseBtn, got: ${{focusedId}}`);
+
+          // Press Escape to close
+          await page.keyboard.press('Escape');
+          await page.waitForTimeout(100);
+
+          const isClosed = await page.$eval('#mobileNavDrawer', el => !el.classList.contains('open'));
+          if (!isClosed) throw new Error('Drawer failed to close on Escape');
+
+          // Verify focus restored to mobileMenuBtn
+          const restoredId = await page.evaluate(() => document.activeElement ? document.activeElement.id : null);
+          if (restoredId !== 'mobileMenuBtn') throw new Error(`Expected focus restored to mobileMenuBtn, got: ${{restoredId}}`);
+
+          await browser.close();
+          console.log('SUCCESS_MOBILE_DRAWER_FOCUS_TRAP');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Mobile drawer dialog & focus trap test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_MOBILE_DRAWER_FOCUS_TRAP", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
+

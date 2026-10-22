@@ -142,13 +142,8 @@ def find_target_fsm_dir(target_path):
     target_abs = os.path.abspath(target_path)
     root_pkg = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-    def is_inside(target, parent):
-        try:
-            return os.path.commonpath([target, parent]) == parent
-        except ValueError:
-            return False
-
-    is_self = is_inside(target_abs, root_pkg)
+    # Root fallback is strictly allowed ONLY when auditing the root repo itself or the documentation site
+    is_root_or_docs = (target_abs == root_pkg or target_abs == os.path.join(root_pkg, 'docs'))
 
     candidates = [
         target_abs,
@@ -156,7 +151,7 @@ def find_target_fsm_dir(target_path):
         os.path.join(target_abs, 'fsm'),
         os.path.join(target_abs, '.orthotect', 'fsm')
     ]
-    if is_self:
+    if is_root_or_docs:
         candidates.append(os.path.join(root_pkg, 'core', 'fsm'))
 
     for c in candidates:
@@ -165,6 +160,7 @@ def find_target_fsm_dir(target_path):
             if json_files:
                 return c, json_files
     return None, []
+
 
 def main():
     target_path = sys.argv[1] if len(sys.argv) > 1 else 'core/fsm'

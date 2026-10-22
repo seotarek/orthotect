@@ -66,9 +66,10 @@
   ],
   "license": "MIT",
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=20.19.0",
     "python": ">=3.9.0"
   },
+
   "dependencies": {
     "parse5": "^8.0.1"
   },

@@ -211,13 +211,71 @@ class TestTokenCompiler(unittest.TestCase):
         self.assertIsNone(calculate_contrast(None, '#ffffff'))
         self.assertIsNone(calculate_contrast('#ffffff', '#gggggg'))
 
+    def test_parse_hex_rejects_double_hash(self):
+        """Negative test: parse_hex must reject double hash (##ffffff) and not strip multiple hashes."""
+        from core.compiler import parse_hex
+        self.assertIsNone(parse_hex('##ffffff'))
+        self.assertIsNone(parse_hex('#ffffff#'))
+        self.assertIsNone(parse_hex('###123'))
+        self.assertEqual(parse_hex('#ffffff'), (255, 255, 255))
+        self.assertEqual(parse_hex('#fff'), (255, 255, 255))
+
+    def test_uncomputable_contrast_pair_raises_error(self):
+        """Negative test: compile_tokens must raise ValueError when a mandatory semantic pair has uncomputable contrast rather than silently skipping."""
+        bad_dir = os.path.join(self.temp_dir, 'uncomputable_contrast_tokens')
+        os.makedirs(bad_dir, exist_ok=True)
+        prims = {
+            "color": {
+                "gray": {
+                    "canvas": { "$value": "#ffffff" },
+                    "bad_color": { "$value": "##ffffff" }  # Invalid hex color format
+                }
+            }
+        }
+        sems = {
+            "theme": {
+                "light": {
+                    "surface": {
+                        "canvas": { "$value": "{color.gray.canvas}" },
+                        "panel": { "$value": "{color.gray.canvas}" }
+                    },
+                    "action": {
+                        "primary": { "$value": "{color.gray.canvas}" }
+                    },
+                    "content": {
+                        "primary": { "$value": "{color.gray.bad_color}" },
+                        "inverse": { "$value": "{color.gray.canvas}" }
+                    }
+                }
+            }
+        }
+        with open(os.path.join(bad_dir, 'primitives.json'), 'w') as f:
+            json.dump(prims, f)
+        with open(os.path.join(bad_dir, 'semantics.json'), 'w') as f:
+            json.dump(sems, f)
+
+        with self.assertRaises(ValueError) as ctx:
+            compile_tokens(bad_dir)
+        self.assertIn("Invalid or uncomputable color format", str(ctx.exception))
+
     def test_protected_file_overwrite_prevention(self):
-        """Negative test: Attempting to output compiled tokens to package.json or .git must be blocked."""
+        """Negative test: Attempting to output compiled tokens to repository source files, non-css files, or symlinks must be blocked."""
         from core.compiler import is_safe_output_path
         self.assertFalse(is_safe_output_path('package.json'))
         self.assertFalse(is_safe_output_path('.git/config'))
         self.assertFalse(is_safe_output_path('CHANGELOG.md'))
+        self.assertFalse(is_safe_output_path('docs/app.js'))
+        self.assertFalse(is_safe_output_path('gates/gate_cwv_budget.mjs'))
+        self.assertFalse(is_safe_output_path(os.path.join(self.temp_dir, 'malicious.js')))  # Non-css rejected
         self.assertTrue(is_safe_output_path(os.path.join(self.temp_dir, 'custom_theme.css')))
+
+        # Symlink pointing to package.json must be blocked
+        symlink_path = os.path.join(self.temp_dir, 'sneaky.css')
+        try:
+            os.symlink(os.path.join(self.root_dir, 'package.json'), symlink_path)
+            self.assertFalse(is_safe_output_path(symlink_path))
+        except (OSError, NotImplementedError):
+            pass
 
     def test_deterministic_compilation_reproducibility(self):
         """Ensure token compiler generates byte-for-byte identical output on successive runs."""
@@ -227,3 +285,4 @@ class TestTokenCompiler(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+

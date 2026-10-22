@@ -468,7 +468,95 @@ class TestCWVBudgetGate(unittest.TestCase):
         self.assertNotEqual(res.returncode, 0)
         self.assertIn("invalid non-reserving CSS dimensions in style", res.stdout)
 
+    def test_css_cascade_specificity_override_fails_cls(self):
+        """Negative test: A higher specificity CSS rule with width:0/height:0 overrides an earlier general rule and fails Gate 5."""
+        html_file = os.path.join(self.temp_dir, 'cascade_fail.html')
+        with open(html_file, 'w') as f:
+            f.write('''<!DOCTYPE html>
+<html>
+<head>
+<title>Cascade Specificity Fail</title>
+<style>
+img { width: 100px; height: 100px; }
+img.hero { width: 0; height: 0; }
+</style>
+</head>
+<body>
+<img src="hero.png" class="hero" alt="Hero">
+</body>
+</html>''')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("lacks complete dimensions", res.stdout)
+
+    def test_css_cascade_specificity_override_passes_cls(self):
+        """Positive test: A higher specificity CSS rule with valid dimensions overrides a lower specificity 0-dimension rule."""
+        html_file = os.path.join(self.temp_dir, 'cascade_pass.html')
+        with open(html_file, 'w') as f:
+            f.write('''<!DOCTYPE html>
+<html>
+<head>
+<title>Cascade Specificity Pass</title>
+<style>
+img { width: 0; height: 0; }
+img.hero { width: 200px; height: 150px; }
+</style>
+</head>
+<body>
+<img src="hero.png" class="hero" alt="Hero">
+</body>
+</html>''')
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("PASS", res.stdout)
+
+    def test_css_source_order_override_fails_cls(self):
+        """Negative test: At equal specificity, a later CSS rule in source order overrides an earlier rule."""
+        html_file = os.path.join(self.temp_dir, 'source_order_fail.html')
+        with open(html_file, 'w') as f:
+            f.write('''<!DOCTYPE html>
+<html>
+<head>
+<title>Source Order Fail</title>
+<style>
+img { width: 100px; height: 100px; }
+img { width: 0; height: 0; }
+</style>
+</head>
+<body>
+<img src="logo.png" alt="Logo">
+</body>
+</html>''')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("lacks complete dimensions", res.stdout)
+
+    def test_symlink_directory_outside_target_is_not_traversed(self):
+        """Negative test: Directory symlinks pointing outside targetDir must not be followed or cause false failures."""
+        outside_dir = tempfile.mkdtemp(prefix='outside_cwv_')
+        try:
+            bad_html = os.path.join(outside_dir, 'bad.html')
+            with open(bad_html, 'w') as f:
+                f.write('<!DOCTYPE html><html><body><img src="bad.png"></body></html>')
+            
+            valid_html = os.path.join(self.temp_dir, 'valid.html')
+            with open(valid_html, 'w') as f:
+                f.write('<!DOCTYPE html><html><body><img src="good.png" width="100" height="100" alt="Good"></body></html>')
+
+            symlink_dir = os.path.join(self.temp_dir, 'outside_link')
+            try:
+                os.symlink(outside_dir, symlink_dir)
+            except (OSError, NotImplementedError):
+                return # Skip if platform disallows symlinks
+
+            res = self.run_gate(self.temp_dir)
+            self.assertEqual(res.returncode, 0)
+            self.assertIn("PASS", res.stdout)
+        finally:
+            shutil.rmtree(outside_dir, ignore_errors=True)
+
 if __name__ == '__main__':
     unittest.main()
+
 
 

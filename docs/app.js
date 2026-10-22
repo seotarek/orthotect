@@ -18,20 +18,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const validRoutes = ["home", "catalog", "playground", "builder", "gallery", "gates", "install"];
 
   // =========================================================================
-  // 1b. MOBILE NAVIGATION DRAWER CONTROLLER
+  // 1b. MOBILE NAVIGATION DRAWER CONTROLLER & ACCESSIBLE FOCUS TRAP
   // =========================================================================
   const mobileMenuBtn = document.getElementById("mobileMenuBtn");
   const mobileMenuCloseBtn = document.getElementById("mobileMenuCloseBtn");
   const mobileNavDrawer = document.getElementById("mobileNavDrawer");
   const mobileNavBackdrop = document.getElementById("mobileNavBackdrop");
+  let previousFocusedElement = null;
+
+  function getFocusableElements(container) {
+    if (!container) return [];
+    return Array.from(container.querySelectorAll(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter(el => el.offsetParent !== null || el === mobileMenuCloseBtn);
+  }
 
   function openMobileNav() {
     if (!mobileNavDrawer) return;
+    previousFocusedElement = document.activeElement;
     mobileNavDrawer.classList.add("open");
     mobileNavDrawer.setAttribute("aria-hidden", "false");
     if (mobileMenuBtn) mobileMenuBtn.setAttribute("aria-expanded", "true");
     document.body.classList.add("nav-open");
-    if (mobileMenuCloseBtn) mobileMenuCloseBtn.focus();
+    if (mobileMenuCloseBtn) {
+      setTimeout(() => mobileMenuCloseBtn.focus(), 10);
+    }
   }
 
   function closeMobileNav() {
@@ -40,20 +51,53 @@ document.addEventListener("DOMContentLoaded", () => {
     mobileNavDrawer.setAttribute("aria-hidden", "true");
     if (mobileMenuBtn) {
       mobileMenuBtn.setAttribute("aria-expanded", "false");
-      mobileMenuBtn.focus();
     }
     document.body.classList.remove("nav-open");
+    if (previousFocusedElement && typeof previousFocusedElement.focus === 'function') {
+      previousFocusedElement.focus();
+    } else if (mobileMenuBtn) {
+      mobileMenuBtn.focus();
+    }
   }
 
   if (mobileMenuBtn) mobileMenuBtn.addEventListener("click", openMobileNav);
   if (mobileMenuCloseBtn) mobileMenuCloseBtn.addEventListener("click", closeMobileNav);
   if (mobileNavBackdrop) mobileNavBackdrop.addEventListener("click", closeMobileNav);
 
+  // Accessible keyboard focus trap inside mobile nav drawer dialog
+  if (mobileNavDrawer) {
+    mobileNavDrawer.addEventListener("keydown", (e) => {
+      if (!mobileNavDrawer.classList.contains("open")) return;
+      if (e.key === "Tab") {
+        const focusables = getFocusableElements(mobileNavDrawer);
+        if (focusables.length === 0) {
+          e.preventDefault();
+          return;
+        }
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    });
+  }
+
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && mobileNavDrawer && mobileNavDrawer.classList.contains("open")) {
       closeMobileNav();
     }
   });
+
 
   function handleRouting() {
     const rawHash = window.location.hash.replace(/^#\/?/, "").toLowerCase();
