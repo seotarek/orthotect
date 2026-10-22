@@ -2040,71 +2040,199 @@ ${dod}
           return /^[1-9]\d*$/.test(clean);
         };
 
-        const evaluateMathExpression = (expr) => {
-          let pos = 0;
-          function peek() { while (pos < expr.length && expr[pos] === " ") pos++; return expr[pos] || null; }
-          function parseExpression() {
-            let val = parseTerm();
-            while (true) {
-              const op = peek();
-              if (op === "+" || op === "-") {
-                pos++;
-                const nextVal = parseTerm();
-                val = op === "+" ? val + nextVal : val - nextVal;
-              } else break;
-            }
-            return val;
-          }
-          function parseTerm() {
-            let val = parseFactor();
-            while (true) {
-              const op = peek();
-              if (op === "*" || op === "/") {
-                pos++;
-                const nextVal = parseFactor();
-                if (op === "*") val = val * nextVal;
-                else {
-                  if (nextVal === 0) return NaN;
-                  val = val / nextVal;
-                }
-              } else break;
-            }
-            return val;
-          }
-          function parseFactor() {
-            peek();
-            let sign = 1;
-            if (expr[pos] === "+" || expr[pos] === "-") {
-              if (expr[pos] === "-") sign = -1;
-              pos++;
-              peek();
-            }
-            if (expr[pos] === "(") {
-              pos++;
-              const val = parseExpression();
-              peek();
-              if (expr[pos] === ")") pos++;
-              return sign * val;
-            }
-            const start = pos;
-            while (pos < expr.length && /[0-9.]/.test(expr[pos])) pos++;
-            if (start === pos) return NaN;
-            const num = parseFloat(expr.slice(start, pos));
-            return sign * num;
-          }
-          const result = parseExpression();
-          peek();
-          if (pos < expr.length) return NaN;
-          return result;
-        };
+        const parseAndValidateCssCalc = (innerStr) => {
+          if (!innerStr || typeof innerStr !== "string") return false;
+          const str = innerStr.trim();
+          if (!str) return false;
 
-        const evaluateCssCalc = (calcContent, unitMap) => {
-          const clean = calcContent.replace(/\s*!important\s*$/i, "").trim();
-          const converted = clean.replace(/([0-9]*\.?[0-9]+)\s*(px|rem|em|vw|vh|%|cqi|cqw|pt|cm|mm|in)?/gi, (match, num, unit) => {
-            const factor = unit ? (unitMap[unit.toLowerCase()] !== undefined ? unitMap[unit.toLowerCase()] : 1) : 1;
-            return `(${num} * ${factor})`;
-          });
-          return evaluateMathExpression(converted);
+          const validUnits = new Set(["px", "rem", "em", "vw", "vh", "%", "cqi", "cqw", "pt", "cm", "mm", "in", "vmin", "vmax", "ch", "ex"]);
+
+          const tokens = [];
+          let i = 0;
+          const len = str.length;
+          while (i < len) {
+            const ch = str[i];
+            if (/\s/.test(ch)) {
+              i++;
+              continue;
+            }
+            if (ch === "(" || ch === ")" || ch === "*" || ch === "/") {
+              tokens.push({ type: ch, raw: ch });
+              i++;
+              continue;
+            }
+            if (ch === "+" || ch === "-") {
+              const prev = tokens.length > 0 ? tokens[tokens.length - 1].type : null;
+              if (!prev || prev === "(" || prev === "+" || prev === "-" || prev === "*" || prev === "/") {
+                let j = i + 1;
+                while (j < len && /\s/.test(str[j])) j++;
+                if (j < len && /[0-9.]/.test(str[j])) {
+                  const sign = ch === "-" ? -1 : 1;
+                  i = j;
+                  const numStart = i;
+                  while (i < len && /[0-9.]/.test(str[i])) i++;
+                  const numVal = parseFloat(str.slice(numStart, i));
+                  if (isNaN(numVal)) return false;
+                  const unitStart = i;
+                  while (i < len && /[a-zA-Z%]/.test(str[i])) i++;
+                  const unit = str.slice(unitStart, i).toLowerCase();
+                  if (unit && !validUnits.has(unit)) return false;
+                  tokens.push({
+                    type: "val",
+                    num: sign * numVal,
+                    unit: unit || null,
+                    dimType: unit ? "length" : "number"
+                  });
+                  continue;
+                }
+              }
+              tokens.push({ type: ch, raw: ch });
+              i++;
+              continue;
+            }
+            if (/[0-9.]/.test(ch)) {
+              const numStart = i;
+              while (i < len && /[0-9.]/.test(str[i])) i++;
+              const numVal = parseFloat(str.slice(numStart, i));
+              if (isNaN(numVal)) return false;
+              const unitStart = i;
+              while (i < len && /[a-zA-Z%]/.test(str[i])) i++;
+              const unit = str.slice(unitStart, i).toLowerCase();
+              if (unit && !validUnits.has(unit)) return false;
+              tokens.push({
+                type: "val",
+                num: numVal,
+                unit: unit || null,
+                dimType: unit ? "length" : "number"
+              });
+              continue;
+            }
+            return false;
+          }
+
+          if (tokens.length === 0) return false;
+
+          let pos = 0;
+
+          function parseFactor() {
+            if (pos >= tokens.length) return null;
+            let sign = 1;
+            if (tokens[pos].type === "+" || tokens[pos].type === "-") {
+              if (tokens[pos].type === "-") sign = -1;
+              pos++;
+              if (pos >= tokens.length) return null;
+            }
+
+            const t = tokens[pos];
+            if (t.type === "(") {
+              pos++;
+              const expr = parseExpression();
+              if (!expr) return null;
+              if (pos >= tokens.length || tokens[pos].type !== ")") {
+                return null;
+              }
+              pos++;
+              return {
+                dimType: expr.dimType,
+                evalNode: (map) => sign * expr.evalNode(map)
+              };
+            }
+
+            if (t.type === "val") {
+              pos++;
+              const valToken = t;
+              return {
+                dimType: valToken.dimType,
+                evalNode: (map) => {
+                  const factor = valToken.unit ? (map[valToken.unit] !== undefined ? map[valToken.unit] : 1) : 1;
+                  return sign * valToken.num * factor;
+                }
+              };
+            }
+
+            return null;
+          }
+
+          function parseTerm() {
+            let left = parseFactor();
+            if (!left) return null;
+
+            while (pos < tokens.length && (tokens[pos].type === "*" || tokens[pos].type === "/")) {
+              const op = tokens[pos].type;
+              pos++;
+              const right = parseFactor();
+              if (!right) return null;
+
+              if (op === "*") {
+                if (left.dimType === "length" && right.dimType === "length") {
+                  return null;
+                }
+                const resDimType = (left.dimType === "length" || right.dimType === "length") ? "length" : "number";
+                const prevLeft = left;
+                left = {
+                  dimType: resDimType,
+                  evalNode: (map) => prevLeft.evalNode(map) * right.evalNode(map)
+                };
+              } else {
+                if (right.dimType !== "number") {
+                  return null;
+                }
+                const prevLeft = left;
+                left = {
+                  dimType: prevLeft.dimType,
+                  evalNode: (map) => {
+                    const rVal = right.evalNode(map);
+                    if (rVal === 0) return NaN;
+                    return prevLeft.evalNode(map) / rVal;
+                  }
+                };
+              }
+            }
+            return left;
+          }
+
+          function parseExpression() {
+            let left = parseTerm();
+            if (!left) return null;
+
+            while (pos < tokens.length && (tokens[pos].type === "+" || tokens[pos].type === "-")) {
+              const op = tokens[pos].type;
+              pos++;
+              const right = parseTerm();
+              if (!right) return null;
+
+              if (left.dimType !== right.dimType) {
+                return null;
+              }
+
+              const prevLeft = left;
+              left = {
+                dimType: prevLeft.dimType,
+                evalNode: (map) => {
+                  const lVal = prevLeft.evalNode(map);
+                  const rVal = right.evalNode(map);
+                  return op === "+" ? lVal + rVal : lVal - rVal;
+                }
+              };
+            }
+            return left;
+          }
+
+          const ast = parseExpression();
+          if (!ast) return false;
+          if (pos < tokens.length) return false;
+          if (ast.dimType !== "length") return false;
+
+          const mobileMap = { px: 1, rem: 16, em: 16, vw: 3.6, vh: 6.4, "%": 3.6, cqi: 3.6, cqw: 3.6, pt: 1.333, cm: 37.795, mm: 3.7795, in: 96, vmin: 3.6, vmax: 6.4, ch: 8, ex: 8 };
+          const desktopMap = { px: 1, rem: 16, em: 16, vw: 14.4, vh: 9.0, "%": 14.4, cqi: 14.4, cqw: 14.4, pt: 1.333, cm: 37.795, mm: 3.7795, in: 96, vmin: 9.0, vmax: 14.4, ch: 8, ex: 8 };
+          const neutralMap = { px: 1, rem: 1, em: 1, vw: 1, vh: 1, "%": 1, cqi: 1, cqw: 1, pt: 1, cm: 1, mm: 1, in: 1, vmin: 1, vmax: 1, ch: 1, ex: 1 };
+
+          const mVal = ast.evalNode(mobileMap);
+          const dVal = ast.evalNode(desktopMap);
+          const nVal = ast.evalNode(neutralMap);
+
+          if (isNaN(mVal) || isNaN(dVal) || isNaN(nVal)) return false;
+          return mVal > 0 && dVal > 0 && nVal > 0;
         };
 
         const isValidCssDim = (val) => {
@@ -2121,16 +2249,7 @@ ${dod}
           const inner = calcMatch[1].trim();
           if (!inner) return false;
 
-          const mobileMap = { px: 1, rem: 16, em: 16, vw: 3.6, vh: 6.4, "%": 3.6, cqi: 3.6, cqw: 3.6, pt: 1.333, cm: 37.795, mm: 3.7795, in: 96 };
-          const desktopMap = { px: 1, rem: 16, em: 16, vw: 14.4, vh: 9.0, "%": 14.4, cqi: 14.4, cqw: 14.4, pt: 1.333, cm: 37.795, mm: 3.7795, in: 96 };
-          const neutralMap = { px: 1, rem: 1, em: 1, vw: 1, vh: 1, "%": 1, cqi: 1, cqw: 1, pt: 1, cm: 1, mm: 1, in: 1 };
-
-          const mVal = evaluateCssCalc(inner, mobileMap);
-          const dVal = evaluateCssCalc(inner, desktopMap);
-          const nVal = evaluateCssCalc(inner, neutralMap);
-
-          if (isNaN(mVal) || isNaN(dVal) || isNaN(nVal)) return false;
-          return mVal > 0 && dVal > 0 && nVal > 0;
+          return parseAndValidateCssCalc(inner);
         };
 
         const isValidAspectRatio = (val) => {
@@ -2164,7 +2283,14 @@ ${dod}
             const widthMatch = styleAttr.match(/(?:^|;|\s)width\s*:\s*([^;]+)/i);
             const heightMatch = styleAttr.match(/(?:^|;|\s)height\s*:\s*([^;]+)/i);
             if (widthMatch && heightMatch && isValidCssDim(widthMatch[1]) && isValidCssDim(heightMatch[1])) {
-              hasInlineDims = true;
+              try {
+                const cs = window.getComputedStyle(el);
+                if (parseFloat(cs.width) > 0 && parseFloat(cs.height) > 0) {
+                  hasInlineDims = true;
+                }
+              } catch (_) {
+                hasInlineDims = true;
+              }
             }
           }
 

@@ -920,5 +920,51 @@ class TestDocsBrowserPlatform(unittest.TestCase):
         self.assertEqual(res.returncode, 0, f"Hero benchmark negative calc(100% - 100%) media test failed: {res.stderr}\n{res.stdout}")
         self.assertIn("SUCCESS_REJECT_CALC_NET_ZERO_MEDIA", res.stdout)
 
+    def test_hero_benchmark_rejects_calc_invalid_syntax_violation(self):
+        """Negative test: Injecting media with invalid syntax/type calc((10px) must trigger Gate 5 rejection."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          await page.goto('file://{self.docs_html}');
+          await page.waitForTimeout(100);
+
+          // Inject media with unbalanced parenthesis and invalid length*length calc
+          await page.evaluate(() => {{
+            const img = document.createElement('img');
+            img.setAttribute('src', 'syntax_err.png');
+            img.style.width = 'calc((10px)';
+            img.style.height = 'calc(10px * 20px)';
+            document.body.appendChild(img);
+          }});
+
+          // Run benchmark
+          await page.click('#btnRunHeroBenchmark');
+          await page.waitForTimeout(300);
+
+          const s5 = await page.$eval('#heroStatusGate5', el => el.textContent);
+          const badge = await page.$eval('#heroTerminalBadge', el => el.textContent);
+          const cert = await page.$eval('#heroTerminalCert', el => el.textContent);
+
+          await browser.close();
+
+          if (!s5.includes('FAIL')) throw new Error(`Expected Gate 5 to FAIL, got: ${{s5}}`);
+          if (badge !== 'GATE VIOLATIONS DETECTED') throw new Error(`Expected GATE VIOLATIONS DETECTED badge, got: ${{badge}}`);
+          if (cert !== 'REJECTED') throw new Error(`Expected REJECTED cert, got: ${{cert}}`);
+
+          console.log('SUCCESS_REJECT_CALC_INVALID_SYNTAX');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Hero benchmark negative calc syntax test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_REJECT_CALC_INVALID_SYNTAX", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()

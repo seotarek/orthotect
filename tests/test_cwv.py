@@ -333,6 +333,43 @@ class TestCWVBudgetGate(unittest.TestCase):
         self.assertEqual(res.returncode, 0)
         self.assertIn("PASS", res.stdout)
 
+    def test_calc_unbalanced_parentheses_fails(self):
+        """Negative test: media element with unbalanced calc((10px) dimensions must fail Gate 5."""
+        html_file = os.path.join(self.temp_dir, 'calc_unbalanced.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Calc Unbalanced</title></head><body><img src="logo.png" style="width: calc((10px); height: calc((10px);" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("invalid non-reserving CSS dimensions in style", res.stdout)
+
+    def test_calc_length_multiplied_by_length_fails(self):
+        """Negative test: W3C CSS Values Level 4 (§ 8.1.1) disallows multiplying length by length (calc(10px * 20px))."""
+        html_file = os.path.join(self.temp_dir, 'calc_length_mul_length.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Calc Mul Length</title></head><body><img src="logo.png" style="width: calc(10px * 20px); height: calc(10px * 20px);" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("invalid non-reserving CSS dimensions in style", res.stdout)
+
+    def test_calc_length_added_to_unitless_number_fails(self):
+        """Negative test: W3C CSS Values Level 4 (§ 8.1.1) disallows adding incompatible types (calc(10px + 2))."""
+        html_file = os.path.join(self.temp_dir, 'calc_length_add_number.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Calc Add Number</title></head><body><img src="logo.png" style="width: calc(10px + 2); height: calc(10px + 2);" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("invalid non-reserving CSS dimensions in style", res.stdout)
+
+    def test_calc_valid_scalar_multiplication_and_division_passes(self):
+        """Positive test: valid W3C scalar operations calc(10px * 2) and calc(100px / 2) must pass Gate 5."""
+        html_file = os.path.join(self.temp_dir, 'calc_valid_scalar.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Calc Valid</title></head><body><img src="logo.png" style="width: calc(10px * 2); height: calc(100px / 2);" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("PASS", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
+
 

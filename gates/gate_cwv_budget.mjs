@@ -127,87 +127,228 @@ export function isValidAspectRatioValue(rawVal) {
 }
 
 /**
- * Deterministic safe mathematical arithmetic expression evaluator (+, -, *, /, parentheses).
- * Pure parser without eval or Function.
+ * Parses, type-checks per W3C CSS Values and Units Level 4 (§ 8.1.1),
+ * validates parenthesis matching, and mathematically evaluates CSS calc() expressions.
+ * Enforces:
+ * - Balanced parentheses (rejects unbalanced ( or ))
+ * - Multiplication requires at least one unitless <number> operand (rejects length * length)
+ * - Addition/subtraction operands must match types (rejects length + number)
+ * - Division right operand must be a non-zero unitless <number> (rejects length / length, length / 0)
+ * - Dimension expression must resolve to <length> (rejects unitless numbers)
+ * - All evaluated reference models (mobile, desktop, neutral) must be strictly positive (> 0)
  */
-export function evaluateMathExpression(expr) {
-  let pos = 0;
-  function peek() {
-    while (pos < expr.length && expr[pos] === ' ') pos++;
-    return expr[pos] || null;
-  }
-  function parseExpression() {
-    let val = parseTerm();
-    while (true) {
-      const op = peek();
-      if (op === '+' || op === '-') {
-        pos++;
-        const nextVal = parseTerm();
-        val = op === '+' ? val + nextVal : val - nextVal;
-      } else break;
-    }
-    return val;
-  }
-  function parseTerm() {
-    let val = parseFactor();
-    while (true) {
-      const op = peek();
-      if (op === '*' || op === '/') {
-        pos++;
-        const nextVal = parseFactor();
-        if (op === '*') {
-          val = val * nextVal;
-        } else {
-          if (nextVal === 0) return NaN;
-          val = val / nextVal;
-        }
-      } else break;
-    }
-    return val;
-  }
-  function parseFactor() {
-    peek();
-    let sign = 1;
-    if (expr[pos] === '+' || expr[pos] === '-') {
-      if (expr[pos] === '-') sign = -1;
-      pos++;
-      peek();
-    }
-    if (expr[pos] === '(') {
-      pos++;
-      const val = parseExpression();
-      peek();
-      if (expr[pos] === ')') pos++;
-      return sign * val;
-    }
-    const start = pos;
-    while (pos < expr.length && /[0-9.]/.test(expr[pos])) pos++;
-    if (start === pos) return NaN;
-    const num = parseFloat(expr.slice(start, pos));
-    return sign * num;
-  }
-  const result = parseExpression();
-  peek();
-  if (pos < expr.length) return NaN;
-  return result;
-}
+export function parseAndValidateCssCalc(innerStr) {
+  if (!innerStr || typeof innerStr !== 'string') return false;
+  const str = innerStr.trim();
+  if (!str) return false;
 
-/**
- * Evaluates CSS calc() expression content against a specified unit mapping.
- */
-export function evaluateCssCalc(calcContent, unitMap) {
-  const clean = calcContent.replace(/\s*!important\s*$/i, '').trim();
-  const converted = clean.replace(/([0-9]*\.?[0-9]+)\s*(px|rem|em|vw|vh|%|cqi|cqw|pt|cm|mm|in)?/gi, (match, num, unit) => {
-    const factor = unit ? (unitMap[unit.toLowerCase()] !== undefined ? unitMap[unit.toLowerCase()] : 1) : 1;
-    return `(${num} * ${factor})`;
-  });
-  return evaluateMathExpression(converted);
+  const validUnits = new Set(['px', 'rem', 'em', 'vw', 'vh', '%', 'cqi', 'cqw', 'pt', 'cm', 'mm', 'in', 'vmin', 'vmax', 'ch', 'ex']);
+
+  // 1. Lexical Tokenization
+  const tokens = [];
+  let i = 0;
+  const len = str.length;
+  while (i < len) {
+    const ch = str[i];
+    if (/\s/.test(ch)) {
+      i++;
+      continue;
+    }
+    if (ch === '(' || ch === ')' || ch === '*' || ch === '/') {
+      tokens.push({ type: ch, raw: ch });
+      i++;
+      continue;
+    }
+    if (ch === '+' || ch === '-') {
+      const prev = tokens.length > 0 ? tokens[tokens.length - 1].type : null;
+      if (!prev || prev === '(' || prev === '+' || prev === '-' || prev === '*' || prev === '/') {
+        // Unary sign directly preceding a number
+        let j = i + 1;
+        while (j < len && /\s/.test(str[j])) j++;
+        if (j < len && /[0-9.]/.test(str[j])) {
+          const sign = ch === '-' ? -1 : 1;
+          i = j;
+          const numStart = i;
+          while (i < len && /[0-9.]/.test(str[i])) i++;
+          const numVal = parseFloat(str.slice(numStart, i));
+          if (isNaN(numVal)) return false;
+          const unitStart = i;
+          while (i < len && /[a-zA-Z%]/.test(str[i])) i++;
+          const unit = str.slice(unitStart, i).toLowerCase();
+          if (unit && !validUnits.has(unit)) return false;
+          tokens.push({
+            type: 'val',
+            num: sign * numVal,
+            unit: unit || null,
+            dimType: unit ? 'length' : 'number'
+          });
+          continue;
+        }
+      }
+      tokens.push({ type: ch, raw: ch });
+      i++;
+      continue;
+    }
+    if (/[0-9.]/.test(ch)) {
+      const numStart = i;
+      while (i < len && /[0-9.]/.test(str[i])) i++;
+      const numVal = parseFloat(str.slice(numStart, i));
+      if (isNaN(numVal)) return false;
+      const unitStart = i;
+      while (i < len && /[a-zA-Z%]/.test(str[i])) i++;
+      const unit = str.slice(unitStart, i).toLowerCase();
+      if (unit && !validUnits.has(unit)) return false;
+      tokens.push({
+        type: 'val',
+        num: numVal,
+        unit: unit || null,
+        dimType: unit ? 'length' : 'number'
+      });
+      continue;
+    }
+    // Unrecognized character
+    return false;
+  }
+
+  if (tokens.length === 0) return false;
+
+  // 2. Recursive-Descent Parser with W3C CSS Values and Units Level 4 (§ 8.1.1) Type Checking
+  let pos = 0;
+
+  function parseFactor() {
+    if (pos >= tokens.length) return null;
+    let sign = 1;
+    if (tokens[pos].type === '+' || tokens[pos].type === '-') {
+      if (tokens[pos].type === '-') sign = -1;
+      pos++;
+      if (pos >= tokens.length) return null;
+    }
+
+    const t = tokens[pos];
+    if (t.type === '(') {
+      pos++; // consume (
+      const expr = parseExpression();
+      if (!expr) return null;
+      if (pos >= tokens.length || tokens[pos].type !== ')') {
+        // Unbalanced opening parenthesis: missing closing ')'
+        return null;
+      }
+      pos++; // consume )
+      return {
+        dimType: expr.dimType,
+        evalNode: (map) => sign * expr.evalNode(map)
+      };
+    }
+
+    if (t.type === 'val') {
+      pos++; // consume val
+      const valToken = t;
+      return {
+        dimType: valToken.dimType,
+        evalNode: (map) => {
+          const factor = valToken.unit ? (map[valToken.unit] !== undefined ? map[valToken.unit] : 1) : 1;
+          return sign * valToken.num * factor;
+        }
+      };
+    }
+
+    return null;
+  }
+
+  function parseTerm() {
+    let left = parseFactor();
+    if (!left) return null;
+
+    while (pos < tokens.length && (tokens[pos].type === '*' || tokens[pos].type === '/')) {
+      const op = tokens[pos].type;
+      pos++;
+      const right = parseFactor();
+      if (!right) return null;
+
+      if (op === '*') {
+        // W3C Rule: At least one operand must be a <number>
+        if (left.dimType === 'length' && right.dimType === 'length') {
+          return null; // Cannot multiply length by length
+        }
+        const resDimType = (left.dimType === 'length' || right.dimType === 'length') ? 'length' : 'number';
+        const prevLeft = left;
+        left = {
+          dimType: resDimType,
+          evalNode: (map) => prevLeft.evalNode(map) * right.evalNode(map)
+        };
+      } else {
+        // Division: Right operand MUST be a unitless <number>
+        if (right.dimType !== 'number') {
+          return null; // Cannot divide by length or dimension
+        }
+        const prevLeft = left;
+        left = {
+          dimType: prevLeft.dimType, // preserves left type
+          evalNode: (map) => {
+            const rVal = right.evalNode(map);
+            if (rVal === 0) return NaN;
+            return prevLeft.evalNode(map) / rVal;
+          }
+        };
+      }
+    }
+    return left;
+  }
+
+  function parseExpression() {
+    let left = parseTerm();
+    if (!left) return null;
+
+    while (pos < tokens.length && (tokens[pos].type === '+' || tokens[pos].type === '-')) {
+      const op = tokens[pos].type;
+      pos++;
+      const right = parseTerm();
+      if (!right) return null;
+
+      // W3C Rule: Both operands must have matching types (length + length, or number + number)
+      if (left.dimType !== right.dimType) {
+        return null; // Cannot add/subtract length and unitless number
+      }
+
+      const prevLeft = left;
+      left = {
+        dimType: prevLeft.dimType,
+        evalNode: (map) => {
+          const lVal = prevLeft.evalNode(map);
+          const rVal = right.evalNode(map);
+          return op === '+' ? lVal + rVal : lVal - rVal;
+        }
+      };
+    }
+    return left;
+  }
+
+  const ast = parseExpression();
+  if (!ast) return false;
+
+  // Unconsumed tokens (e.g. extra closing parenthesis or invalid trailing token)
+  if (pos < tokens.length) return false;
+
+  // A CSS dimension (width/height) MUST resolve to <length> (or percentage), NOT a unitless number
+  if (ast.dimType !== 'length') return false;
+
+  // 3. Dimensional Evaluation across mobile, desktop, and neutral models
+  const mobileMap = { px: 1, rem: 16, em: 16, vw: 3.6, vh: 6.4, '%': 3.6, cqi: 3.6, cqw: 3.6, pt: 1.333, cm: 37.795, mm: 3.7795, in: 96, vmin: 3.6, vmax: 6.4, ch: 8, ex: 8 };
+  const desktopMap = { px: 1, rem: 16, em: 16, vw: 14.4, vh: 9.0, '%': 14.4, cqi: 14.4, cqw: 14.4, pt: 1.333, cm: 37.795, mm: 3.7795, in: 96, vmin: 9.0, vmax: 14.4, ch: 8, ex: 8 };
+  const neutralMap = { px: 1, rem: 1, em: 1, vw: 1, vh: 1, '%': 1, cqi: 1, cqw: 1, pt: 1, cm: 1, mm: 1, in: 1, vmin: 1, vmax: 1, ch: 1, ex: 1 };
+
+  const mVal = ast.evalNode(mobileMap);
+  const dVal = ast.evalNode(desktopMap);
+  const nVal = ast.evalNode(neutralMap);
+
+  if (isNaN(mVal) || isNaN(dVal) || isNaN(nVal)) return false;
+  return mVal > 0 && dVal > 0 && nVal > 0;
 }
 
 /**
  * Validates CSS dimension property value (width/height).
- * Rejects 'auto', 'none', 'initial', 'inherit', 'unset', '0', '0px', and any calc() resolving to <= 0.
- * Accepts positive dimensions with length/percentage units or mathematically positive calc().
+ * Rejects 'auto', 'none', 'initial', 'inherit', 'unset', '0', '0px', and any invalid or non-positive calc().
+ * Accepts positive dimensions with length/percentage units or mathematically positive valid calc().
  */
 export function isValidCssDimensionValue(val) {
   if (!val || typeof val !== 'string') return false;
@@ -225,18 +366,7 @@ export function isValidCssDimensionValue(val) {
   const inner = calcMatch[1].trim();
   if (!inner) return false;
 
-  // Evaluate across mobile, desktop, and unit-neutral reference models
-  const mobileMap = { px: 1, rem: 16, em: 16, vw: 3.6, vh: 6.4, '%': 3.6, cqi: 3.6, cqw: 3.6, pt: 1.333, cm: 37.795, mm: 3.7795, in: 96 };
-  const desktopMap = { px: 1, rem: 16, em: 16, vw: 14.4, vh: 9.0, '%': 14.4, cqi: 14.4, cqw: 14.4, pt: 1.333, cm: 37.795, mm: 3.7795, in: 96 };
-  const neutralMap = { px: 1, rem: 1, em: 1, vw: 1, vh: 1, '%': 1, cqi: 1, cqw: 1, pt: 1, cm: 1, mm: 1, in: 1 };
-
-  const mVal = evaluateCssCalc(inner, mobileMap);
-  const dVal = evaluateCssCalc(inner, desktopMap);
-  const nVal = evaluateCssCalc(inner, neutralMap);
-
-  if (isNaN(mVal) || isNaN(dVal) || isNaN(nVal)) return false;
-  // All evaluated reference points must be strictly positive (> 0)
-  return mVal > 0 && dVal > 0 && nVal > 0;
+  return parseAndValidateCssCalc(inner);
 }
 
 /**
