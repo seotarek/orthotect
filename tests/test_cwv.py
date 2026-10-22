@@ -181,8 +181,8 @@ class TestCWVBudgetGate(unittest.TestCase):
         self.assertNotEqual(res.returncode, 0)
         self.assertIn("trailing solidus", res.stdout)
 
-    def test_html5_optional_closing_tags_pass(self):
-        """Ensure standard HTML5 optional closing tags on lists pass without errors."""
+    def test_html5_optional_closing_tags_with_media_pass(self):
+        """Ensure standard HTML5 optional closing tags on lists with media pass without errors."""
         html_file = os.path.join(self.temp_dir, 'index.html')
         with open(html_file, 'w') as f:
             f.write('<!DOCTYPE html><html><head></head><body><ul><li>Item 1<li>Item 2</ul><img src="a.png" width="10" height="10" alt="x"></body></html>')

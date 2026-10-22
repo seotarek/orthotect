@@ -853,6 +853,29 @@ body.nav-open {
   box-shadow: 0 0 15px rgba(0, 210, 255, 0.25);
 }
 
+.term-certified.fail {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: var(--ortho-danger);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.25);
+}
+
+.terminal-badge.fail {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: var(--ortho-danger);
+}
+
+.terminal-row.fail {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.terminal-row.fail .term-status,
+.terminal-row.fail .term-detail {
+  color: var(--ortho-danger);
+}
+
 /* Section Headers */
 .section-hdr {
   text-align: center;

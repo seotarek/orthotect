@@ -565,10 +565,10 @@ class TestDocsBrowserPlatform(unittest.TestCase):
           await page.goto('file://{self.docs_html}');
           await page.waitForTimeout(100);
 
-          // 1. Initial state must be labeled as verified CI benchmark baseline
+          // 1. Initial state must be labeled as specification baseline
           const initialBadge = await page.$eval('#heroTerminalBadge', el => el.textContent);
-          if (!initialBadge.includes('VERIFIED BENCHMARK')) {{
-            throw new Error(`Expected VERIFIED BENCHMARK baseline badge, got: ${{initialBadge}}`);
+          if (!initialBadge.includes('SPECIFICATION BASELINE')) {{
+            throw new Error(`Expected SPECIFICATION BASELINE baseline badge, got: ${{initialBadge}}`);
           }}
 
           // 2. Click Run Live In-Browser button

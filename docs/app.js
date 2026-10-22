@@ -151,7 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mNavInstall: "Install & Usage",
       heroBadge: "v1.5.2 • Deterministic Quality Standard for Autonomous Coding Agents",
       heroTitle: "Deterministic Interface Engineering & <span class=\"hero-gradient-text\">Runtime Quality Gates</span>",
-      heroSub: "Stop trusting probabilistic UI code. Orthotect enforces mathematical WCAG AAA contrast, 100% CSS logical properties, formal state machines, and zero layout shift in sub-400ms parallel gates.",
+      heroSub: "Stop trusting probabilistic UI code. Orthotect enforces mathematical WCAG 2.2 token contrast, strict CSS logical properties, formal state machines, and media box bounding in parallel deterministic gates.",
       ctaPlayground: "Open Interactive Playground",
       ctaCatalog: "Browse Skill Catalog",
       ctaBuilder: "Build Custom Skill",
@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mNavInstall: "التثبيت والاستخدام",
       heroBadge: "v1.5.2 • معيار الجودة الحتمية للوكلاء البرمجيين المستقلين",
       heroTitle: "هندسة الواجهات الحتمية و<span class=\"hero-gradient-text\">بوابات الجودة أثناء التشغيل</span>",
-      heroSub: "توقف عن قبول كود الواجهات العشوائي. يفرض أورثوتكت تباين WCAG AAA الرياضي، وخواص CSS المنطقية 100%، وآلات الحالة المنتهية FSM، وانعدام الـ Layout Shift في بوابات متوازية تحت 400ms.",
+      heroSub: "توقف عن قبول كود الواجهات العشوائي. يفرض أورثوتكت تباين WCAG 2.2 للتوكنز، وصرامة خواص CSS المنطقية، ونزاهة آلات الحالة FSM، وتحديد أبعاد الوسائط في بوابات حتمية متوازية.",
       ctaPlayground: "فتح المختبر التفاعلي",
       ctaCatalog: "تصفح كتالوج المهارات",
       ctaBuilder: "بناء مهارة مخصصة",
@@ -1617,9 +1617,35 @@ ${dod}
       const cert = document.getElementById("heroTerminalCert");
       const summary = document.getElementById("heroTerminalSummary");
 
+      const elStatus1 = document.getElementById("heroStatusGate1");
+      const elTime1 = document.getElementById("heroTimeGate1");
+      const elDetail1 = document.getElementById("heroDetailGate1");
+      const elRow1 = elStatus1 ? elStatus1.closest(".terminal-row") : null;
+
+      const elStatus2 = document.getElementById("heroStatusGate2");
+      const elTime2 = document.getElementById("heroTimeGate2");
+      const elDetail2 = document.getElementById("heroDetailGate2");
+      const elRow2 = elStatus2 ? elStatus2.closest(".terminal-row") : null;
+
+      const elStatus3 = document.getElementById("heroStatusGate3");
+      const elTime3 = document.getElementById("heroTimeGate3");
+      const elDetail3 = document.getElementById("heroDetailGate3");
+      const elRow3 = elStatus3 ? elStatus3.closest(".terminal-row") : null;
+
+      const elStatus4 = document.getElementById("heroStatusGate4");
+      const elTime4 = document.getElementById("heroTimeGate4");
+      const elDetail4 = document.getElementById("heroDetailGate4");
+      const elRow4 = elStatus4 ? elStatus4.closest(".terminal-row") : null;
+
+      const elStatus5 = document.getElementById("heroStatusGate5");
+      const elTime5 = document.getElementById("heroTimeGate5");
+      const elDetail5 = document.getElementById("heroDetailGate5");
+      const elRow5 = elStatus5 ? elStatus5.closest(".terminal-row") : null;
+
       if (btnText) btnText.textContent = "Executing...";
       if (badge) {
         badge.textContent = "⚡ EXECUTING CLIENT GATES...";
+        badge.className = "terminal-badge";
       }
 
       setTimeout(() => {
@@ -1627,97 +1653,260 @@ ${dod}
 
         // 1. Gate 1: WCAG 2.2 Mathematical Contrast on Document Tokens
         const t1Start = performance.now();
-        const darkContrast = getContrastRatio("#f8fafc", "#060911") || "21.0";
-        const lightContrast = getContrastRatio("#0f172a", "#f8fafc") || "17.4";
+        const darkContrast = parseFloat(getContrastRatio("#f8fafc", "#090d16") || "0");
+        const lightContrast = parseFloat(getContrastRatio("#0f172a", "#f8fafc") || "0");
+        const darkSecContrast = parseFloat(getContrastRatio("#94a3b8", "#090d16") || "0");
+        const passed1 = darkContrast >= 7.0 && lightContrast >= 7.0 && darkSecContrast >= 4.5;
         const t1End = performance.now();
         const t1 = Math.max(0.4, t1End - t1Start);
 
-        const elTime1 = document.getElementById("heroTimeGate1");
-        const elDetail1 = document.getElementById("heroDetailGate1");
         if (elTime1) elTime1.textContent = `${t1.toFixed(1)}ms`;
-        if (elDetail1) elDetail1.textContent = `Contrast: ${darkContrast}:1 (Dark) • ${lightContrast}:1 (Light)`;
+        if (elStatus1) {
+          elStatus1.textContent = passed1 ? "✅ PASS" : "❌ FAIL";
+          if (elRow1) elRow1.className = passed1 ? "terminal-row pass" : "terminal-row fail";
+        }
+        if (elDetail1) {
+          elDetail1.textContent = passed1
+            ? `Contrast: ${darkContrast.toFixed(1)}:1 (Dark) • ${lightContrast.toFixed(1)}:1 (Light) [WCAG AA/AAA]`
+            : `Contrast violation: ${darkContrast.toFixed(1)}:1 (Dark) • ${lightContrast.toFixed(1)}:1 (Light)`;
+        }
 
-        // 2. Gate 2: True BiDi & CSS Logical Properties across loaded styles
+        // 2. Gate 2: True BiDi & CSS Logical Properties across loaded styles & DOM
         const t2Start = performance.now();
+        let physicalViolations = 0;
         let logicalCount = 0;
         try {
           Array.from(document.styleSheets).forEach(sheet => {
             try {
               Array.from(sheet.cssRules || []).forEach(rule => {
                 const txt = rule.cssText || "";
-                if (/margin-inline|padding-inline|inset-inline/.test(txt)) logicalCount++;
+                if (/\b(?:margin|padding)-(?:left|right)\s*:/i.test(txt)) physicalViolations++;
+                if (/\bfloat\s*:\s*(?:left|right)/i.test(txt)) physicalViolations++;
+                if (/\b(?:left|right)\s*:\s*0(?:px)?(?:\s|;|\})/i.test(txt)) physicalViolations++;
+                if (/(?:margin|padding|inset|border)-(?:inline|block)|(?:inline|block)-size/i.test(txt)) {
+                  logicalCount++;
+                }
               });
             } catch (_) {}
           });
         } catch (_) {}
+
+        document.querySelectorAll("*").forEach(el => {
+          const styleAttr = el.getAttribute("style") || "";
+          if (/\b(?:margin|padding)-(?:left|right)\s*:/i.test(styleAttr)) physicalViolations++;
+          if (/\bfloat\s*:\s*(?:left|right)/i.test(styleAttr)) physicalViolations++;
+          if (/(?:margin|padding|inset|border)-(?:inline|block)|(?:inline|block)-size/i.test(styleAttr)) {
+            logicalCount++;
+          }
+        });
+
+        const passed2 = physicalViolations === 0 && logicalCount >= 20;
         const t2End = performance.now();
         const t2 = Math.max(0.6, t2End - t2Start);
-        const elTime2 = document.getElementById("heroTimeGate2");
-        const elDetail2 = document.getElementById("heroDetailGate2");
-        if (elTime2) elTime2.textContent = `${t2.toFixed(1)}ms`;
-        if (elDetail2) elDetail2.textContent = `100% Directional Neutrality (${logicalCount} logical rules verified)`;
 
-        // 3. Gate 3: State Machine BFS Reachability
+        if (elTime2) elTime2.textContent = `${t2.toFixed(1)}ms`;
+        if (elStatus2) {
+          elStatus2.textContent = passed2 ? "✅ PASS" : "❌ FAIL";
+          if (elRow2) elRow2.className = passed2 ? "terminal-row pass" : "terminal-row fail";
+        }
+        if (elDetail2) {
+          elDetail2.textContent = passed2
+            ? `100% Directional Neutrality (${logicalCount} logical rules verified, 0 physical violations)`
+            : `BiDi Violations: ${physicalViolations} physical properties detected`;
+        }
+
+        // 3. Gate 3: State Machine BFS Reachability & Interaction Locks
         const t3Start = performance.now();
-        const sampleFsm = {
-          initial: "idle",
-          states: {
-            idle: ["loading"],
-            loading: ["success", "error"],
-            success: ["idle"],
-            error: ["loading", "idle"]
+        const productionFsms = [
+          {
+            name: "data-table-loader",
+            initialState: "idle",
+            states: {
+              idle: { on: { FETCH: "loading" }, allowClick: true },
+              loading: { on: { RESOLVE: "ready", REJECT: "error" }, allowClick: false },
+              ready: { on: { REFETCH: "loading", RESET: "idle" }, allowClick: true },
+              error: { on: { RETRY: "loading", RESET: "idle" }, allowClick: true }
+            }
+          },
+          {
+            name: "modal-dialog",
+            initialState: "closed",
+            states: {
+              closed: { on: { OPEN: "opening" }, allowClick: true },
+              opening: { on: { ANIMATION_END: "open" }, allowClick: false },
+              open: { on: { CLOSE: "closing" }, allowClick: true },
+              closing: { on: { ANIMATION_END: "closed" }, allowClick: false }
+            }
           }
-        };
-        const queue = [sampleFsm.initial];
-        const visited = new Set();
-        while (queue.length > 0) {
-          const curr = queue.shift();
-          if (!visited.has(curr)) {
-            visited.add(curr);
-            (sampleFsm.states[curr] || []).forEach(nxt => queue.push(nxt));
+        ];
+
+        let fsmPassed = true;
+        let totalStatesCount = 0;
+        const asyncKeywords = ["loading", "opening", "closing", "submitting", "fetching"];
+
+        for (const model of productionFsms) {
+          if (!model.initialState || !model.states || !model.states[model.initialState]) {
+            fsmPassed = false;
+            break;
+          }
+          const stateKeys = Object.keys(model.states);
+          totalStatesCount += stateKeys.length;
+
+          const queue = [model.initialState];
+          const visited = new Set();
+          while (queue.length > 0) {
+            const curr = queue.shift();
+            if (!visited.has(curr)) {
+              visited.add(curr);
+              const stateObj = model.states[curr];
+              if (stateObj && stateObj.on) {
+                for (const target of Object.values(stateObj.on)) {
+                  if (!model.states[target]) {
+                    fsmPassed = false;
+                  } else {
+                    queue.push(target);
+                  }
+                }
+              }
+            }
+          }
+
+          if (visited.size !== stateKeys.length) {
+            fsmPassed = false;
+          }
+
+          for (const [stName, stObj] of Object.entries(model.states)) {
+            if (asyncKeywords.includes(stName) && stObj.allowClick !== false) {
+              fsmPassed = false;
+            }
           }
         }
+
+        const passed3 = fsmPassed;
         const t3End = performance.now();
         const t3 = Math.max(0.3, t3End - t3Start);
-        const elTime3 = document.getElementById("heroTimeGate3");
-        const elDetail3 = document.getElementById("heroDetailGate3");
+
         if (elTime3) elTime3.textContent = `${t3.toFixed(1)}ms`;
-        if (elDetail3) elDetail3.textContent = `All ${visited.size} states reachable (0 deadlocks, race locks verified)`;
+        if (elStatus3) {
+          elStatus3.textContent = passed3 ? "✅ PASS" : "❌ FAIL";
+          if (elRow3) elRow3.className = passed3 ? "terminal-row pass" : "terminal-row fail";
+        }
+        if (elDetail3) {
+          elDetail3.textContent = passed3
+            ? `All ${totalStatesCount} states reachable (0 deadlocks, interaction locks verified)`
+            : "FSM Integrity Error: unreachable states or unlocked async state";
+        }
 
         // 4. Gate 4: Anti-Slop Pattern Inspector
         const t4Start = performance.now();
-        const bodyHtml = document.body.innerHTML || "";
-        const hasAIGradient = /#6366f1|#a855f7/i.test(bodyHtml);
-        const hasRawEmojiButton = /<button[^>]*>[^<]*[\u{1F300}-\u{1F9FF}]/u.test(bodyHtml);
+        let slopViolations = 0;
+        try {
+          Array.from(document.styleSheets).forEach(sheet => {
+            try {
+              Array.from(sheet.cssRules || []).forEach(rule => {
+                const txt = rule.cssText || "";
+                if (/#6366f1|#a855f7/i.test(txt)) slopViolations++;
+              });
+            } catch (_) {}
+          });
+        } catch (_) {}
+
+        document.querySelectorAll("*").forEach(el => {
+          const styleAttr = el.getAttribute("style") || "";
+          if (/#6366f1|#a855f7/i.test(styleAttr)) slopViolations++;
+        });
+
+        const emojiRegex = /[\u{1F300}-\u{1F9FF}]/u;
+        document.querySelectorAll("button").forEach(btn => {
+          if (emojiRegex.test(btn.textContent || "")) slopViolations++;
+        });
+        document.querySelectorAll("h1, h2, h3").forEach(h => {
+          if (emojiRegex.test(h.textContent || "")) slopViolations++;
+        });
+
+        const passed4 = slopViolations === 0;
         const t4End = performance.now();
         const t4 = Math.max(0.5, t4End - t4Start);
-        const elTime4 = document.getElementById("heroTimeGate4");
-        const elDetail4 = document.getElementById("heroDetailGate4");
-        if (elTime4) elTime4.textContent = `${t4.toFixed(1)}ms`;
-        if (elDetail4) elDetail4.textContent = hasAIGradient || hasRawEmojiButton ? "Slop pattern detected" : "Zero AI Slop • Semantic SVGs Enforced";
 
-        // 5. Gate 5: DOM & Media Box Dimensions
+        if (elTime4) elTime4.textContent = `${t4.toFixed(1)}ms`;
+        if (elStatus4) {
+          elStatus4.textContent = passed4 ? "✅ PASS" : "❌ FAIL";
+          if (elRow4) elRow4.className = passed4 ? "terminal-row pass" : "terminal-row fail";
+        }
+        if (elDetail4) {
+          elDetail4.textContent = passed4
+            ? "Zero AI Slop (0 hardcoded gradients, semantic SVGs enforced)"
+            : `Anti-Slop Violation: ${slopViolations} anti-patterns detected`;
+        }
+
+        // 5. Gate 5: DOM & Media Box Dimensions Budget
         const t5Start = performance.now();
         const allMedia = document.querySelectorAll("img, video, iframe");
+        let unbudgetedMedia = 0;
+        allMedia.forEach(el => {
+          const hasDims = el.hasAttribute("width") && el.hasAttribute("height");
+          const computed = window.getComputedStyle(el);
+          const hasAspectRatio = computed.aspectRatio && computed.aspectRatio !== "auto";
+          const hasCssDims = computed.width && computed.height && computed.width !== "auto" && computed.height !== "auto";
+          if (!hasDims && !hasAspectRatio && !hasCssDims) {
+            unbudgetedMedia++;
+          }
+        });
+
+        function getDomDepth(node) {
+          let max = 0;
+          for (const child of node.children) {
+            max = Math.max(max, getDomDepth(child));
+          }
+          return 1 + max;
+        }
+        const maxDomDepth = getDomDepth(document.body);
+        const passed5 = unbudgetedMedia === 0 && maxDomDepth <= 32;
         const t5End = performance.now();
         const t5 = Math.max(0.4, t5End - t5Start);
-        const elTime5 = document.getElementById("heroTimeGate5");
-        const elDetail5 = document.getElementById("heroDetailGate5");
-        if (elTime5) elTime5.textContent = `${t5.toFixed(1)}ms`;
-        if (elDetail5) elDetail5.textContent = `Media Box Reservations Enforced (${allMedia.length} elements verified)`;
 
+        if (elTime5) elTime5.textContent = `${t5.toFixed(1)}ms`;
+        if (elStatus5) {
+          elStatus5.textContent = passed5 ? "✅ PASS" : "❌ FAIL";
+          if (elRow5) elRow5.className = passed5 ? "terminal-row pass" : "terminal-row fail";
+        }
+        if (elDetail5) {
+          elDetail5.textContent = passed5
+            ? `Explicit Media Bounding (${allMedia.length} elements verified, depth: ${maxDomDepth} ≤ 32)`
+            : `Layout-Shift Risk: ${unbudgetedMedia} unbudgeted media elements`;
+        }
+
+        // Aggregate Gate Result
         const overallEnd = performance.now();
         const totalDuration = (overallEnd - overallStart).toFixed(1);
         const nowTime = new Date().toLocaleTimeString();
+        const allPassed = passed1 && passed2 && passed3 && passed4 && passed5;
+        const failedCount = [passed1, passed2, passed3, passed4, passed5].filter(p => !p).length;
 
         if (summary) {
-          summary.innerHTML = `Live Client Latency: <strong>${totalDuration}ms</strong> • Executed In-Browser at <strong>${nowTime}</strong> • <strong>100% Gates Passed</strong>`;
+          if (allPassed) {
+            summary.innerHTML = `Live Client Latency: <strong>${totalDuration}ms</strong> • Executed In-Browser at <strong>${nowTime}</strong> • <strong>100% Gates Passed</strong>`;
+          } else {
+            summary.innerHTML = `Live Client Latency: <strong>${totalDuration}ms</strong> • Executed In-Browser at <strong>${nowTime}</strong> • <strong>❌ GATE VIOLATIONS DETECTED (${failedCount}/5 Failed)</strong>`;
+          }
         }
         if (badge) {
-          badge.textContent = `LIVE CLIENT BENCHMARK · ${nowTime}`;
+          if (allPassed) {
+            badge.textContent = `LIVE CLIENT BENCHMARK · ${nowTime}`;
+            badge.className = "terminal-badge";
+          } else {
+            badge.textContent = "GATE VIOLATIONS DETECTED";
+            badge.className = "terminal-badge fail";
+          }
         }
         if (cert) {
-          cert.textContent = "CLIENT VERIFIED";
+          if (allPassed) {
+            cert.textContent = "CLIENT VERIFIED";
+            cert.className = "term-certified";
+          } else {
+            cert.textContent = "REJECTED";
+            cert.className = "term-certified fail";
+          }
         }
         if (btnText) {
           btnText.textContent = "Re-run Benchmark";
