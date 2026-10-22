@@ -409,9 +409,14 @@ export function isValidCssDimensionValue(val) {
   const clean = val.trim().toLowerCase().replace(/\s*!important\s*$/i, '').trim();
   if (['auto', 'none', 'initial', 'inherit', 'unset', '0', '0px', ''].includes(clean)) return false;
 
-  // Single length/percentage dimension check: e.g. "200px", "50%", "10rem", "10em", "10ex"
-  const directMatch = clean.match(/^([1-9]\d*(?:\.\d+)?)(px|rem|em|vw|vh|%|cqi|cqw|pt|cm|mm|in|vmin|vmax|ch|ex)$/i);
-  if (directMatch) return true;
+  // Single length/percentage dimension check: e.g. "200px", "0.5px", ".5em", "50%", "10rem", "10ex"
+  // Strictly validates positive numeric value (> 0) supporting decimals below 1 and leading decimal dots per W3C CSS Values 4
+  const directMatch = clean.match(/^((?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?)(px|rem|em|vw|vh|%|cqi|cqw|pt|cm|mm|in|vmin|vmax|ch|ex)$/i);
+  if (directMatch) {
+    const num = parseFloat(directMatch[1]);
+    if (!isNaN(num) && num > 0) return true;
+    return false;
+  }
 
   // Calc expression evaluation
   const calcMatch = clean.match(/^calc\((.+)\)$/i);

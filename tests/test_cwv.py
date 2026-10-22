@@ -450,6 +450,24 @@ class TestCWVBudgetGate(unittest.TestCase):
         self.assertEqual(res.returncode, 0)
         self.assertIn("PASS", res.stdout)
 
+    def test_direct_decimal_dimensions_below_one_pass(self):
+        """Positive test: W3C valid positive decimal dimensions below 1 (0.5px, .5em, 0.25rem) pass Gate 5."""
+        html_file = os.path.join(self.temp_dir, 'direct_decimal.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Decimal Dims</title></head><body><img src="logo.png" style="width: 0.5px; height: 0.5em;" alt="Logo"><img src="icon.png" style="width: .5rem; height: .5ex;" alt="Icon"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("PASS", res.stdout)
+
+    def test_direct_zero_dimension_fails(self):
+        """Negative test: Zero direct dimensions (0px, 0.0em) must be rejected as non-reserving."""
+        html_file = os.path.join(self.temp_dir, 'direct_zero.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Zero Dims</title></head><body><img src="logo.png" style="width: 0px; height: 0.0em;" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("invalid non-reserving CSS dimensions in style", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
 

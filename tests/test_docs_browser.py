@@ -1116,5 +1116,57 @@ class TestDocsBrowserPlatform(unittest.TestCase):
         self.assertEqual(res.returncode, 0, f"Hero benchmark positive calc em/ex test failed: {res.stderr}\n{res.stdout}")
         self.assertIn("SUCCESS_ACCEPT_CALC_EM_EX", res.stdout)
 
+    def test_hero_benchmark_accepts_direct_decimal_dimensions(self):
+        """Positive test: Injecting media with direct decimal dimensions below 1 (0.5px, .5em) passes Gate 5."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          await page.goto('file://{self.docs_html}');
+          await page.waitForTimeout(100);
+
+          // Inject media with valid decimal dimensions below 1
+          await page.evaluate(() => {{
+            const img1 = document.createElement('img');
+            img1.setAttribute('src', 'valid_decimal.png');
+            img1.style.width = '0.5px';
+            img1.style.height = '0.5em';
+            document.body.appendChild(img1);
+
+            const img2 = document.createElement('img');
+            img2.setAttribute('src', 'valid_decimal_dot.png');
+            img2.style.width = '.5rem';
+            img2.style.height = '.5ex';
+            document.body.appendChild(img2);
+          }});
+
+          // Run benchmark
+          await page.click('#btnRunHeroBenchmark');
+          await page.waitForTimeout(300);
+
+          const s5 = await page.$eval('#heroStatusGate5', el => el.textContent);
+          const badge = await page.$eval('#heroTerminalBadge', el => el.textContent);
+          const cert = await page.$eval('#heroTerminalCert', el => el.textContent);
+
+          await browser.close();
+
+          if (!s5.includes('PASS')) throw new Error(`Expected Gate 5 to PASS with decimal dimensions, got: ${{s5}}`);
+          if (!badge.includes('LIVE CLIENT BENCHMARK')) throw new Error(`Expected LIVE CLIENT BENCHMARK badge, got: ${{badge}}`);
+          if (cert !== 'CLIENT VERIFIED') throw new Error(`Expected CLIENT VERIFIED cert, got: ${{cert}}`);
+
+          console.log('SUCCESS_ACCEPT_DIRECT_DECIMAL');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Hero benchmark positive decimal dimensions test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_ACCEPT_DIRECT_DECIMAL", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
