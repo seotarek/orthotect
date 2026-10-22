@@ -17,6 +17,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const validRoutes = ["home", "catalog", "playground", "builder", "gallery", "gates", "install"];
 
+  // =========================================================================
+  // 1b. MOBILE NAVIGATION DRAWER CONTROLLER
+  // =========================================================================
+  const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+  const mobileMenuCloseBtn = document.getElementById("mobileMenuCloseBtn");
+  const mobileNavDrawer = document.getElementById("mobileNavDrawer");
+  const mobileNavBackdrop = document.getElementById("mobileNavBackdrop");
+
+  function openMobileNav() {
+    if (!mobileNavDrawer) return;
+    mobileNavDrawer.classList.add("open");
+    mobileNavDrawer.setAttribute("aria-hidden", "false");
+    if (mobileMenuBtn) mobileMenuBtn.setAttribute("aria-expanded", "true");
+    document.body.classList.add("nav-open");
+    if (mobileMenuCloseBtn) mobileMenuCloseBtn.focus();
+  }
+
+  function closeMobileNav() {
+    if (!mobileNavDrawer) return;
+    mobileNavDrawer.classList.remove("open");
+    mobileNavDrawer.setAttribute("aria-hidden", "true");
+    if (mobileMenuBtn) {
+      mobileMenuBtn.setAttribute("aria-expanded", "false");
+      mobileMenuBtn.focus();
+    }
+    document.body.classList.remove("nav-open");
+  }
+
+  if (mobileMenuBtn) mobileMenuBtn.addEventListener("click", openMobileNav);
+  if (mobileMenuCloseBtn) mobileMenuCloseBtn.addEventListener("click", closeMobileNav);
+  if (mobileNavBackdrop) mobileNavBackdrop.addEventListener("click", closeMobileNav);
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && mobileNavDrawer && mobileNavDrawer.classList.contains("open")) {
+      closeMobileNav();
+    }
+  });
+
   function handleRouting() {
     const rawHash = window.location.hash.replace(/^#\/?/, "").toLowerCase();
     const route = validRoutes.includes(rawHash) ? rawHash : "home";
@@ -30,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
       targetView.classList.add("active");
     }
 
-    // Update main nav active indicator
+    // Update main desktop nav active indicator
     document.querySelectorAll(".nav-link").forEach(link => {
       if (link.getAttribute("data-tab") === route) {
         link.classList.add("active");
@@ -39,8 +77,27 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+    // Update mobile nav active indicator
+    document.querySelectorAll(".mobile-nav-link").forEach(link => {
+      if (link.getAttribute("data-tab") === route) {
+        link.classList.add("active");
+      } else {
+        link.classList.remove("active");
+      }
+    });
+
+    // Close mobile drawer on navigation
+    closeMobileNav();
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
+  // Bind click on mobile nav links
+  document.querySelectorAll(".mobile-nav-link").forEach(link => {
+    link.addEventListener("click", () => {
+      closeMobileNav();
+    });
+  });
 
   window.addEventListener("hashchange", handleRouting);
   handleRouting();
@@ -56,6 +113,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (themeBtnText) {
       themeBtnText.textContent = theme === "dark" ? "Dark" : theme === "light" ? "Light" : "Contrast";
     }
+    // Switch official brand logo according to theme
+    document.querySelectorAll(".brand-logo-img").forEach(logo => {
+      logo.src = theme === "light" ? "assets/brand/logo-light.svg" : "assets/brand/logo.svg";
+    });
   }
 
   const themeToggleBtn = document.getElementById("themeToggleBtn");
@@ -73,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================================================================
   const bidiDict = {
     en: {
-      brandDesc: "Skill Studio v1.5.0",
+      brandDesc: "Skill Studio v1.5.2",
       navHome: "Home",
       navCatalog: "Skill Catalog",
       navPlayground: "Playground",
@@ -81,7 +142,14 @@ document.addEventListener("DOMContentLoaded", () => {
       navGallery: "Examples",
       navGates: "Quality Gates",
       navInstall: "Install & Usage",
-      heroBadge: "v1.5.0 • Deterministic Quality Standard for Autonomous Coding Agents",
+      mNavHome: "Home",
+      mNavCatalog: "Skill Catalog",
+      mNavPlayground: "Playground",
+      mNavBuilder: "Skill Builder",
+      mNavGallery: "Examples",
+      mNavGates: "Quality Gates",
+      mNavInstall: "Install & Usage",
+      heroBadge: "v1.5.2 • Deterministic Quality Standard for Autonomous Coding Agents",
       heroTitle: "Deterministic Interface Engineering & <span class=\"hero-gradient-text\">Runtime Quality Gates</span>",
       heroSub: "Stop trusting probabilistic UI code. Orthotect enforces mathematical WCAG AAA contrast, 100% CSS logical properties, formal state machines, and zero layout shift in sub-400ms parallel gates.",
       ctaPlayground: "Open Interactive Playground",
@@ -121,10 +189,10 @@ document.addEventListener("DOMContentLoaded", () => {
       installPill: "Developer Tooling & CLI",
       installTitle: "Installation & CLI Usage",
       installSub: "Orthotect provides zero-config command line tools to scaffold, compile, and verify projects deterministically in local environments and GitHub Actions CI.",
-      footerCopy: "Orthotect v1.5.0 © 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok."
+      footerCopy: "Orthotect v1.5.2 © 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok."
     },
     ar: {
-      brandDesc: "استوديو المهارات v1.5.0",
+      brandDesc: "استوديو المهارات v1.5.2",
       navHome: "الرئيسية",
       navCatalog: "كتالوج المهارات",
       navPlayground: "المختبر التفاعلي",
@@ -132,7 +200,14 @@ document.addEventListener("DOMContentLoaded", () => {
       navGallery: "الأمثلة الجاهزة",
       navGates: "بوابات الجودة",
       navInstall: "التثبيت والاستخدام",
-      heroBadge: "v1.5.0 • معيار الجودة الحتمية للوكلاء البرمجيين المستقلين",
+      mNavHome: "الرئيسية",
+      mNavCatalog: "كتالوج المهارات",
+      mNavPlayground: "المختبر التفاعلي",
+      mNavBuilder: "منشئ المهارات",
+      mNavGallery: "الأمثلة الجاهزة",
+      mNavGates: "بوابات الجودة",
+      mNavInstall: "التثبيت والاستخدام",
+      heroBadge: "v1.5.2 • معيار الجودة الحتمية للوكلاء البرمجيين المستقلين",
       heroTitle: "هندسة الواجهات الحتمية و<span class=\"hero-gradient-text\">بوابات الجودة أثناء التشغيل</span>",
       heroSub: "توقف عن قبول كود الواجهات العشوائي. يفرض أورثوتكت تباين WCAG AAA الرياضي، وخواص CSS المنطقية 100%، وآلات الحالة المنتهية FSM، وانعدام الـ Layout Shift في بوابات متوازية تحت 400ms.",
       ctaPlayground: "فتح المختبر التفاعلي",
@@ -172,7 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
       installPill: "أدوات المطور وسطر الأوامر",
       installTitle: "التثبيت وأوامر الاستخدام",
       installSub: "يوفر أورثوتكت أدوات سطر أوامر خفيفة لتهيئة المشاريع وترجمة التوكنز وفحص الكود حتميًا في البيئة المحلية وسير العمل CI.",
-      footerCopy: "أورثوتكت v1.5.0 © 2026. معتمد لوكلاء البرمجة الذاتية: Antigravity وClaude Code وCursor وCodex وGrok."
+      footerCopy: "أورثوتكت v1.5.2 © 2026. معتمد لوكلاء البرمجة الذاتية: Antigravity وClaude Code وCursor وCodex وGrok."
     }
   };
 
@@ -832,6 +907,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================================================================
   // 6. SKILL BUILDER ENGINE
   // =========================================================================
+  function formatYamlString(str) {
+    if (!str) return '""';
+    if (str.includes("\n")) {
+      return "|\n" + str.split("\n").map(l => "    " + l).join("\n");
+    }
+    if (/[:#\[\]{}%@&*!`|>'"]/.test(str) || str.trim() !== str) {
+      return JSON.stringify(str);
+    }
+    return str;
+  }
+
   function validateSkillBuilderFields() {
     const errors = [];
     const nameEl = document.getElementById("sbName");
@@ -842,13 +928,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const rawDesc = descEl ? descEl.value.trim() : "";
     const rawSteps = stepsEl ? stepsEl.value.trim() : "";
 
-    if (!rawName) errors.push({ field: "sbName", msg: "Skill name is required." });
-    else if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(rawName)) errors.push({ field: "sbName", msg: "Name must be kebab-case (e.g. my-skill)." });
+    if (!rawName) {
+      errors.push({ field: "sbName", msg: "Skill name is required." });
+    } else if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(rawName)) {
+      errors.push({ field: "sbName", msg: "Name must be kebab-case (e.g. my-custom-skill, lowercase alphanumeric and hyphens)." });
+    } else if (rawName.length < 3 || rawName.length > 64) {
+      errors.push({ field: "sbName", msg: "Name length must be between 3 and 64 characters." });
+    }
 
-    if (!rawDesc) errors.push({ field: "sbDesc", msg: "Description is required." });
-    else if (rawDesc.length > 1024) errors.push({ field: "sbDesc", msg: "Description must be under 1024 characters." });
+    if (!rawDesc) {
+      errors.push({ field: "sbDesc", msg: "Description is required." });
+    } else if (rawDesc.length < 10) {
+      errors.push({ field: "sbDesc", msg: "Description must be at least 10 characters." });
+    } else if (rawDesc.length > 1024) {
+      errors.push({ field: "sbDesc", msg: "Description must be under 1024 characters." });
+    }
 
-    if (!rawSteps) errors.push({ field: "sbSteps", msg: "At least one execution step is required." });
+    if (!rawSteps) {
+      errors.push({ field: "sbSteps", msg: "At least one execution step is required." });
+    }
 
     return errors;
   }
@@ -906,7 +1004,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const markdown = `---
 name: ${name}
-description: ${desc}
+description: ${formatYamlString(desc)}
 compatibility: [${agents.join(", ")}]
 metadata:
   version: "1.0.0"
@@ -940,14 +1038,14 @@ ${dod}
 
     const badge = document.getElementById("previewStatusBadge");
     if (badge) {
-      // Use raw values to determine real validity
-      if (nameRaw && descRaw && stepsRaw) {
-        badge.textContent = "Valid Structure";
-        badge.style.backgroundColor = "var(--ortho-success-bg)";
-        badge.style.color = "var(--ortho-success)";
+      const errors = validateSkillBuilderFields();
+      if (errors.length === 0) {
+        badge.textContent = "Structure Validated (Client AST)";
+        badge.style.backgroundColor = "var(--ortho-success-bg, rgba(16, 185, 129, 0.2))";
+        badge.style.color = "var(--ortho-success, #10b981)";
       } else {
-        badge.textContent = "Incomplete Fields";
-        badge.style.backgroundColor = "var(--ortho-warning-bg, #f59e0b22)";
+        badge.textContent = "Incomplete / Invalid Input";
+        badge.style.backgroundColor = "var(--ortho-warning-bg, rgba(245, 158, 11, 0.15))";
         badge.style.color = "var(--ortho-warning, #f59e0b)";
       }
     }
@@ -1237,6 +1335,9 @@ ${dod}
       logLine("───────────────────────────────────────────────────────────────");
 
       let allPassed = true;
+      let passedCount = 0;
+      let failedCount = 0;
+      let notEvaluatedCount = 0;
 
       // 1. BiDi Gate
       const bannedBidi = [
@@ -1253,74 +1354,109 @@ ${dod}
         if (rule.regex.test(code)) bidiViolations.push(rule.name);
       });
       if (bidiViolations.length === 0) {
+        passedCount++;
         logLine("<span style='color: #10b981;'>✅ PASS</span> <strong>True BiDi & Logical Properties:</strong> 100% compliant.");
       } else {
         allPassed = false;
+        failedCount++;
         logLine("<span style='color: #ef4444;'>❌ FAIL</span> <strong>True BiDi Properties:</strong> Banned physical coordinates: " + bidiViolations.join(", "));
       }
 
-      // 2. WCAG Contrast Gate
-      const colors = code.match(/#[0-9a-fA-F]{3,6}/g);
-      if (colors && colors.length >= 2) {
-        const cr = getContrastRatio(colors[0], colors[1]);
+      // 2. WCAG Contrast Gate — requires explicit foreground color and background color pair
+      const colorMatch = code.match(/(?:^|[^-])\bcolor\s*:\s*(#[0-9a-fA-F]{3,6})\b/i);
+      const bgMatch = code.match(/\bbackground(?:-color)?\s*:\s*(#[0-9a-fA-F]{3,6})\b/i);
+      if (colorMatch && bgMatch) {
+        const fg = colorMatch[1];
+        const bg = bgMatch[1];
+        const cr = getContrastRatio(fg, bg);
         if (cr && parseFloat(cr) >= 4.5) {
-          logLine(`<span style='color: #10b981;'>✅ PASS</span> <strong>WCAG 2.2 Contrast:</strong> ${cr}:1 (Certified AA / AAA)`);
+          passedCount++;
+          logLine(`<span style='color: #10b981;'>✅ PASS</span> <strong>WCAG 2.2 Contrast:</strong> ${cr}:1 (Certified AA / AAA) between ${fg} and ${bg}`);
         } else if (cr) {
           allPassed = false;
-          logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>WCAG 2.2 Contrast:</strong> ${cr}:1 (Below 4.5:1 minimum threshold)`);
+          failedCount++;
+          logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>WCAG 2.2 Contrast:</strong> ${cr}:1 (Below 4.5:1 minimum threshold) between ${fg} and ${bg}`);
+        } else {
+          notEvaluatedCount++;
+          logLine("<span style='color: #94a3b8;'>⏭ NOT_EVALUATED</span> <strong>WCAG 2.2 Contrast:</strong> Could not parse color values.");
         }
       } else {
-        logLine("<span style='color: #94a3b8;'>⏭ NOT_EVALUATED</span> <strong>WCAG 2.2 Contrast:</strong> Provide at least two hex color values to evaluate.");
+        notEvaluatedCount++;
+        logLine("<span style='color: #94a3b8;'>⏭ NOT_EVALUATED</span> <strong>WCAG 2.2 Contrast:</strong> Provide explicit 'color: #hex' and 'background-color: #hex' declarations to evaluate.");
       }
 
-      // 3. FSM Integrity Gate — only evaluates when FSM JSON with 'states'+'initialState' is present
-      (function() {
+      // 3. FSM Integrity Gate — strict JSON parse on FSM definition block
+      const hasFsmKeyword = /states\b|initialState\b/i.test(code);
+      if (hasFsmKeyword) {
         let fsmJson = null;
+        let parseError = null;
         try {
-          // eslint-disable-next-line no-useless-escape
-          const jsonMatch = code.match(/\{[\s\S]*?"states"[\s\S]*?"initialState"[\s\S]*?\}/);
-          if (jsonMatch) fsmJson = JSON.parse(jsonMatch[0]);
-        } catch (_) { /* not valid JSON — skip */ }
-        if (fsmJson && fsmJson.states && fsmJson.initialState) {
+          const jsonMatch = code.match(/\{[\s\S]*?"states"[\s\S]*?\}/) || code.match(/\{[\s\S]*?"initialState"[\s\S]*?\}/);
+          if (jsonMatch) {
+            fsmJson = JSON.parse(jsonMatch[0]);
+          } else {
+            parseError = "No enclosed JSON object found around FSM keywords.";
+          }
+        } catch (err) {
+          parseError = err.message;
+        }
+
+        if (parseError) {
+          allPassed = false;
+          failedCount++;
+          logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>Finite State Machine Integrity:</strong> Invalid FSM JSON syntax: ${parseError}`);
+        } else if (fsmJson && fsmJson.states && fsmJson.initialState) {
           const stateKeys = Object.keys(fsmJson.states);
           if (stateKeys.includes(fsmJson.initialState)) {
+            passedCount++;
             logLine(`<span style='color: #10b981;'>✅ PASS</span> <strong>Finite State Machine Integrity:</strong> ${stateKeys.length} states, initialState "${fsmJson.initialState}" declared.`);
           } else {
             allPassed = false;
-            logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>FSM Integrity:</strong> initialState "${fsmJson.initialState}" not declared in states object.`);
+            failedCount++;
+            logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>FSM Integrity:</strong> initialState "${fsmJson.initialState}" not declared in states.`);
           }
         } else {
-          logLine("<span style='color: #94a3b8;'>⏭ NOT_EVALUATED</span> <strong>Finite State Machine Integrity:</strong> No FSM JSON with 'states' + 'initialState' detected.");
+          allPassed = false;
+          failedCount++;
+          logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>FSM Integrity:</strong> Incomplete FSM schema (must declare 'states' object and 'initialState').`);
         }
-      })();
+      } else {
+        notEvaluatedCount++;
+        logLine("<span style='color: #94a3b8;'>⏭ NOT_EVALUATED</span> <strong>Finite State Machine Integrity:</strong> No FSM JSON structure detected in snippet.");
+      }
 
       // 4. Anti-Slop Gate
       const hasAiGradient = /(linear-gradient|from-purple|via-pink)/i.test(code);
       const hasEmoji = /[\u{1F300}-\u{1F9FF}]/u.test(code);
       if (hasAiGradient || hasEmoji) {
         allPassed = false;
+        failedCount++;
         logLine("<span style='color: #ef4444;'>❌ FAIL</span> <strong>Anti-Slop Pattern Inspector:</strong> Banned generative AI gradient or raw emojis detected.");
       } else {
+        passedCount++;
         logLine("<span style='color: #10b981;'>✅ PASS</span> <strong>Anti-Slop Pattern Inspector:</strong> Clean semantic surfaces.");
       }
 
-      // 5. CWV Media & DOM Budget Gate
+      // 5. CWV Media Aspect-Ratio Gate
       const hasImg = /<img\b[^>]*>/i.test(code);
       if (hasImg) {
         const hasWidth = /\bwidth\s*=\s*["']?[1-9]\d*["']?/i.test(code);
         const hasHeight = /\bheight\s*=\s*["']?[1-9]\d*["']?/i.test(code);
         const hasAspectRatio = /\baspect-ratio\s*:\s*([0-9.]+)\s*\/\s*([0-9.]+)/i.test(code);
         if ((hasWidth && hasHeight) || hasAspectRatio) {
+          passedCount++;
           logLine("<span style='color: #10b981;'>✅ PASS</span> <strong>DOM & Media Aspect-Ratio:</strong> Media dimensions bounded (CLS = 0.00).");
         } else {
           allPassed = false;
-          logLine("<span style='color: #ef4444;'>❌ FAIL</span> <strong>DOM & Media Aspect-Ratio:</strong> <img> lacks positive integer width and height attributes.");
+          failedCount++;
+          logLine("<span style='color: #ef4444;'>❌ FAIL</span> <strong>DOM & Media Aspect-Ratio:</strong> &lt;img&gt; lacks positive integer width and height attributes.");
         }
       } else {
-        logLine("<span style='color: #10b981;'>✅ PASS</span> <strong>DOM & Media Aspect-Ratio:</strong> Zero unbudgeted layout shift detected.");
+        notEvaluatedCount++;
+        logLine("<span style='color: #94a3b8;'>⏭ NOT_EVALUATED</span> <strong>DOM & Media Aspect-Ratio:</strong> No &lt;img&gt; elements present in snippet to evaluate dimensions.");
       }
 
-      // DOM Depth — real nesting depth via tag scanner (not a div count heuristic)
+      // DOM Depth — real nesting depth via tag scanner
       (function() {
         let maxDepth = 0, currentDepth = 0;
         const tagRe = /<(\/?)([a-zA-Z][a-zA-Z0-9]*)[^>]*\/?>/g;
@@ -1335,18 +1471,23 @@ ${dod}
         }
         if (maxDepth > 32) {
           allPassed = false;
+          failedCount++;
           logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>DOM Depth Budget:</strong> Max nesting depth (${maxDepth}) exceeds maximum allowable 32 levels.`);
         } else if (maxDepth > 0) {
+          passedCount++;
           logLine(`<span style='color: #10b981;'>✅ PASS</span> <strong>DOM Depth Budget:</strong> Max nesting depth ${maxDepth} ≤ 32.`);
         }
       })();
 
       const elapsed = (performance.now() - startTime).toFixed(1);
       logLine("───────────────────────────────────────────────────────────────");
-      if (allPassed) {
-        logLine(`<strong style='color: #10b981;'>🎉 ALL GATES PASSED! Build certified for enterprise production (${elapsed}ms)</strong>`);
+      logLine(`<strong>Evaluation Summary:</strong> ${passedCount} Passed, ${failedCount} Failed, ${notEvaluatedCount} Not Evaluated`);
+      if (failedCount === 0 && passedCount > 0) {
+        logLine(`<strong style='color: #10b981;'>🎉 ALL EVALUATED GATES PASSED! Build certified for enterprise production (${elapsed}ms)</strong>`);
+      } else if (failedCount > 0) {
+        logLine(`<strong style='color: #ef4444;'>❌ BUILD REJECTED BY ORTHOTECT GATES (${failedCount} failure(s)) (${elapsed}ms)</strong>`);
       } else {
-        logLine(`<strong style='color: #ef4444;'>❌ BUILD REJECTED BY ORTHOTECT GATES (${elapsed}ms)</strong>`);
+        logLine(`<strong style='color: #94a3b8;'>ℹ NO EVALUABLE CODE PATTERNS DETECTED (${elapsed}ms)</strong>`);
       }
     });
   }

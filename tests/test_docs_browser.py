@@ -271,7 +271,7 @@ class TestDocsBrowserPlatform(unittest.TestCase):
         self.assertIn("SUCCESS_DOCS_MODAL", res.stdout)
 
     def test_responsive_viewports_no_horizontal_overflow(self):
-        """Verify responsive layout across Mobile, Tablet, and Desktop with ZERO horizontal overflow."""
+        """Verify responsive layout across 5 exact viewports with ZERO horizontal overflow."""
         node_script = f"""
         import('playwright-core').then(async ({{ chromium }}) => {{
           const browser = await chromium.launch({{
@@ -280,9 +280,11 @@ class TestDocsBrowserPlatform(unittest.TestCase):
           }});
           const page = await browser.newPage();
           const viewports = [
-            {{ name: 'mobile', width: 375, height: 667 }},
-            {{ name: 'tablet', width: 768, height: 1024 }},
-            {{ name: 'desktop', width: 1440, height: 900 }}
+            {{ name: 'desktop', width: 1440, height: 900 }},
+            {{ name: 'small-desktop', width: 1024, height: 768 }},
+            {{ name: 'tablet-portrait', width: 768, height: 1024 }},
+            {{ name: 'modern-mobile', width: 390, height: 844 }},
+            {{ name: 'compact-mobile', width: 320, height: 568 }}
           ];
 
           for (const vp of viewports) {{
@@ -307,6 +309,179 @@ class TestDocsBrowserPlatform(unittest.TestCase):
                              capture_output=True, text=True)
         self.assertEqual(res.returncode, 0, f"Responsive overflow test failed: {res.stderr}\n{res.stdout}")
         self.assertIn("SUCCESS_RESPONSIVE_OVERFLOW", res.stdout)
+
+    def test_mobile_navigation_drawer_interactive(self):
+        """Verify mobile navigation drawer toggling, ARIA attributes, 7 routes, and escape dismissal."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          // Mobile viewport (iPhone 12/13/14)
+          await page.setViewportSize({{ width: 390, height: 844 }});
+          await page.goto('file://{self.docs_html}');
+          await page.waitForTimeout(100);
+
+          // 1. Initial state: mobile menu button visible, aria-expanded=false
+          const btnVisible = await page.$eval('#mobileMenuBtn', el => window.getComputedStyle(el).display !== 'none');
+          if (!btnVisible) throw new Error('#mobileMenuBtn should be visible at 390px viewport');
+
+          const initialExpanded = await page.$eval('#mobileMenuBtn', el => el.getAttribute('aria-expanded'));
+          if (initialExpanded !== 'false') throw new Error('mobileMenuBtn aria-expanded should initially be false');
+
+          const drawerHidden = await page.$eval('#mobileNavDrawer', el => el.getAttribute('aria-hidden'));
+          if (drawerHidden !== 'true') throw new Error('mobileNavDrawer aria-hidden should initially be true');
+
+          // 2. Click mobileMenuBtn to open drawer
+          await page.click('#mobileMenuBtn');
+          await page.waitForTimeout(250);
+
+          const isDrawerOpen = await page.$eval('#mobileNavDrawer', el => el.classList.contains('open'));
+          if (!isDrawerOpen) throw new Error('mobileNavDrawer should have class .open after click');
+
+          const expandedAfterOpen = await page.$eval('#mobileMenuBtn', el => el.getAttribute('aria-expanded'));
+          if (expandedAfterOpen !== 'true') throw new Error('mobileMenuBtn aria-expanded should be true when open');
+
+          const bodyNavOpen = await page.$eval('body', el => el.classList.contains('nav-open'));
+          if (!bodyNavOpen) throw new Error('body should have class .nav-open for scroll lock');
+
+          // 3. Verify all 7 routes exist in drawer
+          const mobileLinks = await page.$$eval('.mobile-nav-link', els => els.map(e => e.getAttribute('data-tab')));
+          const expectedRoutes = ['home', 'catalog', 'playground', 'builder', 'gallery', 'gates', 'install'];
+          for (const r of expectedRoutes) {{
+            if (!mobileLinks.includes(r)) throw new Error(`Missing route ${{r}} in mobile nav drawer`);
+          }}
+
+          // 4. Click a link (e.g. playground) -> navigates and closes drawer
+          await page.click('.mobile-nav-link[data-tab="playground"]');
+          await page.waitForTimeout(250);
+
+          const playgroundActive = await page.$eval('#view-playground', el => el.classList.contains('active'));
+          if (!playgroundActive) throw new Error('Navigating to playground from mobile drawer failed');
+
+          const drawerClosedAfterNav = await page.$eval('#mobileNavDrawer', el => !el.classList.contains('open'));
+          if (!drawerClosedAfterNav) throw new Error('Drawer should close after clicking a nav link');
+
+          // 5. Open again, then hit Escape key to dismiss
+          await page.click('#mobileMenuBtn');
+          await page.waitForTimeout(250);
+          await page.keyboard.press('Escape');
+          await page.waitForTimeout(250);
+
+          const drawerClosedEscape = await page.$eval('#mobileNavDrawer', el => !el.classList.contains('open'));
+          if (!drawerClosedEscape) throw new Error('Drawer should close after pressing Escape key');
+
+          await browser.close();
+          console.log('SUCCESS_MOBILE_DRAWER');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Mobile drawer test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_MOBILE_DRAWER", res.stdout)
+
+    def test_official_brand_assets_and_theme_logo_switching(self):
+        """Verify official brand SVG assets and dynamic theme logo switching in docs."""
+        brand_assets = ['icon.svg', 'logo.svg', 'logo-light.svg', 'favicon.svg']
+        for asset in brand_assets:
+            p = os.path.join(self.root_dir, 'docs', 'assets', 'brand', asset)
+            self.assertTrue(os.path.isfile(p), f"Brand asset missing: docs/assets/brand/{asset}")
+            self.assertGreater(os.path.getsize(p), 100, f"Brand asset too small or empty: {asset}")
+
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          await page.goto('file://{self.docs_html}');
+          await page.waitForTimeout(80);
+
+          // Dark mode initial logo
+          const logoSrcDark = await page.$eval('.brand-logo-img', el => el.getAttribute('src'));
+          if (!logoSrcDark.includes('logo.svg')) throw new Error('Dark mode logo should be logo.svg, got ' + logoSrcDark);
+
+          // Switch to light mode
+          await page.click('#themeToggleBtn');
+          await page.waitForTimeout(80);
+          const currentTheme = await page.$eval('html', el => el.getAttribute('data-theme'));
+          if (currentTheme === 'light') {{
+            const logoSrcLight = await page.$eval('.brand-logo-img', el => el.getAttribute('src'));
+            if (!logoSrcLight.includes('logo-light.svg')) throw new Error('Light mode logo should be logo-light.svg, got ' + logoSrcLight);
+          }}
+
+          await browser.close();
+          console.log('SUCCESS_BRAND_ASSETS');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Brand assets test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_BRAND_ASSETS", res.stdout)
+
+    def test_quality_gates_simulator_honesty_and_eval_states(self):
+        """Verify simulator honesty: NOT_EVALUATED for absent inputs, strict contrast pair, and summary alignment."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          await page.goto('file://{self.docs_html}');
+          await page.evaluate(() => window.location.hash = '#gates');
+          await page.waitForTimeout(100);
+
+          const editor = await page.$('#codeEditor');
+          const runBtn = await page.$('#runGateBtn');
+          const terminal = await page.$('#gateTerminal');
+
+          // Case 1: Code without images or FSM or colors
+          await editor.fill('.clean-card {{ padding-inline: 1rem; margin-inline: auto; text-align: start; }}');
+          await runBtn.click();
+          await page.waitForTimeout(100);
+
+          let output = await terminal.innerText();
+          if (!output.includes('WCAG 2.2 Contrast') || !output.includes('NOT_EVALUATED')) {{
+            throw new Error('Contrast gate should report NOT_EVALUATED when no color pairs are provided');
+          }}
+          if (!output.includes('DOM & Media Aspect-Ratio') || !output.includes('NOT_EVALUATED')) {{
+            throw new Error('Media aspect ratio gate should report NOT_EVALUATED when no img tags exist');
+          }}
+          if (!output.includes('Evaluation Summary:')) {{
+            throw new Error('Output must include Evaluation Summary line');
+          }}
+
+          // Case 2: Code with explicit color pair passing WCAG AAA
+          await editor.fill('.badge {{ color: #38bdf8; background-color: #0f141c; }}');
+          await runBtn.click();
+          await page.waitForTimeout(100);
+
+          output = await terminal.innerText();
+          if (!output.includes('WCAG 2.2 Contrast:') || !output.includes('PASS')) {{
+            throw new Error('Explicit high-contrast color pair must report PASS');
+          }}
+
+          await browser.close();
+          console.log('SUCCESS_SIMULATOR_HONESTY');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Simulator honesty test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_SIMULATOR_HONESTY", res.stdout)
 
     def test_skill_builder_empty_form_rejection(self):
         """Skill Builder must reject Download and show field errors when required fields are empty."""

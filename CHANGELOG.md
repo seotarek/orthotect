@@ -4,6 +4,36 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.2] - 2026-10-22
+
+### Added
+- **Official Brand Integration (`docs/assets/brand/`)**:
+  - Integrated authoritative brand vectors directly into documentation and public site: `icon.svg` (isometric interlocking 'O'+'T' cube with verification tick), `logo.svg` (horizontal logo for dark canvas), `logo-light.svg` (horizontal logo for light canvas), and `favicon.svg` (crisp 32x32 standalone favicon).
+  - Wired real-time brand logo theme switching in `docs/app.js` between light and dark modes.
+  - Added official brand palette tokens in `docs/styles.css`: `--ortho-brand-blue: #1f69ff`, `--ortho-brand-cyan: #00d2ff`, `--ortho-brand-purple: #7b42f6`, `--ortho-border-active: #00d2ff`.
+- **Accessible Mobile Navigation Drawer (`docs/`)**:
+  - Rebuilt site header with a responsive mobile hamburger button (`#mobileMenuBtn`) and slide-out navigation drawer (`#mobileNavDrawer`).
+  - Implemented background scroll lock (`body.nav-open`), backdrop click dismissal, `Escape` key listener, and keyboard focus management.
+  - Added full bilingual (English & Arabic) route label localization across all 7 views in the mobile drawer.
+- **Automated Browser Tests for Brand & Responsive Architecture (`tests/test_docs_browser.py`)**:
+  - `test_responsive_viewports_no_horizontal_overflow`: Verified zero horizontal overflow (`scrollWidth <= viewportWidth`) across all 5 mandatory viewports: 1440×900, 1024×768, 768×1024, 390×844, and 320×568.
+  - `test_mobile_navigation_drawer_interactive`: Verified hamburger button toggle, `aria-expanded` and `aria-hidden` attributes, route traversal, and `Escape` key dismissal.
+  - `test_official_brand_assets_and_theme_logo_switching`: Verified SVG asset existence and dynamic switching of `.brand-logo-img` src on theme change.
+  - `test_quality_gates_simulator_honesty_and_eval_states`: Verified simulator honesty: `NOT_EVALUATED` states for missing inputs, strict contrast pairing, and accurate summary output.
+
+### Fixed & Hardened
+- **Zero Horizontal Overflow Fix (`docs/styles.css`)**: Added `overflow: hidden;` to `.mobile-nav-drawer` preventing off-screen CSS translateX drawer transforms from expanding the document scroll width on mobile and small tablet viewports.
+- **Skill Builder Hardened Validation & Safe Serialization (`docs/app.js`)**:
+  - Added strict kebab-case regex validation (`/^[a-z0-9]+(-[a-z0-9]+)*$/`), description length limits (10–1024 chars), and required steps checks.
+  - Added `formatYamlString()` helper providing safe YAML multiline block scalar (`|`) and quote escaping for generated frontmatter.
+  - Dynamic preview badge now explicitly reflects validation status: `"Structure Validated (Client AST)"` vs `"Incomplete / Invalid Input"`.
+  - Copy and Download actions strictly blocked when invalid, automatically highlighting invalid fields and scrolling the first error into view.
+- **Quality Gates Simulator Honesty (`docs/app.js`)**:
+  - Contrast check now requires an explicit foreground `color` and background `background-color` pair, reporting `⏭ NOT_EVALUATED` instead of false results when absent.
+  - FSM check strictly validates JSON syntax on FSM blocks, requiring `states` and `initialState`; emits `❌ FAIL` on syntax error and `⏭ NOT_EVALUATED` if no FSM structure is present.
+  - Media aspect-ratio check reports `⏭ NOT_EVALUATED` when no `<img>` elements exist in snippet.
+  - Added comprehensive summary line: `Evaluation Summary: X Passed, Y Failed, Z Not Evaluated`.
+
 ## [1.5.1] - 2026-10-22
 
 ### Fixed

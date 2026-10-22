@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="100%" height="100%" fill="none" role="img" aria-label="Orthotect Logo Light">
+  <defs>
+    <linearGradient id="logoLightBlueCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#008CB4"/>
+      <stop offset="50%" stop-color="#1652D6"/>
+      <stop offset="100%" stop-color="#672FE6"/>
+    </linearGradient>
+    <linearGradient id="logoLightTextGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#008CB4"/>
+      <stop offset="50%" stop-color="#1652D6"/>
+      <stop offset="100%" stop-color="#672FE6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Left Icon Symbol -->
+  <g transform="translate(6, 4) scale(0.60)">
+    <path d="M48 18 L18 35 L18 78 L34 88 L34 50 L48 42 Z" fill="#008CB4"/>
+    <path d="M34 88 L48 97 L65 87 L65 72 L48 81 L34 73 Z" fill="#1652D6"/>
+
+    <!-- Verification Checkmark -->
+    <path d="M38 66 L52 80 L76 46 L68 40 L52 64 L44 56 Z" fill="url(#logoLightBlueCyan)"/>
+
+    <!-- Top Isometric Face -->
+    <path d="M48 18 L68 29 L54 38 L34 26 Z" fill="#00B4D8"/>
+    <path d="M72 31 L88 40 L74 48 L58 39 Z" fill="#1652D6"/>
+
+    <!-- Right Isometric Face Grid Modules -->
+    <path d="M68 29 L82 37 L82 48 L68 40 Z" fill="#008CB4"/>
+    <path d="M86 39 L100 47 L100 58 L86 50 Z" fill="#1652D6"/>
+    <path d="M76 49 L90 57 L90 68 L76 60 Z" fill="#672FE6"/>
+    <path d="M92 59 L104 66 L104 77 L92 70 Z" fill="#008CB4"/>
+    <path d="M76 64 L90 72 L90 84 L76 76 Z" fill="#672FE6"/>
+    <path d="M92 73 L104 80 L104 92 L92 85 Z" fill="#1652D6"/>
+  </g>
+
+  <!-- Wordmark: "Orthotect" -->
+  <g transform="translate(82, 49)">
+    <text font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="800" font-size="34" letter-spacing="-0.03em">
+      <tspan fill="#0F172A">Ortho</tspan><tspan fill="url(#logoLightTextGradient)">tect</tspan>
+    </text>
+  </g>
+</svg>

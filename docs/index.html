@@ -6,7 +6,7 @@
   <title>Orthotect — Skill Studio &amp; Deterministic Interface Runtime</title>
   <meta name="description" content="The deterministic interface engineering and runtime gate architecture for AI coding agents. Sub-400ms parallel gates for WCAG AAA, True BiDi, FSM integrity, and zero layout shift." />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2338bdf8%22/><text y=%2268%22 x=%2224%22 font-size=%2254%22 font-family=%22monospace%22 font-weight=%22bold%22 fill=%22%23090c10%22>O</text></svg>">
+  <link rel="icon" type="image/svg+xml" href="assets/brand/favicon.svg" />
 </head>
 <body>
 
@@ -15,12 +15,12 @@
     <header class="site-header" role="banner">
       <div class="container nav-wrap">
         <a href="#home" class="brand-group" aria-label="Orthotect Home">
-          <div class="brand-icon" aria-hidden="true">O</div>
-          <span class="brand-name">Orthotect</span>
-          <span class="brand-badge" id="brandDesc">Skill Studio v1.5.0</span>
+          <img src="assets/brand/logo.svg" alt="Orthotect" class="brand-logo-img" width="148" height="38" />
+          <span class="brand-badge" id="brandDesc">v1.5.2</span>
         </a>
 
-        <nav aria-label="Main Navigation">
+        <!-- Desktop Navigation -->
+        <nav class="desktop-nav" aria-label="Main Navigation">
           <ul class="nav-links">
             <li><a href="#home" class="nav-link active" data-tab="home" id="navHome">Home</a></li>
             <li><a href="#catalog" class="nav-link" data-tab="catalog" id="navCatalog">Skill Catalog</a></li>
@@ -32,6 +32,7 @@
           </ul>
         </nav>
 
+        <!-- Header Action Controls -->
         <div class="control-group">
           <button id="themeToggleBtn" class="btn-ctrl" aria-label="Toggle Color Theme">
             <span id="themeBtnText">Dark</span>
@@ -39,11 +40,44 @@
           <button id="bidiToggleBtn" class="btn-ctrl" aria-label="Toggle Language and Direction">
             <span id="langBtnText">العربية</span>
           </button>
-          <a href="https://github.com/seotarek/orthotect" target="_blank" rel="noopener" class="btn-ctrl" style="text-decoration: none;" aria-label="GitHub Repository">
+          <a href="https://github.com/seotarek/orthotect" target="_blank" rel="noopener" class="btn-ctrl github-btn" aria-label="GitHub Repository">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
             <span>GitHub</span>
           </a>
+          <!-- Mobile Menu Hamburger Button -->
+          <button id="mobileMenuBtn" class="btn-ctrl mobile-menu-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobileNavDrawer">
+            <svg class="hamburger-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
         </div>
+      </div>
+
+      <!-- Mobile Navigation Drawer -->
+      <div id="mobileNavDrawer" class="mobile-nav-drawer" aria-hidden="true">
+        <div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
+        <nav class="mobile-nav-content" aria-label="Mobile Navigation Drawer">
+          <div class="mobile-nav-header">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <img src="assets/brand/icon.svg" alt="Orthotect Icon" width="24" height="24" />
+              <span style="font-weight: 800; font-size: 1rem; color: var(--ortho-text-primary);">Orthotect Navigation</span>
+            </div>
+            <button id="mobileMenuCloseBtn" class="btn-ctrl" style="padding: 0.25rem 0.5rem;" aria-label="Close navigation menu">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+          <ul class="mobile-nav-links">
+            <li><a href="#home" class="mobile-nav-link active" data-tab="home"><span class="m-nav-dot"></span><span id="mNavHome">Home</span></a></li>
+            <li><a href="#catalog" class="mobile-nav-link" data-tab="catalog"><span class="m-nav-dot"></span><span id="mNavCatalog">Skill Catalog</span></a></li>
+            <li><a href="#playground" class="mobile-nav-link" data-tab="playground"><span class="m-nav-dot"></span><span id="mNavPlayground">Playground</span></a></li>
+            <li><a href="#builder" class="mobile-nav-link" data-tab="builder"><span class="m-nav-dot"></span><span id="mNavBuilder">Skill Builder</span></a></li>
+            <li><a href="#gallery" class="mobile-nav-link" data-tab="gallery"><span class="m-nav-dot"></span><span id="mNavGallery">Examples</span></a></li>
+            <li><a href="#gates" class="mobile-nav-link" data-tab="gates"><span class="m-nav-dot"></span><span id="mNavGates">Quality Gates</span></a></li>
+            <li><a href="#install" class="mobile-nav-link" data-tab="install"><span class="m-nav-dot"></span><span id="mNavInstall">Install &amp; Usage</span></a></li>
+          </ul>
+        </nav>
       </div>
     </header>
 
@@ -58,7 +92,7 @@
           <div class="container">
             <div class="hero-pill">
               <span class="status-dot"></span>
-              <span id="heroBadge">v1.5.0 • Deterministic Quality Standard for Autonomous Coding Agents</span>
+              <span id="heroBadge">v1.5.2 • Deterministic Quality Standard for Autonomous Coding Agents</span>
             </div>
 
             <h1 class="hero-title" id="heroTitle">
@@ -82,7 +116,7 @@
                 <div class="proof-lbl" id="proofGates">Deterministic Gates</div>
               </div>
               <div class="proof-card">
-                <div class="proof-val">75 / 75</div>
+                <div class="proof-val">89 / 89</div>
                 <div class="proof-lbl" id="proofTests">Automated Unit &amp; E2E Tests</div>
               </div>
               <div class="proof-card">
@@ -659,7 +693,7 @@
           <a href="https://github.com/seotarek/orthotect/blob/main/LICENSE" target="_blank" rel="noopener" class="footer-link">MIT License</a>
         </div>
         <div id="footerCopy">
-          Orthotect v1.5.0 &copy; 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok.
+          Orthotect v1.5.2 &copy; 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok.
         </div>
       </div>
     </footer>
