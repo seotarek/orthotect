@@ -2046,6 +2046,7 @@ ${dod}
           if (!str) return false;
 
           const validUnits = new Set(["px", "rem", "em", "vw", "vh", "%", "cqi", "cqw", "pt", "cm", "mm", "in", "vmin", "vmax", "ch", "ex"]);
+          const numberRegex = /^[+-]?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$/;
 
           const tokens = [];
           let i = 0;
@@ -2065,23 +2066,41 @@ ${dod}
               const prev = tokens.length > 0 ? tokens[tokens.length - 1].type : null;
               const isUnary = !prev || prev === "(" || prev === "+" || prev === "-" || prev === "*" || prev === "/";
               if (isUnary) {
-                let j = i + 1;
-                while (j < len && /\s/.test(str[j])) j++;
-                if (j < len && /[0-9.]/.test(str[j])) {
+                // In CSS Syntax Level 3, a unary sign must be followed immediately by a number (or opening parenthesis)
+                // with ZERO whitespace! (e.g. "-10px", not "- 10px")
+                const nextChar = str[i + 1];
+                if (!nextChar || /\s/.test(nextChar)) {
+                  return false; // Space after unary sign is INVALID in CSS
+                }
+
+                if (nextChar === "(") {
+                  tokens.push({ type: "unary", sign: ch === "-" ? -1 : 1 });
+                  i++;
+                  continue;
+                }
+
+                if (/[0-9.]/.test(nextChar)) {
                   const sign = ch === "-" ? -1 : 1;
-                  i = j;
+                  i++; // consume sign
                   const numStart = i;
-                  while (i < len && /[0-9.]/.test(str[i])) i++;
+                  while (i < len && /[0-9.eE+-]/.test(str[i])) {
+                    if ((str[i] === "+" || str[i] === "-") && str[i - 1].toLowerCase() !== "e") {
+                      break;
+                    }
+                    i++;
+                  }
                   const rawNum = str.slice(numStart, i);
-                  if (!/^(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)$/.test(rawNum)) {
+                  if (!numberRegex.test(rawNum)) {
                     return false;
                   }
                   const numVal = parseFloat(rawNum);
                   if (isNaN(numVal)) return false;
+
                   const unitStart = i;
                   while (i < len && /[a-zA-Z%]/.test(str[i])) i++;
                   const unit = str.slice(unitStart, i).toLowerCase();
                   if (unit && !validUnits.has(unit)) return false;
+
                   tokens.push({
                     type: "val",
                     num: sign * numVal,
@@ -2104,17 +2123,24 @@ ${dod}
             }
             if (/[0-9.]/.test(ch)) {
               const numStart = i;
-              while (i < len && /[0-9.]/.test(str[i])) i++;
+              while (i < len && /[0-9.eE+-]/.test(str[i])) {
+                if ((str[i] === "+" || str[i] === "-") && str[i - 1].toLowerCase() !== "e") {
+                  break;
+                }
+                i++;
+              }
               const rawNum = str.slice(numStart, i);
-              if (!/^(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)$/.test(rawNum)) {
+              if (!numberRegex.test(rawNum)) {
                 return false;
               }
               const numVal = parseFloat(rawNum);
               if (isNaN(numVal)) return false;
+
               const unitStart = i;
               while (i < len && /[a-zA-Z%]/.test(str[i])) i++;
               const unit = str.slice(unitStart, i).toLowerCase();
               if (unit && !validUnits.has(unit)) return false;
+
               tokens.push({
                 type: "val",
                 num: numVal,
@@ -2133,7 +2159,11 @@ ${dod}
           function parseFactor() {
             if (pos >= tokens.length) return null;
             let sign = 1;
-            if (tokens[pos].type === "+" || tokens[pos].type === "-") {
+            if (tokens[pos].type === "unary") {
+              sign = tokens[pos].sign;
+              pos++;
+              if (pos >= tokens.length) return null;
+            } else if (tokens[pos].type === "+" || tokens[pos].type === "-") {
               if (tokens[pos].type === "-") sign = -1;
               pos++;
               if (pos >= tokens.length) return null;

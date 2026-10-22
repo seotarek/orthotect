@@ -1018,5 +1018,51 @@ class TestDocsBrowserPlatform(unittest.TestCase):
         self.assertEqual(res.returncode, 0, f"Hero benchmark negative calc whitespace test failed: {res.stderr}\n{res.stdout}")
         self.assertIn("SUCCESS_REJECT_CALC_WHITESPACE_AND_MALFORMED", res.stdout)
 
+    def test_hero_benchmark_rejects_calc_whitespace_after_unary_minus(self):
+        """Negative test: Injecting media with calc(- 10px + 20px) must trigger Gate 5 rejection."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          await page.goto('file://{self.docs_html}');
+          await page.waitForTimeout(100);
+
+          // Inject media with space after unary minus
+          await page.evaluate(() => {{
+            const img = document.createElement('img');
+            img.setAttribute('src', 'unary_space.png');
+            img.style.width = 'calc(- 10px + 20px)';
+            img.style.height = 'calc(10px + - 5px)';
+            document.body.appendChild(img);
+          }});
+
+          // Run benchmark
+          await page.click('#btnRunHeroBenchmark');
+          await page.waitForTimeout(300);
+
+          const s5 = await page.$eval('#heroStatusGate5', el => el.textContent);
+          const badge = await page.$eval('#heroTerminalBadge', el => el.textContent);
+          const cert = await page.$eval('#heroTerminalCert', el => el.textContent);
+
+          await browser.close();
+
+          if (!s5.includes('FAIL')) throw new Error(`Expected Gate 5 to FAIL, got: ${{s5}}`);
+          if (badge !== 'GATE VIOLATIONS DETECTED') throw new Error(`Expected GATE VIOLATIONS DETECTED badge, got: ${{badge}}`);
+          if (cert !== 'REJECTED') throw new Error(`Expected REJECTED cert, got: ${{cert}}`);
+
+          console.log('SUCCESS_REJECT_CALC_UNARY_SPACE');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Hero benchmark negative calc unary space test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_REJECT_CALC_UNARY_SPACE", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()

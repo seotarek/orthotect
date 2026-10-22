@@ -396,6 +396,42 @@ class TestCWVBudgetGate(unittest.TestCase):
         self.assertNotEqual(res.returncode, 0)
         self.assertIn("invalid non-reserving CSS dimensions in style", res.stdout)
 
+    def test_calc_whitespace_after_unary_minus_fails(self):
+        """Negative test: CSS Syntax Level 3 disallows whitespace between unary sign and number (calc(- 10px + 20px))."""
+        html_file = os.path.join(self.temp_dir, 'calc_unary_space.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Calc Unary Space</title></head><body><img src="logo.png" style="width: calc(- 10px + 20px); height: calc(- 10px + 20px);" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("invalid non-reserving CSS dimensions in style", res.stdout)
+
+    def test_calc_whitespace_after_unary_minus_in_operand_fails(self):
+        """Negative test: CSS Syntax Level 3 disallows whitespace after unary sign in operand (calc(10px + - 5px))."""
+        html_file = os.path.join(self.temp_dir, 'calc_unary_operand_space.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Calc Unary Space 2</title></head><body><img src="logo.png" style="width: calc(10px + - 5px); height: calc(10px + - 5px);" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("invalid non-reserving CSS dimensions in style", res.stdout)
+
+    def test_calc_unary_minus_without_whitespace_passes(self):
+        """Positive test: Valid unary minus directly preceding number passes (calc(-10px + 20px) and calc(10px + -5px))."""
+        html_file = os.path.join(self.temp_dir, 'calc_unary_valid.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Calc Unary Valid</title></head><body><img src="logo.png" style="width: calc(-10px + 20px); height: calc(10px + -5px);" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("PASS", res.stdout)
+
+    def test_calc_scientific_notation_passes(self):
+        """Positive test: CSS Syntax Level 3 scientific notation exponents pass (calc(1e2px) and calc(1.5e2px + 50px))."""
+        html_file = os.path.join(self.temp_dir, 'calc_scientific.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Calc Scientific</title></head><body><img src="logo.png" style="width: calc(1e2px); height: calc(1.5e2px + 50px);" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("PASS", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
 
