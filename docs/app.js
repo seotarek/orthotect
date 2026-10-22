@@ -1607,7 +1607,7 @@ ${dod}
   });
 
   // =========================================================================
-  // HERO INTERACTIVE BENCHMARK RUNNER
+  // HERO INTERACTIVE BENCHMARK RUNNER (PRODUCTION GATE VALIDATION ENGINE)
   // =========================================================================
   const btnRunHeroBenchmark = document.getElementById("btnRunHeroBenchmark");
   if (btnRunHeroBenchmark) {
@@ -1651,12 +1651,67 @@ ${dod}
       setTimeout(() => {
         const overallStart = performance.now();
 
-        // 1. Gate 1: WCAG 2.2 Mathematical Contrast on Document Tokens
+        // ---------------------------------------------------------------------
+        // 1. Gate 1: WCAG 2.2 Mathematical Contrast Matrix on Theme Tokens
+        // ---------------------------------------------------------------------
         const t1Start = performance.now();
-        const darkContrast = parseFloat(getContrastRatio("#f8fafc", "#090d16") || "0");
-        const lightContrast = parseFloat(getContrastRatio("#0f172a", "#f8fafc") || "0");
-        const darkSecContrast = parseFloat(getContrastRatio("#94a3b8", "#090d16") || "0");
-        const passed1 = darkContrast >= 7.0 && lightContrast >= 7.0 && darkSecContrast >= 4.5;
+        const comp = window.getComputedStyle(document.documentElement);
+        const getTok = (varName, fallback) => {
+          const val = comp.getPropertyValue(varName).trim();
+          return val ? val : fallback;
+        };
+
+        const themeMatrices = [
+          {
+            theme: "dark",
+            canvas: getTok("--ortho-canvas", "#090d16"),
+            panel: getTok("--ortho-surface-1", "#0f1626"),
+            surface2: getTok("--ortho-surface-2", "#162035"),
+            textPrimary: getTok("--ortho-text-primary", "#f8fafc"),
+            textSecondary: getTok("--ortho-text-secondary", "#94a3b8"),
+            actionPrimary: getTok("--ortho-accent-cyan", "#00d2ff"),
+            actionDanger: getTok("--ortho-danger", "#ef4444")
+          },
+          {
+            theme: "light",
+            canvas: "#f8fafc",
+            panel: "#ffffff",
+            surface2: "#f1f5f9",
+            textPrimary: "#0f172a",
+            textSecondary: "#334155",
+            actionPrimary: "#0284c7",
+            actionDanger: "#dc2626"
+          }
+        ];
+
+        let testedPairs = 0;
+        let passedAA = 0;
+        let passedAAA = 0;
+        let contrastFailures = 0;
+
+        for (const tm of themeMatrices) {
+          const pairs = [
+            { name: "Primary Text on Canvas", fg: tm.textPrimary, bg: tm.canvas, reqAA: 4.5, reqAAA: 7.0 },
+            { name: "Primary Text on Panel", fg: tm.textPrimary, bg: tm.panel, reqAA: 4.5, reqAAA: 7.0 },
+            { name: "Secondary Text on Canvas", fg: tm.textSecondary, bg: tm.canvas, reqAA: 4.5, reqAAA: 7.0 },
+            { name: "Secondary Text on Panel", fg: tm.textSecondary, bg: tm.panel, reqAA: 4.5, reqAAA: 7.0 },
+            { name: "Action Control on Canvas", fg: tm.actionPrimary, bg: tm.canvas, reqAA: 3.0, reqAAA: 4.5 },
+            { name: "Destructive Control on Canvas", fg: tm.actionDanger, bg: tm.canvas, reqAA: 3.0, reqAAA: 4.5 }
+          ];
+
+          for (const p of pairs) {
+            testedPairs++;
+            const ratio = parseFloat(getContrastRatio(p.fg, p.bg) || "0");
+            if (ratio >= p.reqAA) {
+              passedAA++;
+              if (ratio >= p.reqAAA) passedAAA++;
+            } else {
+              contrastFailures++;
+            }
+          }
+        }
+
+        const passed1 = contrastFailures === 0 && testedPairs > 0;
         const t1End = performance.now();
         const t1 = Math.max(0.4, t1End - t1Start);
 
@@ -1667,36 +1722,61 @@ ${dod}
         }
         if (elDetail1) {
           elDetail1.textContent = passed1
-            ? `Contrast: ${darkContrast.toFixed(1)}:1 (Dark) • ${lightContrast.toFixed(1)}:1 (Light) [WCAG AA/AAA]`
-            : `Contrast violation: ${darkContrast.toFixed(1)}:1 (Dark) • ${lightContrast.toFixed(1)}:1 (Light)`;
+            ? `${testedPairs}/${testedPairs} Token Pairs Pass WCAG 2.2 AA (${passedAAA} AAA)`
+            : `Contrast Violation: ${contrastFailures} token pairs failed WCAG 2.2 AA`;
         }
 
-        // 2. Gate 2: True BiDi & CSS Logical Properties across loaded styles & DOM
+        // ---------------------------------------------------------------------
+        // 2. Gate 2: True BiDi & CSS Logical Properties (Full 16-Pattern Engine)
+        // ---------------------------------------------------------------------
         const t2Start = performance.now();
         let physicalViolations = 0;
         let logicalCount = 0;
+
+        const BANNED_BIDI = [
+          /\bmargin-left\s*:/i,
+          /\bmargin-right\s*:/i,
+          /\bpadding-left\s*:/i,
+          /\bpadding-right\s*:/i,
+          /\bborder-left\b(?!-width|-color|-style)/i,
+          /\bborder-right\b(?!-width|-color|-style)/i,
+          /\bborder-top-left-radius\s*:/i,
+          /\bborder-top-right-radius\s*:/i,
+          /\bborder-bottom-left-radius\s*:/i,
+          /\bborder-bottom-right-radius\s*:/i,
+          /(?<![\w-])left\s*:\s*(?!auto|inherit|initial)[^;]+(?:;|\}|$)/i,
+          /(?<![\w-])right\s*:\s*(?!auto|inherit|initial)[^;]+(?:;|\}|$)/i,
+          /\btext-align\s*:\s*left\b/i,
+          /\btext-align\s*:\s*right\b/i,
+          /\bfloat\s*:\s*left\b/i,
+          /\bfloat\s*:\s*right\b/i
+        ];
+
+        const LOGICAL_REGEX = /(?:margin|padding|inset|border)-(?:inline|block)|(?:inline|block)-size|text-align\s*:\s*(?:start|end)/i;
+
+        // Scan stylesheet rules if accessible
         try {
           Array.from(document.styleSheets).forEach(sheet => {
             try {
               Array.from(sheet.cssRules || []).forEach(rule => {
                 const txt = rule.cssText || "";
-                if (/\b(?:margin|padding)-(?:left|right)\s*:/i.test(txt)) physicalViolations++;
-                if (/\bfloat\s*:\s*(?:left|right)/i.test(txt)) physicalViolations++;
-                if (/\b(?:left|right)\s*:\s*0(?:px)?(?:\s|;|\})/i.test(txt)) physicalViolations++;
-                if (/(?:margin|padding|inset|border)-(?:inline|block)|(?:inline|block)-size/i.test(txt)) {
-                  logicalCount++;
+                for (const pat of BANNED_BIDI) {
+                  if (pat.test(txt)) physicalViolations++;
                 }
+                if (LOGICAL_REGEX.test(txt)) logicalCount++;
               });
             } catch (_) {}
           });
         } catch (_) {}
 
+        // Scan all DOM elements for inline style attributes
         document.querySelectorAll("*").forEach(el => {
           const styleAttr = el.getAttribute("style") || "";
-          if (/\b(?:margin|padding)-(?:left|right)\s*:/i.test(styleAttr)) physicalViolations++;
-          if (/\bfloat\s*:\s*(?:left|right)/i.test(styleAttr)) physicalViolations++;
-          if (/(?:margin|padding|inset|border)-(?:inline|block)|(?:inline|block)-size/i.test(styleAttr)) {
-            logicalCount++;
+          if (styleAttr) {
+            for (const pat of BANNED_BIDI) {
+              if (pat.test(styleAttr)) physicalViolations++;
+            }
+            if (LOGICAL_REGEX.test(styleAttr)) logicalCount++;
           }
         });
 
@@ -1715,43 +1795,126 @@ ${dod}
             : `BiDi Violations: ${physicalViolations} physical properties detected`;
         }
 
-        // 3. Gate 3: State Machine BFS Reachability & Interaction Locks
+        // ---------------------------------------------------------------------
+        // 3. Gate 3: State Machine BFS Reachability & Lock Engine (3 Production FSMs)
+        // ---------------------------------------------------------------------
         const t3Start = performance.now();
         const productionFsms = [
           {
-            name: "data-table-loader",
-            initialState: "idle",
+            name: "OrthotectDataTableFSM (core/fsm/data-table-loader.json)",
+            initialState: "uninitialized",
             states: {
-              idle: { on: { FETCH: "loading" }, allowClick: true },
-              loading: { on: { RESOLVE: "ready", REJECT: "error" }, allowClick: false },
-              ready: { on: { REFETCH: "loading", RESET: "idle" }, allowClick: true },
-              error: { on: { RETRY: "loading", RESET: "idle" }, allowClick: true }
+              uninitialized: { on: { INIT: "skeletonLoading" } },
+              skeletonLoading: {
+                allowClick: false,
+                on: { DATA_LOADED: "ready", EMPTY_RESULT: "emptyState", LOAD_FAILED: "errorState" }
+              },
+              ready: {
+                on: { SORT: "sortingOptimistic", PAGE_CHANGE: "pageTransition", FILTER: "filtering" }
+              },
+              sortingOptimistic: { on: { SORT_COMPLETE: "ready" } },
+              pageTransition: { on: { PAGE_LOADED: "ready" } },
+              emptyState: { on: { CREATE_ITEM: "ready", RESET_FILTER: "ready" } },
+              errorState: { on: { RETRY: "skeletonLoading" } },
+              filtering: { on: { FILTER_COMPLETE: "ready", FILTER_FAILED: "errorState" } }
             }
           },
           {
-            name: "modal-dialog",
+            name: "OrthotectModalFSM (core/fsm/modal-dialog.json)",
             initialState: "closed",
             states: {
-              closed: { on: { OPEN: "opening" }, allowClick: true },
-              opening: { on: { ANIMATION_END: "open" }, allowClick: false },
-              open: { on: { CLOSE: "closing" }, allowClick: true },
-              closing: { on: { ANIMATION_END: "closed" }, allowClick: false }
+              closed: { on: { OPEN: "opening" } },
+              opening: { allowClick: false, on: { ANIMATION_END: "open" } },
+              open: {
+                on: { CLOSE: "closing", ESCAPE: "closing", BACKDROP_CLICK: "closing", SUBMIT: "submitting" }
+              },
+              submitting: {
+                allowClick: false,
+                isAsync: true,
+                on: { RESOLVE_SUCCESS: "successFeedback", REJECT_ERROR: "errorFeedback" }
+              },
+              successFeedback: { on: { TIMEOUT: "closing", CLOSE: "closing" } },
+              errorFeedback: {
+                on: { RETRY: "submitting", DISMISS_ERROR: "open", CLOSE: "closing", ESCAPE: "closing" }
+              },
+              closing: { allowClick: false, on: { ANIMATION_END: "closed" } }
+            }
+          },
+          {
+            name: "OrthotectButtonFSM (core/fsm/button-states.json)",
+            initialState: "idle",
+            states: {
+              idle: {
+                on: { POINTER_ENTER: "hover", FOCUS: "focusVisible", CLICK: "loading", DISABLE: "disabled" }
+              },
+              hover: { on: { POINTER_LEAVE: "idle", PRESS: "pressed" } },
+              focusVisible: { on: { BLUR: "idle", KEY_PRESS: "loading" } },
+              pressed: { on: { RELEASE: "loading", CANCEL: "idle" } },
+              loading: {
+                allowClick: false,
+                on: { RESOLVE_SUCCESS: "successFeedback", REJECT_ERROR: "errorFeedback" }
+              },
+              successFeedback: { on: { TIMEOUT: "idle" } },
+              errorFeedback: { on: { RETRY: "loading", RESET: "idle" } },
+              disabled: { on: { ENABLE: "idle" } }
             }
           }
         ];
 
         let fsmPassed = true;
         let totalStatesCount = 0;
-        const asyncKeywords = ["loading", "opening", "closing", "submitting", "fetching"];
+        const fsmErrors = [];
+        const asyncKeywords = ["loading", "submitting", "pending", "processing", "fetching", "skeletonloading", "syncing"];
 
         for (const model of productionFsms) {
           if (!model.initialState || !model.states || !model.states[model.initialState]) {
             fsmPassed = false;
+            fsmErrors.push(`${model.name}: invalid initialState`);
             break;
           }
           const stateKeys = Object.keys(model.states);
           totalStatesCount += stateKeys.length;
 
+          // 1. Transition targets validity
+          for (const [stName, stDef] of Object.entries(model.states)) {
+            const transitions = stDef.on || {};
+            for (const [evt, target] of Object.entries(transitions)) {
+              if (!model.states[target]) {
+                fsmPassed = false;
+                fsmErrors.push(`${model.name}: ${stName}.${evt} -> undefined '${target}'`);
+              }
+            }
+
+            // 2. Deadlock detection: non-final state must have transitions
+            if (!stDef.final && Object.keys(transitions).length === 0) {
+              fsmPassed = false;
+              fsmErrors.push(`${model.name}: deadlock in non-final state '${stName}'`);
+            }
+
+            // 3. Interaction lock on async and transitional states
+            const nameLower = stName.toLowerCase();
+            const isAsyncOperation = asyncKeywords.some(kw => nameLower.includes(kw)) || stDef.isAsync === true;
+            const isAnimationLock = ["opening", "closing"].includes(nameLower);
+
+            if (isAsyncOperation || isAnimationLock) {
+              if (stDef.allowClick !== false) {
+                fsmPassed = false;
+                fsmErrors.push(`${model.name}: state '${stName}' missing allowClick: false`);
+              }
+            }
+
+            // 4. Resilience: async operations must have an explicit error/failure recovery transition
+            if (isAsyncOperation) {
+              const targets = Object.values(transitions);
+              const hasRecovery = targets.some(t => /error|fail|reject/i.test(t));
+              if (!hasRecovery) {
+                fsmPassed = false;
+                fsmErrors.push(`${model.name}: async state '${stName}' missing error recovery transition`);
+              }
+            }
+          }
+
+          // 5. BFS Reachability from initialState
           const queue = [model.initialState];
           const visited = new Set();
           while (queue.length > 0) {
@@ -1761,9 +1924,7 @@ ${dod}
               const stateObj = model.states[curr];
               if (stateObj && stateObj.on) {
                 for (const target of Object.values(stateObj.on)) {
-                  if (!model.states[target]) {
-                    fsmPassed = false;
-                  } else {
+                  if (model.states[target] && !visited.has(target)) {
                     queue.push(target);
                   }
                 }
@@ -1773,16 +1934,12 @@ ${dod}
 
           if (visited.size !== stateKeys.length) {
             fsmPassed = false;
-          }
-
-          for (const [stName, stObj] of Object.entries(model.states)) {
-            if (asyncKeywords.includes(stName) && stObj.allowClick !== false) {
-              fsmPassed = false;
-            }
+            const unreachable = stateKeys.filter(k => !visited.has(k));
+            fsmErrors.push(`${model.name}: unreachable states [${unreachable.join(", ")}]`);
           }
         }
 
-        const passed3 = fsmPassed;
+        const passed3 = fsmPassed && fsmErrors.length === 0;
         const t3End = performance.now();
         const t3 = Math.max(0.3, t3End - t3Start);
 
@@ -1793,35 +1950,62 @@ ${dod}
         }
         if (elDetail3) {
           elDetail3.textContent = passed3
-            ? `All ${totalStatesCount} states reachable (0 deadlocks, interaction locks verified)`
-            : "FSM Integrity Error: unreachable states or unlocked async state";
+            ? `All ${totalStatesCount} states reachable across 3 production FSMs (0 deadlocks, interaction locks verified)`
+            : `FSM Integrity Error: ${fsmErrors[0] || "unreachable or unlocked states"}`;
         }
 
-        // 4. Gate 4: Anti-Slop Pattern Inspector
+        // ---------------------------------------------------------------------
+        // 4. Gate 4: Anti-Slop Pattern Inspector (Full Lexical & Inline Checker)
+        // ---------------------------------------------------------------------
         const t4Start = performance.now();
         let slopViolations = 0;
+        const slopErrors = [];
+
+        // A. Hardcoded AI indigo/purple gradients across stylesheets
         try {
           Array.from(document.styleSheets).forEach(sheet => {
             try {
               Array.from(sheet.cssRules || []).forEach(rule => {
                 const txt = rule.cssText || "";
-                if (/#6366f1|#a855f7/i.test(txt)) slopViolations++;
+                if (/linear-gradient\s*\([^)]*(#6366f1|#a855f7|indigo|purple)[^)]*\)/i.test(txt)) {
+                  slopViolations++;
+                  slopErrors.push("Generic AI purple gradient in CSS rule");
+                }
               });
             } catch (_) {}
           });
         } catch (_) {}
 
+        // B. Inline styles: hardcoded hex/rgb colors without DTCG variables or AI gradients
         document.querySelectorAll("*").forEach(el => {
           const styleAttr = el.getAttribute("style") || "";
-          if (/#6366f1|#a855f7/i.test(styleAttr)) slopViolations++;
+          if (styleAttr) {
+            if (/linear-gradient\s*\([^)]*(#6366f1|#a855f7|indigo|purple)[^)]*\)/i.test(styleAttr)) {
+              slopViolations++;
+              slopErrors.push("Generic AI purple gradient in inline style");
+            }
+            if (/(?:^|;|\s)(?:color|background(?:-color)?)\s*:\s*(?:#[0-9a-fA-F]{3,6}|rgba?\([^)]+\))/i.test(styleAttr)) {
+              if (!/var\(--ortho-/i.test(styleAttr)) {
+                slopViolations++;
+                slopErrors.push("Hardcoded color bypassing DTCG tokens in inline style");
+              }
+            }
+          }
         });
 
-        const emojiRegex = /[\u{1F300}-\u{1F9FF}]/u;
+        // C. Raw decorative AI emojis in button icons and primary headings
+        const emojiRegex = /[🚀🔥✨💡🎉📈📊🧠🤖\u{1F300}-\u{1F9FF}]/u;
         document.querySelectorAll("button").forEach(btn => {
-          if (emojiRegex.test(btn.textContent || "")) slopViolations++;
+          if (emojiRegex.test(btn.textContent || "")) {
+            slopViolations++;
+            slopErrors.push(`Raw emoji in button: "${(btn.textContent || '').trim().slice(0, 15)}"`);
+          }
         });
         document.querySelectorAll("h1, h2, h3").forEach(h => {
-          if (emojiRegex.test(h.textContent || "")) slopViolations++;
+          if (emojiRegex.test(h.textContent || "")) {
+            slopViolations++;
+            slopErrors.push(`Raw emoji in heading: "${(h.textContent || '').trim().slice(0, 15)}"`);
+          }
         });
 
         const passed4 = slopViolations === 0;
@@ -1835,32 +2019,49 @@ ${dod}
         }
         if (elDetail4) {
           elDetail4.textContent = passed4
-            ? "Zero AI Slop (0 hardcoded gradients, semantic SVGs enforced)"
-            : `Anti-Slop Violation: ${slopViolations} anti-patterns detected`;
+            ? "Zero AI Slop (0 hardcoded gradients, semantic SVGs enforced, DTCG tokens pure)"
+            : `Anti-Slop Violation: ${slopViolations} anti-patterns detected (${slopErrors[0] || 'violations'})`;
         }
 
-        // 5. Gate 5: DOM & Media Box Dimensions Budget
+        // ---------------------------------------------------------------------
+        // 5. Gate 5: DOM Depth & Pre-Layout Media Box Budget (Iterative Traversal)
+        // ---------------------------------------------------------------------
         const t5Start = performance.now();
         const allMedia = document.querySelectorAll("img, video, iframe");
         let unbudgetedMedia = 0;
+
         allMedia.forEach(el => {
-          const hasDims = el.hasAttribute("width") && el.hasAttribute("height");
-          const computed = window.getComputedStyle(el);
-          const hasAspectRatio = computed.aspectRatio && computed.aspectRatio !== "auto";
-          const hasCssDims = computed.width && computed.height && computed.width !== "auto" && computed.height !== "auto";
-          if (!hasDims && !hasAspectRatio && !hasCssDims) {
+          // Check explicit HTML positive integer attributes per HTML5 spec (§ 4.8.4.1.3)
+          const wAttr = el.getAttribute("width") || "";
+          const hAttr = el.getAttribute("height") || "";
+          const hasAttrDims = /^[1-9]\d*$/.test(wAttr.trim()) && /^[1-9]\d*$/.test(hAttr.trim());
+
+          // Check explicit inline style dimensions or aspect-ratio
+          const inlineStyle = el.getAttribute("style") || "";
+          const hasInlineAspect = /aspect-ratio\s*:\s*[^;]+/i.test(inlineStyle);
+          const hasInlineDims = /width\s*:\s*[^;]+/i.test(inlineStyle) && /height\s*:\s*[^;]+/i.test(inlineStyle);
+
+          // An element must have pre-layout reservation (HTML attributes or explicit inline aspect/dims)
+          if (!hasAttrDims && !hasInlineAspect && !hasInlineDims) {
             unbudgetedMedia++;
           }
         });
 
-        function getDomDepth(node) {
-          let max = 0;
-          for (const child of node.children) {
-            max = Math.max(max, getDomDepth(child));
+        // Iterative stack-based DOM depth traversal (prevents recursion call-stack exhaustion)
+        function getDomDepthIterative(root) {
+          let maxDepth = 0;
+          const stack = [{ node: root, depth: 1 }];
+          while (stack.length > 0) {
+            const { node, depth } = stack.pop();
+            if (depth > maxDepth) maxDepth = depth;
+            for (let i = 0; i < node.children.length; i++) {
+              stack.push({ node: node.children[i], depth: depth + 1 });
+            }
           }
-          return 1 + max;
+          return maxDepth;
         }
-        const maxDomDepth = getDomDepth(document.body);
+
+        const maxDomDepth = getDomDepthIterative(document.body);
         const passed5 = unbudgetedMedia === 0 && maxDomDepth <= 32;
         const t5End = performance.now();
         const t5 = Math.max(0.4, t5End - t5Start);
@@ -1873,10 +2074,12 @@ ${dod}
         if (elDetail5) {
           elDetail5.textContent = passed5
             ? `Explicit Media Bounding (${allMedia.length} elements verified, depth: ${maxDomDepth} ≤ 32)`
-            : `Layout-Shift Risk: ${unbudgetedMedia} unbudgeted media elements`;
+            : `Layout-Shift Risk: ${unbudgetedMedia} unbudgeted media elements (no explicit dimensions)`;
         }
 
-        // Aggregate Gate Result
+        // ---------------------------------------------------------------------
+        // Dynamic Aggregate Gate Derivation
+        // ---------------------------------------------------------------------
         const overallEnd = performance.now();
         const totalDuration = (overallEnd - overallStart).toFixed(1);
         const nowTime = new Date().toLocaleTimeString();

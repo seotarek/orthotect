@@ -606,5 +606,137 @@ class TestDocsBrowserPlatform(unittest.TestCase):
         self.assertEqual(res.returncode, 0, f"Hero benchmark test failed: {res.stderr}\n{res.stdout}")
         self.assertIn("SUCCESS_HERO_BENCHMARK", res.stdout)
 
+    def test_hero_benchmark_rejects_physical_bidi_violation(self):
+        """Negative test: Injecting physical margin-left into live DOM must trigger Gate 2 rejection."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          await page.goto('file://{self.docs_html}');
+          await page.waitForTimeout(100);
+
+          // Inject physical directional property
+          await page.evaluate(() => {{
+            const div = document.createElement('div');
+            div.setAttribute('style', 'margin-left: 28px;');
+            document.body.appendChild(div);
+          }});
+
+          // Run benchmark
+          await page.click('#btnRunHeroBenchmark');
+          await page.waitForTimeout(300);
+
+          const s2 = await page.$eval('#heroStatusGate2', el => el.textContent);
+          const badge = await page.$eval('#heroTerminalBadge', el => el.textContent);
+          const cert = await page.$eval('#heroTerminalCert', el => el.textContent);
+
+          await browser.close();
+
+          if (!s2.includes('FAIL')) throw new Error(`Expected Gate 2 to FAIL, got: ${{s2}}`);
+          if (badge !== 'GATE VIOLATIONS DETECTED') throw new Error(`Expected GATE VIOLATIONS DETECTED badge, got: ${{badge}}`);
+          if (cert !== 'REJECTED') throw new Error(`Expected REJECTED cert, got: ${{cert}}`);
+
+          console.log('SUCCESS_REJECT_PHYSICAL_BIDI');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Hero benchmark negative bidi test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_REJECT_PHYSICAL_BIDI", res.stdout)
+
+    def test_hero_benchmark_rejects_unbudgeted_media_violation(self):
+        """Negative test: Injecting unbudgeted media element must trigger Gate 5 rejection."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          await page.goto('file://{self.docs_html}');
+          await page.waitForTimeout(100);
+
+          // Inject unbudgeted image lacking width/height and aspect-ratio
+          await page.evaluate(() => {{
+            const img = document.createElement('img');
+            img.setAttribute('src', 'unbudgeted_sample.png');
+            document.body.appendChild(img);
+          }});
+
+          // Run benchmark
+          await page.click('#btnRunHeroBenchmark');
+          await page.waitForTimeout(300);
+
+          const s5 = await page.$eval('#heroStatusGate5', el => el.textContent);
+          const badge = await page.$eval('#heroTerminalBadge', el => el.textContent);
+          const cert = await page.$eval('#heroTerminalCert', el => el.textContent);
+
+          await browser.close();
+
+          if (!s5.includes('FAIL')) throw new Error(`Expected Gate 5 to FAIL, got: ${{s5}}`);
+          if (badge !== 'GATE VIOLATIONS DETECTED') throw new Error(`Expected GATE VIOLATIONS DETECTED badge, got: ${{badge}}`);
+          if (cert !== 'REJECTED') throw new Error(`Expected REJECTED cert, got: ${{cert}}`);
+
+          console.log('SUCCESS_REJECT_UNBUDGETED_MEDIA');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Hero benchmark negative media test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_REJECT_UNBUDGETED_MEDIA", res.stdout)
+
+    def test_hero_benchmark_rejects_anti_slop_emoji_button_violation(self):
+        """Negative test: Injecting button with raw emoji must trigger Gate 4 rejection."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          await page.goto('file://{self.docs_html}');
+          await page.waitForTimeout(100);
+
+          // Inject raw emoji button
+          await page.evaluate(() => {{
+            const btn = document.createElement('button');
+            btn.textContent = '🚀 Instant AI Magic';
+            document.body.appendChild(btn);
+          }});
+
+          // Run benchmark
+          await page.click('#btnRunHeroBenchmark');
+          await page.waitForTimeout(300);
+
+          const s4 = await page.$eval('#heroStatusGate4', el => el.textContent);
+          const badge = await page.$eval('#heroTerminalBadge', el => el.textContent);
+          const cert = await page.$eval('#heroTerminalCert', el => el.textContent);
+
+          await browser.close();
+
+          if (!s4.includes('FAIL')) throw new Error(`Expected Gate 4 to FAIL, got: ${{s4}}`);
+          if (badge !== 'GATE VIOLATIONS DETECTED') throw new Error(`Expected GATE VIOLATIONS DETECTED badge, got: ${{badge}}`);
+          if (cert !== 'REJECTED') throw new Error(`Expected REJECTED cert, got: ${{cert}}`);
+
+          console.log('SUCCESS_REJECT_ANTI_SLOP');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Hero benchmark negative slop test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_REJECT_ANTI_SLOP", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
