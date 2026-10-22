@@ -966,5 +966,57 @@ class TestDocsBrowserPlatform(unittest.TestCase):
         self.assertEqual(res.returncode, 0, f"Hero benchmark negative calc syntax test failed: {res.stderr}\n{res.stdout}")
         self.assertIn("SUCCESS_REJECT_CALC_INVALID_SYNTAX", res.stdout)
 
+    def test_hero_benchmark_rejects_calc_missing_whitespace_and_malformed_number(self):
+        """Negative test: Injecting media with calc(10px-5px) or calc(1.2.3px) must trigger Gate 5 rejection."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          await page.goto('file://{self.docs_html}');
+          await page.waitForTimeout(100);
+
+          // Inject media with missing operator whitespace and malformed number
+          await page.evaluate(() => {{
+            const img1 = document.createElement('img');
+            img1.setAttribute('src', 'no_space.png');
+            img1.style.width = 'calc(10px-5px)';
+            img1.style.height = 'calc(10px-5px)';
+            document.body.appendChild(img1);
+
+            const img2 = document.createElement('img');
+            img2.setAttribute('src', 'malformed_dot.png');
+            img2.style.width = 'calc(1.2.3px)';
+            img2.style.height = 'calc(1.2.3px)';
+            document.body.appendChild(img2);
+          }});
+
+          // Run benchmark
+          await page.click('#btnRunHeroBenchmark');
+          await page.waitForTimeout(300);
+
+          const s5 = await page.$eval('#heroStatusGate5', el => el.textContent);
+          const badge = await page.$eval('#heroTerminalBadge', el => el.textContent);
+          const cert = await page.$eval('#heroTerminalCert', el => el.textContent);
+
+          await browser.close();
+
+          if (!s5.includes('FAIL')) throw new Error(`Expected Gate 5 to FAIL, got: ${{s5}}`);
+          if (badge !== 'GATE VIOLATIONS DETECTED') throw new Error(`Expected GATE VIOLATIONS DETECTED badge, got: ${{badge}}`);
+          if (cert !== 'REJECTED') throw new Error(`Expected REJECTED cert, got: ${{cert}}`);
+
+          console.log('SUCCESS_REJECT_CALC_WHITESPACE_AND_MALFORMED');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Hero benchmark negative calc whitespace test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_REJECT_CALC_WHITESPACE_AND_MALFORMED", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()

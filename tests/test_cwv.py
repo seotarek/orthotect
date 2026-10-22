@@ -369,6 +369,33 @@ class TestCWVBudgetGate(unittest.TestCase):
         self.assertEqual(res.returncode, 0)
         self.assertIn("PASS", res.stdout)
 
+    def test_calc_missing_whitespace_around_subtraction_fails(self):
+        """Negative test: W3C CSS Values Level 4 (§ 8.1.1) requires whitespace around '-' operator (calc(10px-5px))."""
+        html_file = os.path.join(self.temp_dir, 'calc_no_space_sub.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Calc No Space</title></head><body><img src="logo.png" style="width: calc(10px-5px); height: calc(10px-5px);" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("invalid non-reserving CSS dimensions in style", res.stdout)
+
+    def test_calc_missing_whitespace_around_addition_fails(self):
+        """Negative test: W3C CSS Values Level 4 (§ 8.1.1) requires whitespace around '+' operator (calc(10px+5px))."""
+        html_file = os.path.join(self.temp_dir, 'calc_no_space_add.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Calc No Space</title></head><body><img src="logo.png" style="width: calc(10px+5px); height: calc(10px+5px);" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("invalid non-reserving CSS dimensions in style", res.stdout)
+
+    def test_calc_malformed_number_multiple_dots_fails(self):
+        """Negative test: CSS number token rejects multiple decimal points (calc(1.2.3px))."""
+        html_file = os.path.join(self.temp_dir, 'calc_multi_dot.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Calc Multi Dot</title></head><body><img src="logo.png" style="width: calc(1.2.3px); height: calc(1.2.3px);" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("invalid non-reserving CSS dimensions in style", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
 

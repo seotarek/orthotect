@@ -59,7 +59,10 @@
     "CONTRIBUTING.md",
     "docs",
     "COMPETITORS.md",
-    "MANIFESTO.md"
+    "MANIFESTO.md",
+    "!**/__pycache__/**",
+    "!**/*.pyc",
+    "!**/*.pyo"
   ],
   "license": "MIT",
   "engines": {

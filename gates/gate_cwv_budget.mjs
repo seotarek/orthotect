@@ -161,7 +161,8 @@ export function parseAndValidateCssCalc(innerStr) {
     }
     if (ch === '+' || ch === '-') {
       const prev = tokens.length > 0 ? tokens[tokens.length - 1].type : null;
-      if (!prev || prev === '(' || prev === '+' || prev === '-' || prev === '*' || prev === '/') {
+      const isUnary = !prev || prev === '(' || prev === '+' || prev === '-' || prev === '*' || prev === '/';
+      if (isUnary) {
         // Unary sign directly preceding a number
         let j = i + 1;
         while (j < len && /\s/.test(str[j])) j++;
@@ -170,7 +171,11 @@ export function parseAndValidateCssCalc(innerStr) {
           i = j;
           const numStart = i;
           while (i < len && /[0-9.]/.test(str[i])) i++;
-          const numVal = parseFloat(str.slice(numStart, i));
+          const rawNum = str.slice(numStart, i);
+          if (!/^(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)$/.test(rawNum)) {
+            return false;
+          }
+          const numVal = parseFloat(rawNum);
           if (isNaN(numVal)) return false;
           const unitStart = i;
           while (i < len && /[a-zA-Z%]/.test(str[i])) i++;
@@ -184,15 +189,27 @@ export function parseAndValidateCssCalc(innerStr) {
           });
           continue;
         }
+        return false;
+      } else {
+        // Binary infix operator "+" or "-": W3C CSS Values and Units Level 4 (§ 8.1.1) requires whitespace on BOTH sides!
+        const hasPrecedingSpace = i > 0 && /\s/.test(str[i - 1]);
+        const hasFollowingSpace = (i + 1 < len) && /\s/.test(str[i + 1]);
+        if (!hasPrecedingSpace || !hasFollowingSpace) {
+          return false;
+        }
+        tokens.push({ type: ch, raw: ch });
+        i++;
+        continue;
       }
-      tokens.push({ type: ch, raw: ch });
-      i++;
-      continue;
     }
     if (/[0-9.]/.test(ch)) {
       const numStart = i;
       while (i < len && /[0-9.]/.test(str[i])) i++;
-      const numVal = parseFloat(str.slice(numStart, i));
+      const rawNum = str.slice(numStart, i);
+      if (!/^(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)$/.test(rawNum)) {
+        return false;
+      }
+      const numVal = parseFloat(rawNum);
       if (isNaN(numVal)) return false;
       const unitStart = i;
       while (i < len && /[a-zA-Z%]/.test(str[i])) i++;
