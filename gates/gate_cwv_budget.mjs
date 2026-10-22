@@ -127,20 +127,116 @@ export function isValidAspectRatioValue(rawVal) {
 }
 
 /**
+ * Deterministic safe mathematical arithmetic expression evaluator (+, -, *, /, parentheses).
+ * Pure parser without eval or Function.
+ */
+export function evaluateMathExpression(expr) {
+  let pos = 0;
+  function peek() {
+    while (pos < expr.length && expr[pos] === ' ') pos++;
+    return expr[pos] || null;
+  }
+  function parseExpression() {
+    let val = parseTerm();
+    while (true) {
+      const op = peek();
+      if (op === '+' || op === '-') {
+        pos++;
+        const nextVal = parseTerm();
+        val = op === '+' ? val + nextVal : val - nextVal;
+      } else break;
+    }
+    return val;
+  }
+  function parseTerm() {
+    let val = parseFactor();
+    while (true) {
+      const op = peek();
+      if (op === '*' || op === '/') {
+        pos++;
+        const nextVal = parseFactor();
+        if (op === '*') {
+          val = val * nextVal;
+        } else {
+          if (nextVal === 0) return NaN;
+          val = val / nextVal;
+        }
+      } else break;
+    }
+    return val;
+  }
+  function parseFactor() {
+    peek();
+    let sign = 1;
+    if (expr[pos] === '+' || expr[pos] === '-') {
+      if (expr[pos] === '-') sign = -1;
+      pos++;
+      peek();
+    }
+    if (expr[pos] === '(') {
+      pos++;
+      const val = parseExpression();
+      peek();
+      if (expr[pos] === ')') pos++;
+      return sign * val;
+    }
+    const start = pos;
+    while (pos < expr.length && /[0-9.]/.test(expr[pos])) pos++;
+    if (start === pos) return NaN;
+    const num = parseFloat(expr.slice(start, pos));
+    return sign * num;
+  }
+  const result = parseExpression();
+  peek();
+  if (pos < expr.length) return NaN;
+  return result;
+}
+
+/**
+ * Evaluates CSS calc() expression content against a specified unit mapping.
+ */
+export function evaluateCssCalc(calcContent, unitMap) {
+  const clean = calcContent.replace(/\s*!important\s*$/i, '').trim();
+  const converted = clean.replace(/([0-9]*\.?[0-9]+)\s*(px|rem|em|vw|vh|%|cqi|cqw|pt|cm|mm|in)?/gi, (match, num, unit) => {
+    const factor = unit ? (unitMap[unit.toLowerCase()] !== undefined ? unitMap[unit.toLowerCase()] : 1) : 1;
+    return `(${num} * ${factor})`;
+  });
+  return evaluateMathExpression(converted);
+}
+
+/**
  * Validates CSS dimension property value (width/height).
- * Rejects 'auto', 'none', 'initial', 'inherit', 'unset', '0', '0px', and zero/negative calc().
- * Accepts positive dimensions with length/percentage units or valid non-zero calc().
+ * Rejects 'auto', 'none', 'initial', 'inherit', 'unset', '0', '0px', and any calc() resolving to <= 0.
+ * Accepts positive dimensions with length/percentage units or mathematically positive calc().
  */
 export function isValidCssDimensionValue(val) {
   if (!val || typeof val !== 'string') return false;
   const clean = val.trim().toLowerCase().replace(/\s*!important\s*$/i, '').trim();
   if (['auto', 'none', 'initial', 'inherit', 'unset', '0', '0px', ''].includes(clean)) return false;
-  // Reject zero/negative calc expressions
-  if (/^calc\s*\(\s*0(?:px|rem|em|vw|vh|%)?\s*\)$/i.test(clean)) return false;
-  const dimMatch = clean.match(/^(?:([1-9]\d*(?:\.\d+)?)(px|rem|em|vw|vh|%|cqi|cqw)|calc\((.+)\))$/i);
-  if (!dimMatch) return false;
-  if (dimMatch[3] && !/[1-9]/.test(dimMatch[3])) return false;
-  return true;
+
+  // Single length/percentage dimension check: e.g. "200px", "50%", "10rem"
+  const directMatch = clean.match(/^([1-9]\d*(?:\.\d+)?)(px|rem|em|vw|vh|%|cqi|cqw)$/i);
+  if (directMatch) return true;
+
+  // Calc expression evaluation
+  const calcMatch = clean.match(/^calc\((.+)\)$/i);
+  if (!calcMatch) return false;
+
+  const inner = calcMatch[1].trim();
+  if (!inner) return false;
+
+  // Evaluate across mobile, desktop, and unit-neutral reference models
+  const mobileMap = { px: 1, rem: 16, em: 16, vw: 3.6, vh: 6.4, '%': 3.6, cqi: 3.6, cqw: 3.6, pt: 1.333, cm: 37.795, mm: 3.7795, in: 96 };
+  const desktopMap = { px: 1, rem: 16, em: 16, vw: 14.4, vh: 9.0, '%': 14.4, cqi: 14.4, cqw: 14.4, pt: 1.333, cm: 37.795, mm: 3.7795, in: 96 };
+  const neutralMap = { px: 1, rem: 1, em: 1, vw: 1, vh: 1, '%': 1, cqi: 1, cqw: 1, pt: 1, cm: 1, mm: 1, in: 1 };
+
+  const mVal = evaluateCssCalc(inner, mobileMap);
+  const dVal = evaluateCssCalc(inner, desktopMap);
+  const nVal = evaluateCssCalc(inner, neutralMap);
+
+  if (isNaN(mVal) || isNaN(dVal) || isNaN(nVal)) return false;
+  // All evaluated reference points must be strictly positive (> 0)
+  return mVal > 0 && dVal > 0 && nVal > 0;
 }
 
 /**
@@ -275,28 +371,32 @@ function findElements(rootNode, tagName) {
   return results;
 }
 
-function extractCssRulesFromHtmlAndLinkedSheets(htmlContent, htmlFilePath) {
+export function extractCssRulesFromHtmlAndLinkedSheets(htmlContent, htmlFilePath) {
   const cssTexts = [];
   const styleRegex = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
   let match;
   while ((match = styleRegex.exec(htmlContent)) !== null) {
     cssTexts.push(match[1]);
   }
-  const linkRegex = /<link\b[^>]*rel=["']stylesheet["'][^>]*href=["']([^"']+)["'][^>]*>/gi;
+  // Robust link tag extraction using parseHtmlAttributes (order-agnostic)
+  const linkTagRegex = /<link\b([^>]*)\/?>/gi;
   const dir = path.dirname(htmlFilePath);
-  while ((match = linkRegex.exec(htmlContent)) !== null) {
-    const href = match[1].split('?')[0].split('#')[0];
-    const fullPath = path.resolve(dir, href);
-    if (fs.existsSync(fullPath)) {
-      try {
-        cssTexts.push(fs.readFileSync(fullPath, 'utf-8'));
-      } catch (_) {}
+  while ((match = linkTagRegex.exec(htmlContent)) !== null) {
+    const attrs = parseHtmlAttributes(match[1]);
+    if (attrs['rel'] && attrs['rel'].toLowerCase() === 'stylesheet' && attrs['href']) {
+      const href = attrs['href'].split('?')[0].split('#')[0];
+      const fullPath = path.resolve(dir, href);
+      if (fs.existsSync(fullPath)) {
+        try {
+          cssTexts.push(fs.readFileSync(fullPath, 'utf-8'));
+        } catch (_) {}
+      }
     }
   }
   return cssTexts.join('\n');
 }
 
-function parseCssSelectorRules(cssText) {
+export function parseCssSelectorRules(cssText) {
   const selectorMap = {};
   if (!cssText) return selectorMap;
   const stripped = cssText.replace(/\/\*[\s\S]*?\*\//g, '');
@@ -311,6 +411,90 @@ function parseCssSelectorRules(cssText) {
     }
   }
   return selectorMap;
+}
+
+export function elementMatchesCompound(node, compound) {
+  if (!node || !node.nodeName || node.nodeName.startsWith('#')) return false;
+  const attrs = {};
+  for (const a of (node.attrs || [])) {
+    attrs[a.name.toLowerCase()] = a.value;
+  }
+  const classes = new Set((attrs['class'] || '').toLowerCase().split(/\s+/).filter(Boolean));
+  const id = (attrs['id'] || '').toLowerCase();
+  const tag = node.nodeName.toLowerCase();
+
+  const parts = compound.match(/^([a-zA-Z0-9_-]+|\*)?((?:\.[a-zA-Z0-9_-]+|#[a-zA-Z0-9_-]+)*)$/);
+  if (!parts) return false;
+  const [_, tagPart, rest] = parts;
+  if (tagPart && tagPart !== '*' && tagPart.toLowerCase() !== tag) return false;
+
+  if (rest) {
+    const tokens = rest.match(/([.#][a-zA-Z0-9_-]+)/g) || [];
+    for (const tok of tokens) {
+      if (tok.startsWith('.')) {
+        if (!classes.has(tok.slice(1).toLowerCase())) return false;
+      } else if (tok.startsWith('#')) {
+        if (id !== tok.slice(1).toLowerCase()) return false;
+      }
+    }
+  }
+  return true;
+}
+
+export function matchesSelectorChain(node, ancestors, selectorStr) {
+  const normalized = selectorStr.replace(/\s*>\s*/g, ' > ').trim().toLowerCase();
+  const tokens = normalized.split(/\s+/);
+  let currIdx = tokens.length - 1;
+  const targetCompound = tokens[currIdx];
+  if (!elementMatchesCompound(node, targetCompound)) return false;
+  if (tokens.length === 1) return true;
+
+  currIdx--;
+  let ancestorIdx = ancestors.length - 1;
+  while (currIdx >= 0) {
+    if (tokens[currIdx] === '>') {
+      currIdx--;
+      if (currIdx < 0 || ancestorIdx < 0) return false;
+      const parentCompound = tokens[currIdx];
+      if (!elementMatchesCompound(ancestors[ancestorIdx], parentCompound)) return false;
+      ancestorIdx--;
+      currIdx--;
+    } else {
+      const ancestorCompound = tokens[currIdx];
+      let matched = false;
+      while (ancestorIdx >= 0) {
+        if (elementMatchesCompound(ancestors[ancestorIdx], ancestorCompound)) {
+          matched = true;
+          ancestorIdx--;
+          break;
+        }
+        ancestorIdx--;
+      }
+      if (!matched) return false;
+      currIdx--;
+    }
+  }
+  return true;
+}
+
+export function findElementsWithAncestors(rootNode, tagNames) {
+  const targetTags = new Set(tagNames.map(t => t.toLowerCase()));
+  const results = [];
+  const stack = [{ node: rootNode, ancestors: [] }];
+  while (stack.length > 0) {
+    const { node, ancestors } = stack.pop();
+    if (node.nodeName && targetTags.has(node.nodeName.toLowerCase())) {
+      results.push({ node, ancestors });
+    }
+    if (node.childNodes && node.childNodes.length > 0) {
+      const isElem = node.nodeName && !node.nodeName.startsWith('#');
+      const nextAncestors = isElem ? [...ancestors, node] : ancestors;
+      for (let i = node.childNodes.length - 1; i >= 0; i--) {
+        stack.push({ node: node.childNodes[i], ancestors: nextAncestors });
+      }
+    }
+  }
+  return results;
 }
 
 function checkHtmlFile(filePath) {
@@ -328,66 +512,58 @@ function checkHtmlFile(filePath) {
 
   // 1. Strict media dimension check on parsed AST:
   // Inspects <img>, <video>, and <iframe> elements to prevent CLS layout shift.
-  const mediaTags = ['img', 'video', 'iframe'];
-  for (const tag of mediaTags) {
-    const nodes = findElements(doc, tag);
-    for (const el of nodes) {
-      const attrs = {};
-      for (const a of (el.attrs || [])) {
-        attrs[a.name.toLowerCase()] = a.value;
+  const mediaElements = findElementsWithAncestors(doc, ['img', 'video', 'iframe']);
+  for (const { node: el, ancestors } of mediaElements) {
+    const tag = el.nodeName.toLowerCase();
+    const attrs = {};
+    for (const a of (el.attrs || [])) {
+      attrs[a.name.toLowerCase()] = a.value;
+    }
+
+    const hasValidWidth = isPositiveDimension(attrs['width']);
+    const hasValidHeight = isPositiveDimension(attrs['height']);
+    const hasBothDimensions = hasValidWidth && hasValidHeight;
+
+    const styleDecls = parseStyleDeclarations(attrs['style'] || '');
+    let hasValidAspect = false;
+    let hasValidCssDims = false;
+
+    // Check inline style aspect-ratio
+    if (Object.prototype.hasOwnProperty.call(styleDecls, 'aspect-ratio')) {
+      const aspectVal = styleDecls['aspect-ratio'];
+      hasValidAspect = isValidAspectRatioValue(aspectVal);
+      if (!hasValidAspect) {
+        errors.push(`${filePath}: <${tag}> has invalid CSS aspect-ratio value in style attribute ("${aspectVal}"). Must be a positive ratio (e.g. "16/9" or "1").`);
       }
+    }
 
-      const hasValidWidth = isPositiveDimension(attrs['width']);
-      const hasValidHeight = isPositiveDimension(attrs['height']);
-      const hasBothDimensions = hasValidWidth && hasValidHeight;
-
-      const styleDecls = parseStyleDeclarations(attrs['style'] || '');
-      let hasValidAspect = false;
-      let hasValidCssDims = false;
-
-      // Check inline style aspect-ratio
-      if (Object.prototype.hasOwnProperty.call(styleDecls, 'aspect-ratio')) {
-        const aspectVal = styleDecls['aspect-ratio'];
-        hasValidAspect = isValidAspectRatioValue(aspectVal);
-        if (!hasValidAspect) {
-          errors.push(`${filePath}: <${tag}> has invalid CSS aspect-ratio value in style attribute ("${aspectVal}"). Must be a positive ratio (e.g. "16/9" or "1").`);
-        }
+    // Check inline style width and height
+    if (Object.prototype.hasOwnProperty.call(styleDecls, 'width') && Object.prototype.hasOwnProperty.call(styleDecls, 'height')) {
+      const wVal = styleDecls['width'];
+      const hVal = styleDecls['height'];
+      if (isValidCssDimensionValue(wVal) && isValidCssDimensionValue(hVal)) {
+        hasValidCssDims = true;
+      } else if (!hasBothDimensions && !hasValidAspect) {
+        errors.push(`${filePath}: <${tag}> has invalid non-reserving CSS dimensions in style ("width: ${wVal}; height: ${hVal}"). Must be positive dimensions with valid units.`);
       }
+    }
 
-      // Check inline style width and height
-      if (Object.prototype.hasOwnProperty.call(styleDecls, 'width') && Object.prototype.hasOwnProperty.call(styleDecls, 'height')) {
-        const wVal = styleDecls['width'];
-        const hVal = styleDecls['height'];
-        if (isValidCssDimensionValue(wVal) && isValidCssDimensionValue(hVal)) {
-          hasValidCssDims = true;
-        } else if (!hasBothDimensions && !hasValidAspect) {
-          errors.push(`${filePath}: <${tag}> has invalid non-reserving CSS dimensions in style ("width: ${wVal}; height: ${hVal}"). Must be positive dimensions with valid units.`);
-        }
-      }
-
-      // Check external/embedded CSS stylesheet rules matching tag, class, or id
-      if (!hasBothDimensions && !hasValidAspect && !hasValidCssDims) {
-        const tagSel = tag.toLowerCase();
-        const classes = (attrs['class'] || '').split(/\s+/).filter(Boolean).map(c => `.${c.toLowerCase()}`);
-        const idSel = attrs['id'] ? `#${attrs['id'].toLowerCase()}` : null;
-        const candidates = [tagSel, ...classes];
-        if (idSel) candidates.push(idSel);
-
-        for (const sel of candidates) {
-          const ruleDecls = cssRules[sel];
-          if (ruleDecls) {
-            if (ruleDecls['aspect-ratio'] && isValidAspectRatioValue(ruleDecls['aspect-ratio'])) {
-              hasValidAspect = true;
-              break;
-            }
-            if (ruleDecls['width'] && ruleDecls['height'] &&
-                isValidCssDimensionValue(ruleDecls['width']) && isValidCssDimensionValue(ruleDecls['height'])) {
-              hasValidCssDims = true;
-              break;
-            }
+    // Check external/embedded CSS stylesheet rules matching tag, compound, child, or descendant selectors
+    if (!hasBothDimensions && !hasValidAspect && !hasValidCssDims) {
+      for (const [selector, ruleDecls] of Object.entries(cssRules)) {
+        if (matchesSelectorChain(el, ancestors, selector)) {
+          if (ruleDecls['aspect-ratio'] && isValidAspectRatioValue(ruleDecls['aspect-ratio'])) {
+            hasValidAspect = true;
+            break;
+          }
+          if (ruleDecls['width'] && ruleDecls['height'] &&
+              isValidCssDimensionValue(ruleDecls['width']) && isValidCssDimensionValue(ruleDecls['height'])) {
+            hasValidCssDims = true;
+            break;
           }
         }
       }
+    }
 
       if (!hasBothDimensions && !hasValidAspect && !hasValidCssDims) {
         if (attrs['data-width'] || attrs['data-height']) {
@@ -401,7 +577,6 @@ function checkHtmlFile(filePath) {
         }
       }
     }
-  }
 
   // 2. Blocking synchronous <script> tags in <head>
   const headNodes = findElements(doc, 'head');

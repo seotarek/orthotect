@@ -2040,15 +2040,97 @@ ${dod}
           return /^[1-9]\d*$/.test(clean);
         };
 
+        const evaluateMathExpression = (expr) => {
+          let pos = 0;
+          function peek() { while (pos < expr.length && expr[pos] === " ") pos++; return expr[pos] || null; }
+          function parseExpression() {
+            let val = parseTerm();
+            while (true) {
+              const op = peek();
+              if (op === "+" || op === "-") {
+                pos++;
+                const nextVal = parseTerm();
+                val = op === "+" ? val + nextVal : val - nextVal;
+              } else break;
+            }
+            return val;
+          }
+          function parseTerm() {
+            let val = parseFactor();
+            while (true) {
+              const op = peek();
+              if (op === "*" || op === "/") {
+                pos++;
+                const nextVal = parseFactor();
+                if (op === "*") val = val * nextVal;
+                else {
+                  if (nextVal === 0) return NaN;
+                  val = val / nextVal;
+                }
+              } else break;
+            }
+            return val;
+          }
+          function parseFactor() {
+            peek();
+            let sign = 1;
+            if (expr[pos] === "+" || expr[pos] === "-") {
+              if (expr[pos] === "-") sign = -1;
+              pos++;
+              peek();
+            }
+            if (expr[pos] === "(") {
+              pos++;
+              const val = parseExpression();
+              peek();
+              if (expr[pos] === ")") pos++;
+              return sign * val;
+            }
+            const start = pos;
+            while (pos < expr.length && /[0-9.]/.test(expr[pos])) pos++;
+            if (start === pos) return NaN;
+            const num = parseFloat(expr.slice(start, pos));
+            return sign * num;
+          }
+          const result = parseExpression();
+          peek();
+          if (pos < expr.length) return NaN;
+          return result;
+        };
+
+        const evaluateCssCalc = (calcContent, unitMap) => {
+          const clean = calcContent.replace(/\s*!important\s*$/i, "").trim();
+          const converted = clean.replace(/([0-9]*\.?[0-9]+)\s*(px|rem|em|vw|vh|%|cqi|cqw|pt|cm|mm|in)?/gi, (match, num, unit) => {
+            const factor = unit ? (unitMap[unit.toLowerCase()] !== undefined ? unitMap[unit.toLowerCase()] : 1) : 1;
+            return `(${num} * ${factor})`;
+          });
+          return evaluateMathExpression(converted);
+        };
+
         const isValidCssDim = (val) => {
           if (!val || typeof val !== "string") return false;
           const clean = val.trim().toLowerCase().replace(/\s*!important\s*$/i, "").trim();
           if (["auto", "none", "initial", "inherit", "unset", "0", "0px", ""].includes(clean)) return false;
-          if (/^calc\s*\(\s*0(?:px|rem|em|vw|vh|%)?\s*\)$/i.test(clean)) return false;
-          const m = clean.match(/^(?:([1-9]\d*(?:\.\d+)?)(px|rem|em|vw|vh|%|cqi|cqw)|calc\((.+)\))$/i);
-          if (!m) return false;
-          if (m[3] && !/[1-9]/.test(m[3])) return false;
-          return true;
+
+          const directMatch = clean.match(/^([1-9]\d*(?:\.\d+)?)(px|rem|em|vw|vh|%|cqi|cqw)$/i);
+          if (directMatch) return true;
+
+          const calcMatch = clean.match(/^calc\((.+)\)$/i);
+          if (!calcMatch) return false;
+
+          const inner = calcMatch[1].trim();
+          if (!inner) return false;
+
+          const mobileMap = { px: 1, rem: 16, em: 16, vw: 3.6, vh: 6.4, "%": 3.6, cqi: 3.6, cqw: 3.6, pt: 1.333, cm: 37.795, mm: 3.7795, in: 96 };
+          const desktopMap = { px: 1, rem: 16, em: 16, vw: 14.4, vh: 9.0, "%": 14.4, cqi: 14.4, cqw: 14.4, pt: 1.333, cm: 37.795, mm: 3.7795, in: 96 };
+          const neutralMap = { px: 1, rem: 1, em: 1, vw: 1, vh: 1, "%": 1, cqi: 1, cqw: 1, pt: 1, cm: 1, mm: 1, in: 1 };
+
+          const mVal = evaluateCssCalc(inner, mobileMap);
+          const dVal = evaluateCssCalc(inner, desktopMap);
+          const nVal = evaluateCssCalc(inner, neutralMap);
+
+          if (isNaN(mVal) || isNaN(dVal) || isNaN(nVal)) return false;
+          return mVal > 0 && dVal > 0 && nVal > 0;
         };
 
         const isValidAspectRatio = (val) => {

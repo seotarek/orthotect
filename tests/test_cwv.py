@@ -291,6 +291,48 @@ class TestCWVBudgetGate(unittest.TestCase):
         self.assertNotEqual(res.returncode, 0)
         self.assertIn("invalid non-reserving CSS dimensions in style", res.stdout)
 
+    def test_calc_net_zero_dimension_fails(self):
+        """Negative test: media element with net-zero calc(100% - 100%) dimensions must fail Gate 5."""
+        html_file = os.path.join(self.temp_dir, 'calc_net_zero.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Calc Net Zero</title></head><body><img src="logo.png" style="width: calc(100% - 100%); height: calc(100% - 100%);" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("invalid non-reserving CSS dimensions in style", res.stdout)
+
+    def test_calc_negative_dimension_fails(self):
+        """Negative test: media element with negative calc(10px - 20px) dimensions must fail Gate 5."""
+        html_file = os.path.join(self.temp_dir, 'calc_negative.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Calc Negative</title></head><body><img src="logo.png" style="width: calc(10px - 20px); height: calc(10px - 20px);" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("invalid non-reserving CSS dimensions in style", res.stdout)
+
+    def test_link_stylesheet_href_before_rel_passes(self):
+        """Functional test: <link href="style.css" rel="stylesheet"> with href before rel must be correctly parsed."""
+        css_file = os.path.join(self.temp_dir, 'style.css')
+        with open(css_file, 'w') as f:
+            f.write('.banner-img { width: 400px; height: 250px; }')
+        html_file = os.path.join(self.temp_dir, 'link_order.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Link Order</title><link href="style.css" rel="stylesheet"></head><body><img class="banner-img" src="banner.png" alt="Banner"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("PASS", res.stdout)
+
+    def test_compound_and_descendant_selectors_pass(self):
+        """Functional test: compound (img.hero) and descendant (.gallery img) CSS selectors must be matched."""
+        css_file = os.path.join(self.temp_dir, 'selectors.css')
+        with open(css_file, 'w') as f:
+            f.write('.gallery img { width: 300px; height: 200px; }\nimg.hero { aspect-ratio: 16/9; }')
+        html_file = os.path.join(self.temp_dir, 'selectors.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Selectors</title><link rel="stylesheet" href="selectors.css"></head><body><img class="hero" src="hero.png" alt="Hero"><div class="gallery"><img src="thumb.png" alt="Thumb"></div></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("PASS", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
 
