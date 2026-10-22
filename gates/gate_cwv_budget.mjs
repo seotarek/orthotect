@@ -181,11 +181,16 @@ export function parseAndValidateCssCalc(innerStr) {
           const sign = ch === '-' ? -1 : 1;
           i++; // consume sign
           const numStart = i;
-          while (i < len && /[0-9.eE+-]/.test(str[i])) {
-            if ((str[i] === '+' || str[i] === '-') && str[i - 1].toLowerCase() !== 'e') {
-              break;
+          while (i < len && /[0-9.]/.test(str[i])) i++;
+          // W3C CSS Syntax Module Level 3 (§ 4.3.12 Consume a number):
+          // An exponent indicator 'e' or 'E' is only part of the number if followed by an optional sign and at least one digit!
+          // This strictly avoids colliding with valid CSS units such as 'em' and 'ex' (e.g. "10em", "10ex").
+          if (i < len && (str[i] === 'e' || str[i] === 'E')) {
+            const rem = str.slice(i);
+            const expMatch = rem.match(/^[eE][+-]?[0-9]+/);
+            if (expMatch) {
+              i += expMatch[0].length;
             }
-            i++;
           }
           const rawNum = str.slice(numStart, i);
           if (!numberRegex.test(rawNum)) {
@@ -222,11 +227,16 @@ export function parseAndValidateCssCalc(innerStr) {
     }
     if (/[0-9.]/.test(ch)) {
       const numStart = i;
-      while (i < len && /[0-9.eE+-]/.test(str[i])) {
-        if ((str[i] === '+' || str[i] === '-') && str[i - 1].toLowerCase() !== 'e') {
-          break;
+      while (i < len && /[0-9.]/.test(str[i])) i++;
+      // W3C CSS Syntax Module Level 3 (§ 4.3.12 Consume a number):
+      // An exponent indicator 'e' or 'E' is only part of the number if followed by an optional sign and at least one digit!
+      // This strictly avoids colliding with valid CSS units such as 'em' and 'ex' (e.g. "10em", "10ex").
+      if (i < len && (str[i] === 'e' || str[i] === 'E')) {
+        const rem = str.slice(i);
+        const expMatch = rem.match(/^[eE][+-]?[0-9]+/);
+        if (expMatch) {
+          i += expMatch[0].length;
         }
-        i++;
       }
       const rawNum = str.slice(numStart, i);
       if (!numberRegex.test(rawNum)) {
@@ -399,8 +409,8 @@ export function isValidCssDimensionValue(val) {
   const clean = val.trim().toLowerCase().replace(/\s*!important\s*$/i, '').trim();
   if (['auto', 'none', 'initial', 'inherit', 'unset', '0', '0px', ''].includes(clean)) return false;
 
-  // Single length/percentage dimension check: e.g. "200px", "50%", "10rem"
-  const directMatch = clean.match(/^([1-9]\d*(?:\.\d+)?)(px|rem|em|vw|vh|%|cqi|cqw)$/i);
+  // Single length/percentage dimension check: e.g. "200px", "50%", "10rem", "10em", "10ex"
+  const directMatch = clean.match(/^([1-9]\d*(?:\.\d+)?)(px|rem|em|vw|vh|%|cqi|cqw|pt|cm|mm|in|vmin|vmax|ch|ex)$/i);
   if (directMatch) return true;
 
   // Calc expression evaluation

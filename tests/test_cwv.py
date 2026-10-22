@@ -432,6 +432,24 @@ class TestCWVBudgetGate(unittest.TestCase):
         self.assertEqual(res.returncode, 0)
         self.assertIn("PASS", res.stdout)
 
+    def test_calc_em_and_ex_units_pass(self):
+        """Positive test: W3C font-relative length units em and ex pass in calc expressions (calc(10em + 2px) and calc(10ex + 2px))."""
+        html_file = os.path.join(self.temp_dir, 'calc_em_ex.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Calc EM EX</title></head><body><img src="logo.png" style="width: calc(10em + 2px); height: calc(10ex + 2px);" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("PASS", res.stdout)
+
+    def test_calc_mixed_scientific_and_font_relative_units_pass(self):
+        """Positive test: calc expressions combining scientific notation and em/ex units pass cleanly."""
+        html_file = os.path.join(self.temp_dir, 'calc_mixed.html')
+        with open(html_file, 'w') as f:
+            f.write('<!DOCTYPE html><html><head><title>Calc Mixed</title></head><body><img src="logo.png" style="width: calc(1e2px + 2em); height: calc(1.5e1rem - 5ex);" alt="Logo"></body></html>')
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("PASS", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
 
