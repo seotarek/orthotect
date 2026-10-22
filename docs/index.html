@@ -119,11 +119,11 @@
                 <div class="proof-lbl" id="proofGates">Deterministic Gates</div>
               </div>
               <div class="proof-card">
-                <div class="proof-val">89 / 89</div>
+                <div class="proof-val">100 / 100</div>
                 <div class="proof-lbl" id="proofTests">Automated Unit &amp; E2E Tests</div>
               </div>
               <div class="proof-card">
-                <div class="proof-val">&lt; 400ms</div>
+                <div class="proof-val">&lt; 600ms</div>
                 <div class="proof-lbl" id="proofLatency">Parallel Gate Latency</div>
               </div>
               <div class="proof-card">
@@ -136,7 +136,7 @@
               </div>
             </div>
 
-            <!-- Live Proof Terminal Window -->
+            <!-- Interactive Proof Terminal Window -->
             <div class="hero-terminal" role="region" aria-label="Orthotect Deterministic Gates Execution Console">
               <div class="terminal-header">
                 <div class="terminal-dots" aria-hidden="true">
@@ -144,46 +144,52 @@
                   <span class="dot dot-yellow"></span>
                   <span class="dot dot-green"></span>
                 </div>
-                <div class="terminal-title">orthotect-runtime — node &amp; python parallel AST runner</div>
-                <div class="terminal-badge">LIVE ENGINE PROOF</div>
+                <div class="terminal-title">orthotect-runtime — deterministic quality engine</div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                  <button id="btnRunHeroBenchmark" class="btn-ctrl" style="padding: 0.2rem 0.65rem; font-size: 0.72rem; gap: 0.35rem; border-radius: var(--radius-pill); cursor: pointer;" aria-label="Run Live In-Browser Gate Benchmark">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    <span id="heroBenchmarkBtnText">Run Live In-Browser</span>
+                  </button>
+                  <div id="heroTerminalBadge" class="terminal-badge">VERIFIED BENCHMARK (CI #39733703096)</div>
+                </div>
               </div>
-              <div class="terminal-body">
+              <div class="terminal-body" id="heroTerminalBody">
                 <div class="terminal-row pass">
-                  <span class="term-status">✅ PASS</span>
-                  <span class="term-time">114.6ms</span>
-                  <span class="term-gate">WCAG 2.2 Mathematical Contrast</span>
-                  <span class="term-detail">21.0:1 (AAA Certified)</span>
+                  <span class="term-status" id="heroStatusGate1">✅ PASS</span>
+                  <span class="term-time" id="heroTimeGate1">121.4ms</span>
+                  <span class="term-gate">WCAG 2.2 Token Contrast Matrix</span>
+                  <span class="term-detail" id="heroDetailGate1">Luminance Tested (AA &amp; AAA Pairs)</span>
                 </div>
                 <div class="terminal-row pass">
-                  <span class="term-status">✅ PASS</span>
-                  <span class="term-time">157.1ms</span>
+                  <span class="term-status" id="heroStatusGate2">✅ PASS</span>
+                  <span class="term-time" id="heroTimeGate2">118.7ms</span>
                   <span class="term-gate">True BiDi &amp; CSS Logical Properties</span>
-                  <span class="term-detail">100% Directional Neutrality</span>
+                  <span class="term-detail" id="heroDetailGate2">100% Directional Neutrality</span>
                 </div>
                 <div class="terminal-row pass">
-                  <span class="term-status">✅ PASS</span>
-                  <span class="term-time">148.3ms</span>
+                  <span class="term-status" id="heroStatusGate3">✅ PASS</span>
+                  <span class="term-time" id="heroTimeGate3">120.9ms</span>
                   <span class="term-gate">Finite State Machine Integrity</span>
-                  <span class="term-detail">0 Deadlocks, Reachability Verified</span>
+                  <span class="term-detail" id="heroDetailGate3">0 Deadlocks, Reachability Verified</span>
                 </div>
                 <div class="terminal-row pass">
-                  <span class="term-status">✅ PASS</span>
-                  <span class="term-time">119.7ms</span>
+                  <span class="term-status" id="heroStatusGate4">✅ PASS</span>
+                  <span class="term-time" id="heroTimeGate4">124.9ms</span>
                   <span class="term-gate">Anti-Slop Pattern Inspector</span>
-                  <span class="term-detail">Clean Semantic Surfaces (Zero AI Slop)</span>
+                  <span class="term-detail" id="heroDetailGate4">Zero AI Slop (Gradients &amp; Emojis)</span>
                 </div>
                 <div class="terminal-row pass">
-                  <span class="term-status">✅ PASS</span>
-                  <span class="term-time">212.5ms</span>
-                  <span class="term-gate">DOM Depth &amp; Media Dimensions</span>
-                  <span class="term-detail">CLS = 0.00 (Reserved Box Bounds)</span>
+                  <span class="term-status" id="heroStatusGate5">✅ PASS</span>
+                  <span class="term-time" id="heroTimeGate5">551.4ms</span>
+                  <span class="term-gate">DOM Depth &amp; Media Dimensions Budget</span>
+                  <span class="term-detail" id="heroDetailGate5">Explicit Media Bounding (CLS Pre-Emption)</span>
                 </div>
                 <div class="terminal-footer">
-                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                     <span class="term-prompt">$</span>
-                    <span class="term-summary">Parallel Gate Latency: <strong>520.9ms</strong> • Total Verified Code: <strong>89/89 Tests Passed</strong></span>
+                    <span class="term-summary" id="heroTerminalSummary">Parallel Gate Latency: <strong>554.2ms</strong> • Total Verified Code: <strong>100/100 Tests Passed</strong></span>
                   </div>
-                  <span class="term-certified">CERTIFIED FOR PRODUCTION</span>
+                  <span class="term-certified" id="heroTerminalCert">VERIFIED BASELINE</span>
                 </div>
               </div>
             </div>

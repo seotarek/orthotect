@@ -549,5 +549,62 @@ class TestDocsBrowserPlatform(unittest.TestCase):
         self.assertEqual(res.returncode, 0, f"Skill builder validation test failed: {res.stderr}\n{res.stdout}")
         self.assertIn("SUCCESS_BUILDER_VALIDATION", res.stdout)
 
+    def test_hero_interactive_in_browser_benchmark(self):
+        """Verify that hero terminal displays verified benchmark baseline and executes live in-browser on click."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          const errors = [];
+          page.on('console', msg => {{ if (msg.type() === 'error') errors.push(msg.text()); }});
+          page.on('pageerror', err => errors.push(err.message));
+
+          await page.goto('file://{self.docs_html}');
+          await page.waitForTimeout(100);
+
+          // 1. Initial state must be labeled as verified CI benchmark baseline
+          const initialBadge = await page.$eval('#heroTerminalBadge', el => el.textContent);
+          if (!initialBadge.includes('VERIFIED BENCHMARK')) {{
+            throw new Error(`Expected VERIFIED BENCHMARK baseline badge, got: ${{initialBadge}}`);
+          }}
+
+          // 2. Click Run Live In-Browser button
+          await page.click('#btnRunHeroBenchmark');
+          await page.waitForTimeout(300);
+
+          // 3. Verify badge updates to live client benchmark
+          const updatedBadge = await page.$eval('#heroTerminalBadge', el => el.textContent);
+          if (!updatedBadge.includes('LIVE CLIENT BENCHMARK')) {{
+            throw new Error(`Expected LIVE CLIENT BENCHMARK badge after execution, got: ${{updatedBadge}}`);
+          }}
+
+          // 4. Verify certified tag updates to CLIENT VERIFIED
+          const updatedCert = await page.$eval('#heroTerminalCert', el => el.textContent);
+          if (updatedCert !== 'CLIENT VERIFIED') {{
+            throw new Error(`Expected CLIENT VERIFIED cert tag, got: ${{updatedCert}}`);
+          }}
+
+          // 5. Verify live latency string
+          const summary = await page.$eval('#heroTerminalSummary', el => el.textContent);
+          if (!summary.includes('Live Client Latency') || !summary.includes('100% Gates Passed')) {{
+            throw new Error(`Unexpected summary after live benchmark: ${{summary}}`);
+          }}
+
+          await browser.close();
+          if (errors.length > 0) throw new Error('Console errors encountered: ' + errors.join('; '));
+          console.log('SUCCESS_HERO_BENCHMARK');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Hero benchmark test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_HERO_BENCHMARK", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()

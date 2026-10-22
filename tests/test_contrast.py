@@ -1,6 +1,10 @@
 import unittest
 import sys
 import os
+import subprocess
+import tempfile
+import json
+import shutil
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'gates')))
 from gate_contrast_wcag import parse_hex_color, contrast_ratio
@@ -23,6 +27,82 @@ class TestContrastCalculator(unittest.TestCase):
         # #94a3b8 on #ffffff is approx 2.4:1 (Fails AA)
         ratio = contrast_ratio(parse_hex_color('#94a3b8'), parse_hex_color('#ffffff'))
         self.assertLess(ratio, 3.0)
+
+class TestContrastGateE2E(unittest.TestCase):
+    def setUp(self):
+        self.root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        self.gate_script = os.path.join(self.root_dir, 'gates', 'gate_contrast_wcag.py')
+        self.temp_dir = tempfile.mkdtemp(prefix='contrast_test_')
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def run_gate(self, target):
+        return subprocess.run(['python3', self.gate_script, target],
+                              capture_output=True, text=True)
+
+    def test_gate_rejects_empty_directory(self):
+        """Negative test: Gate must REJECT directory missing tokens with code 1."""
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Missing required Design Token files", res.stdout)
+
+    def test_gate_rejects_corrupted_json(self):
+        """Negative test: Gate must REJECT malformed token JSON."""
+        tokens_dir = os.path.join(self.temp_dir, 'core', 'tokens')
+        os.makedirs(tokens_dir, exist_ok=True)
+        with open(os.path.join(tokens_dir, 'primitives.json'), 'w') as f:
+            f.write("{ invalid json")
+        with open(os.path.join(tokens_dir, 'semantics.json'), 'w') as f:
+            f.write("{}")
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Failed to parse design token JSON", res.stdout)
+
+    def test_gate_rejects_failing_contrast_ratio(self):
+        """Negative test: Gate must REJECT token pairs with contrast < 4.5:1."""
+        tokens_dir = os.path.join(self.temp_dir, 'core', 'tokens')
+        os.makedirs(tokens_dir, exist_ok=True)
+        # Primitives with very low contrast foreground on canvas
+        prims = {
+            "color": {
+                "gray": {
+                    "canvas": { "$value": "#707070" },
+                    "text_bad": { "$value": "#787878" } # ~1.14:1 contrast on #707070
+                }
+            }
+        }
+        sems = {
+            "theme": {
+                "light": {
+                    "surface": {
+                        "canvas": { "$value": "{color.gray.canvas}" },
+                        "panel": { "$value": "{color.gray.canvas}" }
+                    },
+                    "action": {
+                        "primary": { "$value": "{color.gray.text_bad}" },
+                        "danger": { "$value": "{color.gray.text_bad}" }
+                    },
+                    "content": {
+                        "primary": { "$value": "{color.gray.text_bad}" },
+                        "secondary": { "$value": "{color.gray.text_bad}" },
+                        "inverse": { "$value": "{color.gray.canvas}" }
+                    },
+                    "border": {
+                        "strong": { "$value": "{color.gray.text_bad}" }
+                    }
+                }
+            }
+        }
+        with open(os.path.join(tokens_dir, 'primitives.json'), 'w') as f:
+            json.dump(prims, f)
+        with open(os.path.join(tokens_dir, 'semantics.json'), 'w') as f:
+            json.dump(sems, f)
+
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("❌", res.stdout)
+        self.assertIn("failed mandatory WCAG 2.2 AA criteria", res.stdout)
 
 if __name__ == '__main__':
     unittest.main()

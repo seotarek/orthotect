@@ -3,6 +3,8 @@ import sys
 import os
 import json
 import tempfile
+import subprocess
+import shutil
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'gates')))
 from gate_fsm_integrity import check_fsm_file
@@ -167,6 +169,70 @@ class TestFsmValidator(unittest.TestCase):
             json.dump(fsm, f)
         viols = check_fsm_file(fpath)
         self.assertTrue(any("no recovery transitions" in v for v in viols))
+
+class TestFsmGateE2E(unittest.TestCase):
+    def setUp(self):
+        self.root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        self.gate_script = os.path.join(self.root_dir, 'gates', 'gate_fsm_integrity.py')
+        self.temp_dir = tempfile.mkdtemp(prefix='fsm_test_')
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def run_gate(self, target):
+        return subprocess.run(['python3', self.gate_script, target],
+                              capture_output=True, text=True)
+
+    def test_gate_cli_rejects_empty_directory(self):
+        """Negative test: Gate must REJECT directory without FSM specifications."""
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Missing required FSM specifications in target", res.stdout)
+
+    def test_gate_cli_rejects_submitting_state_with_allow_click_true(self):
+        """Negative test: Gate must REJECT FSM where submitting state has allowClick: true."""
+        fsm_dir = os.path.join(self.temp_dir, 'core', 'fsm')
+        os.makedirs(fsm_dir, exist_ok=True)
+        bad_fsm = {
+            "name": "ButtonRaceFlaw",
+            "initialState": "idle",
+            "states": {
+                "idle": { "on": { "SUBMIT": "submitting" } },
+                "submitting": {
+                    "allowClick": True, # VIOLATION: Must lock click actions
+                    "on": { "SUCCESS": "idle", "FAIL": "idle" }
+                }
+            }
+        }
+        with open(os.path.join(fsm_dir, 'button.json'), 'w') as f:
+            json.dump(bad_fsm, f)
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("FSM integrity violation", res.stdout)
+        self.assertIn("must lock pointer/keyboard actions", res.stdout)
+
+    def test_gate_cli_accepts_valid_fsm(self):
+        """Positive verification: Gate PASSES compliant FSM state definitions."""
+        fsm_dir = os.path.join(self.temp_dir, 'core', 'fsm')
+        os.makedirs(fsm_dir, exist_ok=True)
+        valid_fsm = {
+            "name": "CompliantDialog",
+            "initialState": "closed",
+            "states": {
+                "closed": { "on": { "OPEN": "open" } },
+                "open": { "on": { "SUBMIT": "submitting", "CLOSE": "closed" } },
+                "submitting": {
+                    "allowClick": False,
+                    "on": { "SUCCESS": "closed", "ERROR": "error" }
+                },
+                "error": { "on": { "RETRY": "submitting", "DISMISS": "closed" } }
+            }
+        }
+        with open(os.path.join(fsm_dir, 'dialog.json'), 'w') as f:
+            json.dump(valid_fsm, f)
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("FSM state models verified successfully", res.stdout)
 
 if __name__ == '__main__':
     unittest.main()
