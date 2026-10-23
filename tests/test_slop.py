@@ -70,6 +70,14 @@ class TestAntiSlopGate(unittest.TestCase):
         self.assertNotEqual(res.returncode, 0)
         self.assertIn("Raw Emoji in Button Icon", res.stdout)
 
+    def test_emoji_nested_inside_button_fails(self):
+        html_file = os.path.join(self.temp_dir, 'nested-button.html')
+        with open(html_file, 'w') as f:
+            f.write('<button class="launch">\n  <span aria-hidden="true">🚀</span>\n  Launch\n</button>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Raw Emoji in Button Icon", res.stdout)
+
     def test_jsx_untokenized_inline_style_fails(self):
         tsx_file = os.path.join(self.temp_dir, 'Card.tsx')
         with open(tsx_file, 'w') as f:
@@ -88,4 +96,3 @@ class TestAntiSlopGate(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
