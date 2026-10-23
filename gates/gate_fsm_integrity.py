@@ -142,21 +142,25 @@ def find_target_fsm_dir(target_path):
     target_abs = os.path.abspath(target_path)
     root_pkg = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-    # Root fallback is strictly allowed ONLY when auditing the root repo itself or the documentation site
     is_root_or_docs = (target_abs == root_pkg or target_abs == os.path.join(root_pkg, 'docs'))
-
+    # Dedicated FSM directories take priority over raw target root
     candidates = [
-        target_abs,
         os.path.join(target_abs, 'core', 'fsm'),
         os.path.join(target_abs, 'fsm'),
         os.path.join(target_abs, '.orthotect', 'fsm')
     ]
     if is_root_or_docs:
         candidates.append(os.path.join(root_pkg, 'core', 'fsm'))
+    candidates.append(target_abs)
+
+    ignored_jsons = {
+        'package.json', 'package-lock.json', 'tsconfig.json',
+        'gallery-data.json', 'manifest.json', 'sitemap.json', 'skills.sh.json'
+    }
 
     for c in candidates:
         if os.path.exists(c) and os.path.isdir(c):
-            json_files = [f for f in os.listdir(c) if f.endswith('.json')]
+            json_files = [f for f in os.listdir(c) if f.endswith('.json') and f not in ignored_jsons]
             if json_files:
                 return c, json_files
     return None, []
