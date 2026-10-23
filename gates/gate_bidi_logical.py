@@ -186,8 +186,11 @@ def scan_html_content(html_text):
     for match in attr_pattern.finditer(masked_html):
         style_text = match.group(1) if match.group(1) is not None else match.group(2)
         attr_start_line = html_text[:match.start()].count('\n')
-        decls = tinycss2.parse_declaration_list(style_text)
-        violations.extend(check_declarations(decls, line_offset=attr_start_line))
+        if not HAVE_TINYCSS2:
+            violations.extend(scan_css_content_fallback(style_text, line_offset=attr_start_line))
+        else:
+            decls = tinycss2.parse_declaration_list(style_text)
+            violations.extend(check_declarations(decls, line_offset=attr_start_line))
 
     return violations
 

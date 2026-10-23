@@ -26,9 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `design` system compilation and recipe scaffolding commands.
   - Added `audit` alias with `--json` and `--md` report formats.
   - Added `-v` and `--version` flags.
-- **Automated Test Suite Expansion (167 Tests)**:
-  - Added `tests/test_knowledge_search.py` (8 tests) and `tests/test_cli_expanded.py` (8 tests).
-  - All 167 automated unit, AST, browser Playwright, and gate tests pass with 100% success rate.
+- **Automated Test Suite Expansion (206 Tests)**:
+  - Added comprehensive negative tests for JSON schema validation, AST BiDi fallback, FSM locks, and search benchmarks.
+  - All 206 automated unit, AST, browser Playwright, and gate tests pass with 100% success rate.
 
 ### Fixed & Hardened
 - **Light Mode Visual Contrast & Scoped Terminal (`docs/styles.css`, `docs/index.html`)**:

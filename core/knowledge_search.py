@@ -130,16 +130,16 @@ def load_knowledge_base(knowledge_dir=None, return_errors=False):
                     "whenToUse": " | ".join(data.get("bestFitContexts", [])),
                     "whenNotToUse": " | ".join(data.get("poorFitContexts", [])),
                     "rules": [
-                        f"Color: {data.get("colorStrategy", {}).get("canvasTone", "")}",
-                        f"Accent: {data.get("colorStrategy", {}).get("accentUsage", "")}",
-                        f"Typography: {data.get("typographyStrategy", {}).get("fontPairing", "")}",
-                        f"Density: {data.get("layoutRhythm", {}).get("density", "")}",
-                        f"Primary Action: {data.get("componentGuidelines", {}).get("primaryActionStyle", "")}"
+                        f"Color: {data.get('colorStrategy', {}).get('canvasTone', '')}",
+                        f"Accent: {data.get('colorStrategy', {}).get('accentUsage', '')}",
+                        f"Typography: {data.get('typographyStrategy', {}).get('fontPairing', '')}",
+                        f"Density: {data.get('layoutRhythm', {}).get('density', '')}",
+                        f"Primary Action: {data.get('componentGuidelines', {}).get('primaryActionStyle', '')}"
                     ],
                     "antiPatterns": data.get("antiPatterns", []),
                     "applicableStacks": ["universal", "css", "tailwind", "react", "html"],
-                    "accessibilityNotes": f"Target WCAG: {data.get("accessibilityProfile", {}).get("targetWcagRatio", 4.5)}:1. Keyboard: {data.get("accessibilityProfile", {}).get("keyboardHandling", "")}",
-                    "provenance": f"Orthotect Style Recipe v{data.get("version", "1.0.0")}",
+                    "accessibilityNotes": f"Target WCAG: {data.get('accessibilityProfile', {}).get('targetWcagRatio', 4.5)}:1. Keyboard: {data.get('accessibilityProfile', {}).get('keyboardHandling', '')}",
+                    "provenance": f"Orthotect Style Recipe v{data.get('version', '1.0.0')}",
                     "verificationStatus": status,
                     "evidence": data.get("evidence", {}),
                     "tags": ["style-recipe", "design-system", data.get("layoutRhythm", {}).get("density", "default")] + data.get("bestFitContexts", []),
@@ -360,7 +360,24 @@ def _validate_schema_builtin(data, schema, path="root", strict_mode=True):
             errors.append(f"{path}: Expected boolean, got {type(data).__name__}")
             return errors
 
-    # 3. Object properties, required fields, and additionalProperties recursive check
+    # Check enum constraint at current level
+    if isinstance(schema, dict) and "enum" in schema and data not in schema["enum"]:
+        errors.append(f"{path}: Value '{data}' not in allowed enum: {schema['enum']}")
+
+    # 3. Array items recursive check (if data is a list)
+    if isinstance(data, list) and isinstance(schema, dict):
+        items_schema = schema.get("items")
+        if strict_mode and isinstance(items_schema, dict):
+            items_unsupported = set(items_schema.keys()) - SUPPORTED_SCHEMA_KEYWORDS
+            if items_unsupported:
+                errors.append(f"{path}.items: Unsupported schema keyword(s) in strict fallback mode: {sorted(list(items_unsupported))}")
+        if items_schema:
+            for idx, item in enumerate(data):
+                item_path = f"{path}[{idx}]"
+                sub_errs = _validate_schema_builtin(item, items_schema, path=item_path, strict_mode=strict_mode)
+                errors.extend(sub_errs)
+
+    # 4. Object properties, required fields, and additionalProperties recursive check
     if isinstance(data, dict) and isinstance(schema, dict):
         properties = schema.get("properties", {})
         required = schema.get("required", [])
@@ -381,6 +398,14 @@ def _validate_schema_builtin(data, schema, path="root", strict_mode=True):
             if prop_name in properties:
                 prop_schema = properties[prop_name]
                 prop_path = f"{path}.{prop_name}" if path != "root" else prop_name
+
+                # Check unsupported keywords on the property schema itself
+                if strict_mode and isinstance(prop_schema, dict):
+                    prop_unsupported = set(prop_schema.keys()) - SUPPORTED_SCHEMA_KEYWORDS
+                    if prop_unsupported:
+                        errors.append(f"{prop_path}: Unsupported schema keyword(s) in strict fallback mode: {sorted(list(prop_unsupported))}")
+                        continue
+
                 prop_type = prop_schema.get("type")
 
                 # Strict type checks preventing bool inheritance issues
@@ -421,6 +446,10 @@ def _validate_schema_builtin(data, schema, path="root", strict_mode=True):
                         errors.append(f"{prop_path}: Property '{prop_name}' must be an array, got {type(prop_val).__name__}")
                     else:
                         items_schema = prop_schema.get("items")
+                        if strict_mode and isinstance(items_schema, dict):
+                            items_unsupported = set(items_schema.keys()) - SUPPORTED_SCHEMA_KEYWORDS
+                            if items_unsupported:
+                                errors.append(f"{prop_path}.items: Unsupported schema keyword(s) in strict fallback mode: {sorted(list(items_unsupported))}")
                         if items_schema:
                             for idx, item in enumerate(prop_val):
                                 item_path = f"{prop_path}[{idx}]"
@@ -436,7 +465,6 @@ def _validate_schema_builtin(data, schema, path="root", strict_mode=True):
                 # Enum validation
                 if "enum" in prop_schema and prop_val not in prop_schema["enum"]:
                     errors.append(f"{prop_path}: Property '{prop_name}' value '{prop_val}' not in allowed enum: {prop_schema['enum']}")
-
 
     return errors
 

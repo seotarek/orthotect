@@ -320,6 +320,52 @@ class TestKnowledgeSearch(unittest.TestCase):
         invalid_res = _validate_schema_builtin({"name": "valid", "extra_prop": 123}, schema)
         self.assertTrue(any("Additional property 'extra_prop' is not allowed" in e for e in invalid_res))
 
+    def test_builtin_validator_rejects_unsupported_keywords_in_leaf_property_schemas(self):
+        """Builtin validator rejects unsupported keywords even inside simple leaf property schemas."""
+        from core.knowledge_search import _validate_schema_builtin
+        schema_with_leaf_unknown = {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "unsupportedKeywordX": "not_supported"
+                }
+            }
+        }
+        errs = _validate_schema_builtin({"title": "Test Title"}, schema_with_leaf_unknown, strict_mode=True)
+        self.assertTrue(any("Unsupported schema keyword(s)" in e for e in errs))
+
+    def test_builtin_validator_rejects_unsupported_keywords_in_array_items_schema(self):
+        """Builtin validator rejects unsupported keywords inside array items schemas."""
+        from core.knowledge_search import _validate_schema_builtin
+        schema_with_items_unknown = {
+            "type": "object",
+            "properties": {
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "unsupportedKeywordY": "bad"
+                    }
+                }
+            }
+        }
+        errs = _validate_schema_builtin({"tags": ["sample"]}, schema_with_items_unknown, strict_mode=True)
+        self.assertTrue(any("Unsupported schema keyword(s)" in e for e in errs))
+
+    def test_builtin_validator_validates_root_array_items(self):
+        """Builtin validator correctly validates root array items and rejects item type mismatches."""
+        from core.knowledge_search import _validate_schema_builtin
+        array_schema = {
+            "type": "array",
+            "items": { "type": "string" }
+        }
+        valid_res = _validate_schema_builtin(["a", "b", "c"], array_schema)
+        self.assertEqual(valid_res, [])
+        invalid_res = _validate_schema_builtin(["a", 123, "c"], array_schema)
+        self.assertTrue(any("Expected string" in e for e in invalid_res))
+
 if __name__ == '__main__':
     unittest.main()
+
 

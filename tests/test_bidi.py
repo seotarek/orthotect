@@ -178,6 +178,40 @@ class TestBidiScanner(unittest.TestCase):
         # Verify custom property and comment were ignored
         self.assertNotIn("--sidebar-left", props)
 
+    def test_html_inline_and_block_styles_scan(self):
+        """Verify HTML files with both <style> blocks and inline style attributes are detected correctly."""
+        import gates.gate_bidi_logical as bidi_mod
+        sample_html = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                .nav { margin-left: 20px; }
+            </style>
+        </head>
+        <body>
+            <div style="padding-right: 15px; text-align: left;">Content</div>
+            <div style="margin-inline-start: 10px;">Valid logical style</div>
+        </body>
+        </html>
+        """
+        # Test with current tinycss2 state
+        viols_default = bidi_mod.scan_html_content(sample_html)
+        self.assertEqual(len(viols_default), 3)
+
+        # Test simulating HAVE_TINYCSS2 = False
+        orig_tinycss2 = bidi_mod.HAVE_TINYCSS2
+        try:
+            bidi_mod.HAVE_TINYCSS2 = False
+            viols_fallback = bidi_mod.scan_html_content(sample_html)
+            self.assertEqual(len(viols_fallback), 3)
+            props = [v.name for v in viols_fallback]
+            self.assertIn("margin-left", props)
+            self.assertIn("padding-right", props)
+            self.assertIn("text-align", props)
+        finally:
+            bidi_mod.HAVE_TINYCSS2 = orig_tinycss2
+
 class TestBidiGateE2E(unittest.TestCase):
     def setUp(self):
         self.root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))

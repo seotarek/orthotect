@@ -149,31 +149,40 @@ def verify_theme_contrast(theme_dict, prims, theme_label):
         pairs.append((('surface', 'canvas'), ('border', 'focus'), 'ui_control'))
     if 'focus' in borders and 'panel' in surfaces:
         pairs.append((('surface', 'panel'), ('border', 'focus'), 'ui_control'))
+    if 'primary' in actions and 'canvas' in surfaces:
+        pairs.append((('surface', 'canvas'), ('action', 'primary'), 'ui_control'))
+    if 'danger' in actions and 'canvas' in surfaces:
+        pairs.append((('surface', 'canvas'), ('action', 'danger'), 'ui_control'))
 
     # Evaluate each pair
     for (bg_grp, bg_tok), (fg_grp, fg_tok), tier in pairs:
-        bg_val = theme_dict.get(bg_grp, {}).get(bg_tok, {}).get('$value')
-        fg_val = theme_dict.get(fg_grp, {}).get(fg_tok, {}).get('$value')
+        bg_tok_obj = theme_dict.get(bg_grp, {}).get(bg_tok)
+        fg_tok_obj = theme_dict.get(fg_grp, {}).get(fg_tok)
+        if not bg_tok_obj or not isinstance(bg_tok_obj, dict) or '$value' not in bg_tok_obj:
+            raise ValueError(f"Missing required token in theme [{theme_label}]: '{bg_grp}.{bg_tok}'")
+        if not fg_tok_obj or not isinstance(fg_tok_obj, dict) or '$value' not in fg_tok_obj:
+            raise ValueError(f"Missing required token in theme [{theme_label}]: '{fg_grp}.{fg_tok}'")
 
-        if bg_val and fg_val:
-            res_bg = resolve_ref(bg_val, prims)
-            res_fg = resolve_ref(fg_val, prims)
-            cr = calculate_contrast(res_bg, res_fg)
-            required_threshold = CONTRAST_TIERS.get(tier, 4.5)
+        bg_val = bg_tok_obj['$value']
+        fg_val = fg_tok_obj['$value']
+        res_bg = resolve_ref(bg_val, prims)
+        res_fg = resolve_ref(fg_val, prims)
+        cr = calculate_contrast(res_bg, res_fg)
+        required_threshold = CONTRAST_TIERS.get(tier, 4.5)
 
-            if cr is None:
-                raise ValueError(
-                    f"Invalid or uncomputable color format for contrast pair: [{theme_label}] "
-                    f"{bg_grp}.{bg_tok} ({res_bg}) vs {fg_grp}.{fg_tok} ({res_fg})"
-                )
-            if cr < required_threshold:
-                raise ValueError(
-                    f"WCAG 2.2 Contrast Failure during token compilation: [{theme_label}] "
-                    f"{bg_grp}.{bg_tok} ({res_bg}) vs {fg_grp}.{fg_tok} ({res_fg}) "
-                    f"contrast ratio is {cr:.2f}:1 (Must be >= {required_threshold}:1 for {tier})."
-                )
-            rating = "WCAG AAA" if cr >= 7.0 else "WCAG AA"
-            results.append(f" *   - [{theme_label}] {bg_grp}.{bg_tok} vs {fg_grp}.{fg_tok}: {cr:.1f}:1 ({rating} - Tier: {tier})")
+        if cr is None:
+            raise ValueError(
+                f"Invalid or uncomputable color format for contrast pair: [{theme_label}] "
+                f"{bg_grp}.{bg_tok} ({res_bg}) vs {fg_grp}.{fg_tok} ({res_fg})"
+            )
+        if cr < required_threshold:
+            raise ValueError(
+                f"WCAG 2.2 Contrast Failure during token compilation: [{theme_label}] "
+                f"{bg_grp}.{bg_tok} ({res_bg}) vs {fg_grp}.{fg_tok} ({res_fg}) "
+                f"contrast ratio is {cr:.2f}:1 (Must be >= {required_threshold}:1 for {tier})."
+            )
+        rating = "WCAG AAA" if cr >= 7.0 else "WCAG AA"
+        results.append(f" *   - [{theme_label}] {bg_grp}.{bg_tok} vs {fg_grp}.{fg_tok}: {cr:.1f}:1 ({rating} - Tier: {tier})")
 
     return results
 

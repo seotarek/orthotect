@@ -27,7 +27,7 @@ jobs:
           npm ci
           pip install -r requirements.txt
 
-      - name: Run 202 Unit, Browser & Negative Gate Tests
+      - name: Run 206 Unit, Browser & Negative Gate Tests
         run: |
           npm test
 
@@ -37,6 +37,7 @@ jobs:
 
       - name: Test Real CLI Scaffolding and Verification
         run: |
+          rm -rf /tmp/ci_test_project
           mkdir -p /tmp/ci_test_project
           node bin/orthotect.js init /tmp/ci_test_project
           cp examples/golden-showcase/index.html /tmp/ci_test_project/
