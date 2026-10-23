@@ -38,7 +38,23 @@ jobs:
           python3 gates/run_all_gates.py docs
           python3 gates/run_all_gates.py examples/golden-showcase
 
+      - name: Check if Version Already Published
+        id: check_version
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Target version: ${CURRENT_VERSION}"
+          if npm view "@seotarek/orthotect@${CURRENT_VERSION}" version --registry=https://npm.pkg.github.com > /dev/null 2>&1; then
+            echo "Version ${CURRENT_VERSION} is already published on GitHub Packages."
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Version ${CURRENT_VERSION} is not yet published."
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Publish to GitHub Packages
+        if: steps.check_version.outputs.already_published != 'true'
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

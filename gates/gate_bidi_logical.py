@@ -420,6 +420,30 @@ def is_regex_start(text, i):
     prev_ch = text[j]
     if prev_ch in '=(,{[;:!&|?~^+-*<>%':
         return True
+    if prev_ch == ')':
+        # In JavaScript, ')' before '/' can only precede a regex literal if the matching '(' belongs to a
+        # control statement header (if, while, for, with, catch). E.g., `if (test) /pattern/.test(...)`
+        # Otherwise, `(a + b) / 2` or `fn() / 2` is arithmetic division.
+        depth = 1
+        k = j - 1
+        while k >= 0 and depth > 0:
+            if text[k] == ')':
+                depth += 1
+            elif text[k] == '(':
+                depth -= 1
+            k -= 1
+        if depth == 0:
+            # text[k + 1] was the matching '('
+            w = k
+            while w >= 0 and text[w] in ' \t\r\n':
+                w -= 1
+            word_end = w
+            while w >= 0 and (text[w].isalnum() or text[w] in '_$'):
+                w -= 1
+            kw = text[w + 1:word_end + 1]
+            if kw in ('if', 'while', 'for', 'with', 'catch'):
+                return True
+        return False
     k = j
     while k >= 0 and (text[k].isalnum() or text[k] in '_$'):
         k -= 1

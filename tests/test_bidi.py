@@ -399,6 +399,23 @@ class TestBidiGateE2E(unittest.TestCase):
         self.assertNotEqual(res.returncode, 0, "Gate must NOT mask code following regex literals with slashes")
         self.assertIn("marginLeft", res.stdout)
 
+    def test_bidi_regex_after_statement_header_parenthesis_does_not_mask_violation(self):
+        """Regression test: Regex literals following control statement headers (if/while/for) must not mask violations."""
+        js_file = os.path.join(self.temp_dir, 'if_regex_test.jsx')
+        with open(js_file, 'w') as f:
+            f.write("if (isValid) /https?:\\/\\//.test(url); const Card = () => <div style={{ marginRight: 16 }} />;")
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0, "Gate must detect marginRight violation after if (...) /regex/ statement")
+        self.assertIn("marginRight", res.stdout)
+
+        # Also verify division (a + b) / 2 does NOT swallow subsequent code as regex
+        js_file_div = os.path.join(self.temp_dir, 'div_test.jsx')
+        with open(js_file_div, 'w') as f:
+            f.write("const half = (a + b) / 2; const Card = () => <div style={{ paddingLeft: 8 }} />;")
+        res_div = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res_div.returncode, 0)
+        self.assertIn("paddingLeft", res_div.stdout)
+
 if __name__ == '__main__':
     unittest.main()
 

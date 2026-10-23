@@ -164,5 +164,111 @@ class TestContextOptimizer(unittest.TestCase):
         data_skel = json.loads(res_skel.stdout)
         self.assertEqual(data_skel['total_files'], 1)
 
+    def test_extract_symbols_nesting_and_parent_scopes_js(self):
+        js_code = """
+        export class Controller {
+            constructor() {
+                this.ready = true;
+            }
+            dispatch(action) {
+                const helper = () => action.type;
+                return helper();
+            }
+        }
+        export function standalone() { return false; }
+        """
+        symbols = extract_symbols(js_code, '.js')
+        sym_map = {s['name']: s for s in symbols}
+
+        self.assertTrue(sym_map['Controller']['is_top_level'])
+        self.assertIsNone(sym_map['Controller']['parent'])
+
+        self.assertFalse(sym_map['constructor']['is_top_level'])
+        self.assertEqual(sym_map['constructor']['parent'], 'Controller')
+        self.assertEqual(sym_map['constructor']['type'], 'method')
+
+        self.assertFalse(sym_map['dispatch']['is_top_level'])
+        self.assertEqual(sym_map['dispatch']['parent'], 'Controller')
+        self.assertEqual(sym_map['dispatch']['type'], 'method')
+
+        self.assertFalse(sym_map['helper']['is_top_level'])
+        self.assertEqual(sym_map['helper']['parent'], 'dispatch')
+
+        self.assertTrue(sym_map['standalone']['is_top_level'])
+        self.assertIsNone(sym_map['standalone']['parent'])
+
+    def test_extract_symbols_nesting_and_parent_scopes_py(self):
+        py_code = """
+        def top_level_fn():
+            def inner_closure():
+                return 42
+            return inner_closure()
+
+        class BaseService:
+            def execute(self):
+                pass
+        """
+        symbols = extract_symbols(py_code, '.py')
+        sym_map = {s['name']: s for s in symbols}
+
+        self.assertTrue(sym_map['top_level_fn']['is_top_level'])
+        self.assertIsNone(sym_map['top_level_fn']['parent'])
+
+        self.assertFalse(sym_map['inner_closure']['is_top_level'])
+        self.assertEqual(sym_map['inner_closure']['parent'], 'top_level_fn')
+
+        self.assertTrue(sym_map['BaseService']['is_top_level'])
+        self.assertIsNone(sym_map['BaseService']['parent'])
+
+        self.assertFalse(sym_map['execute']['is_top_level'])
+        self.assertEqual(sym_map['execute']['parent'], 'BaseService')
+        self.assertEqual(sym_map['execute']['type'], 'method')
+
+    def test_semantic_chunking_preserves_class_nesting_and_continuation_breadcrumbs(self):
+        # Create a large class with methods that exceed max_tokens
+        js_code = """
+        export class HeavyProcessor {
+            phaseOne() {
+                const payload1 = "heavy workload step one with multiple tokens";
+                const payload2 = "continuing payload line for phase one";
+                return payload1 + payload2;
+            }
+
+            phaseTwo() {
+                const payload3 = "heavy workload step two with multiple tokens";
+                const payload4 = "continuing payload line for phase two";
+                return payload3 + payload4;
+            }
+        }
+        export function finalize() {
+            return "done";
+        }
+        """
+        chunks = semantic_chunk(js_code, max_tokens=25, is_content=True, ext='.js')
+        self.assertGreaterEqual(len(chunks), 2)
+
+        # Subsequent chunk inside HeavyProcessor must have continuation breadcrumbs
+        continuation_chunks = [c for c in chunks if c.get('continuation_of')]
+        self.assertTrue(len(continuation_chunks) >= 1)
+        for c in continuation_chunks:
+            self.assertEqual(c['continuation_of'], 'class HeavyProcessor')
+            self.assertIn("// [Context Continuation: class HeavyProcessor", c['content'])
+
+    def test_generate_context_skeleton_depth_pruning(self):
+        # Create d1/d2/d3/d4 directory structure
+        deep_dir = os.path.join(self.temp_dir, 'lvl1', 'lvl2', 'lvl3', 'lvl4')
+        os.makedirs(deep_dir)
+        with open(os.path.join(deep_dir, 'Deep.js'), 'w') as f:
+            f.write("export const deep = true;\n")
+
+        with open(os.path.join(self.temp_dir, 'lvl1', 'Top.js'), 'w') as f:
+            f.write("export const top = true;\n")
+
+        # Depth 1: should include Top.js in lvl1, but NOT recurse into lvl2, lvl3, lvl4
+        skel = generate_context_skeleton(self.temp_dir, max_depth=1)
+        files = [f['path'] for f in skel['files']]
+        self.assertIn(os.path.join('lvl1', 'Top.js'), files)
+        self.assertNotIn(os.path.join('lvl1', 'lvl2', 'lvl3', 'lvl4', 'Deep.js'), files)
+
 if __name__ == '__main__':
     unittest.main()
