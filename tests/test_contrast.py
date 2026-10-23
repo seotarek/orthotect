@@ -77,23 +77,30 @@ class TestContrastGateE2E(unittest.TestCase):
                 "light": {
                     "surface": {
                         "canvas": { "$value": "{color.gray.canvas}" },
-                        "panel": { "$value": "{color.gray.canvas}" }
+                        "panel": { "$value": "{color.gray.canvas}" },
+                        "subtle": { "$value": "{color.gray.canvas}" },
+                        "elevated": { "$value": "{color.gray.canvas}" }
                     },
                     "action": {
                         "primary": { "$value": "{color.gray.text_bad}" },
-                        "danger": { "$value": "{color.gray.text_bad}" }
+                        "primaryHover": { "$value": "{color.gray.text_bad}" },
+                        "danger": { "$value": "{color.gray.text_bad}" },
+                        "dangerHover": { "$value": "{color.gray.text_bad}" }
                     },
                     "content": {
                         "primary": { "$value": "{color.gray.text_bad}" },
                         "secondary": { "$value": "{color.gray.text_bad}" },
+                        "tertiary": { "$value": "{color.gray.text_bad}" },
                         "inverse": { "$value": "{color.gray.canvas}" }
                     },
                     "border": {
-                        "strong": { "$value": "{color.gray.text_bad}" }
+                        "strong": { "$value": "{color.gray.text_bad}" },
+                        "focus": { "$value": "{color.gray.text_bad}" }
                     }
                 }
             }
         }
+
         with open(os.path.join(tokens_dir, 'primitives.json'), 'w') as f:
             json.dump(prims, f)
         with open(os.path.join(tokens_dir, 'semantics.json'), 'w') as f:
@@ -112,6 +119,44 @@ class TestContrastGateE2E(unittest.TestCase):
             parse_hex_color("#fffffff")
         with self.assertRaises(ValueError):
             parse_hex_color("ffffff")
+        with self.assertRaises(ValueError):
+            parse_hex_color(12345)
+        with self.assertRaises(ValueError):
+            parse_hex_color(None)
+
+    def test_recursive_alias_resolution(self):
+        """Positive test: Multi-hop token references must resolve correctly."""
+        from gate_contrast_wcag import resolve_ref
+        prims = {
+            "color": {
+                "step1": { "$value": "{color.step2}" },
+                "step2": { "$value": "{color.step3}" },
+                "step3": { "$value": "#4f46e5" }
+            }
+        }
+        res = resolve_ref("{color.step1}", prims)
+        self.assertEqual(res, "#4f46e5")
+
+    def test_circular_reference_cycle_detection(self):
+        """Negative test: Circular token reference cycles must raise ValueError."""
+        from gate_contrast_wcag import resolve_ref
+        prims = {
+            "color": {
+                "loopA": { "$value": "{color.loopB}" },
+                "loopB": { "$value": "{color.loopA}" }
+            }
+        }
+        with self.assertRaises(ValueError) as ctx:
+            resolve_ref("{color.loopA}", prims)
+        self.assertIn("Circular reference detected", str(ctx.exception))
+
+    def test_missing_token_reference_detected(self):
+        """Negative test: Nonexistent token path must raise ValueError."""
+        from gate_contrast_wcag import resolve_ref
+        prims = { "color": { "a": { "$value": "#fff" } } }
+        with self.assertRaises(ValueError) as ctx:
+            resolve_ref("{color.missing}", prims)
+        self.assertIn("Unresolved token reference", str(ctx.exception))
 
     def test_empty_subdirectory_in_repo_fails_without_tokens(self):
         """Negative test: A subdirectory located inside the repository tree without its own tokens must NOT borrow root tokens."""
@@ -120,15 +165,22 @@ class TestContrastGateE2E(unittest.TestCase):
         self.assertNotEqual(res.returncode, 0)
         self.assertIn("Missing required Design Token files", res.stdout)
 
-
-    def test_contrast_checks_content_primary_on_panel(self):
-        """Positive test: Gate 1 must evaluate 'Content Primary on Panel' and test 14 total pairs across light & dark themes."""
+    def test_contrast_checks_expanded_semantic_matrix(self):
+        """Positive test: Gate 1 must evaluate 40 semantic pairs across light and dark themes."""
         showcase_dir = os.path.join(self.root_dir, 'examples', 'golden-showcase')
         res = self.run_gate(showcase_dir)
         self.assertEqual(res.returncode, 0)
         self.assertIn("Content Primary on Panel", res.stdout)
-        self.assertIn("14 semantic token pairs evaluated", res.stdout)
+        self.assertIn("40 semantic token pairs evaluated across 2 theme(s)", res.stdout)
+
+    def test_browser_rendered_contrast_verification(self):
+        """Browser integration test: Real browser computed styles on golden-showcase meet WCAG criteria."""
+        browser_script = os.path.join(self.root_dir, 'tests', 'verify_browser_contrast.mjs')
+        res = subprocess.run(['node', browser_script], capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Browser contrast verification failed:\n{res.stdout}\n{res.stderr}")
+        self.assertIn("Real browser computed-style contrast verified", res.stdout)
 
 if __name__ == '__main__':
     unittest.main()
+
 

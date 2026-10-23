@@ -3,9 +3,10 @@
 Orthotect Gate: FSM State Machine Integrity & Deadlock Detector
 Validates that UI state machines:
   1. Have reachable states from initialState (Graph Reachability)
-  2. All asynchronous in-flight states (loading, submitting, fetching, etc.) enforce interaction locks (allowClick: false)
+  2. All asynchronous in-flight states enforce interaction locks (allowClick: false / locksInteraction: true)
   3. Every asynchronous state provides an explicit error recovery transition
   4. Contain no deadlocks or broken transition targets
+  5. Adhere to explicit structural contract with safe path discovery
 """
 import json
 import os
@@ -22,37 +23,53 @@ def check_fsm_file(file_path):
     except Exception as e:
         return [f"{fname}: Failed to parse JSON ({e})"]
 
-    # 1. Schema integrity
+    # 1. Structural schema integrity
     if not isinstance(data, dict):
         return [f"{fname}: Root FSM specification must be a JSON object."]
 
+    initial_state = data.get('initialState')
+    if not initial_state or not isinstance(initial_state, str):
+        violations.append(f"{fname}: Missing required 'initialState' declaration (must be a non-empty string).")
+
     states = data.get('states')
     if not states or not isinstance(states, dict):
-        return [f"{fname}: Missing or empty 'states' object."]
+        violations.append(f"{fname}: Missing or empty 'states' object.")
+        return violations
 
-    initial_state = data.get('initialState')
-    if not initial_state:
-        violations.append(f"{fname}: Missing required 'initialState' declaration.")
-    elif initial_state not in states:
+    if initial_state and isinstance(initial_state, str) and initial_state not in states:
         violations.append(f"{fname}: initialState '{initial_state}' does not exist in declared states.")
 
-    # 2. Transition target validity
+    # 2. State definitions and transition target validity
+    has_structural_error = False
     for state_name, state_def in states.items():
         if not isinstance(state_def, dict):
             violations.append(f"{fname}: State definition for '{state_name}' must be an object.")
+            has_structural_error = True
             continue
 
-        transitions = state_def.get('on', {})
-        if not isinstance(transitions, dict):
-            violations.append(f"{fname}: Transitions 'on' in '{state_name}' must be an object.")
-            continue
+        transitions = state_def.get('on')
+        if transitions is not None:
+            if not isinstance(transitions, dict):
+                violations.append(f"{fname}: Transitions 'on' in '{state_name}' must be an object.")
+                has_structural_error = True
+                continue
 
-        for trigger, target in transitions.items():
-            if target not in states:
-                violations.append(f"{fname}: State '{state_name}' has transition '{trigger}' -> undefined target '{target}'.")
+            for trigger, target in transitions.items():
+                if not isinstance(trigger, str) or not trigger.strip():
+                    violations.append(f"{fname}: State '{state_name}' has invalid transition trigger '{trigger}' (must be a non-empty string).")
+                if not isinstance(target, str) or not target.strip():
+                    violations.append(f"{fname}: State '{state_name}' has invalid transition target for trigger '{trigger}' (must be a non-empty string).")
+                    has_structural_error = True
+                elif target not in states:
+                    violations.append(f"{fname}: State '{state_name}' has transition '{trigger}' -> undefined target '{target}'.")
+
+    # If basic structure is broken, stop before behavioral/reachability analysis
+    if has_structural_error:
+        return violations
 
     # 3. Asynchronous execution & transition lock validation
-    # Supports explicit schema properties ('isAsync', 'type: "async"', 'locksInteraction') as well as documented conventions
+    # Supports explicit schema properties ('isAsync', 'type: "async"', 'locksInteraction', 'allowClick: false')
+    # and maintains documented naming conventions for backwards compatibility
     async_keywords = {'loading', 'submitting', 'pending', 'processing', 'fetching', 'skeletonloading', 'syncing'}
     transition_keywords = {'opening', 'closing', 'transitioning'}
 
@@ -93,8 +110,19 @@ def check_fsm_file(file_path):
 
             # Resilience check: Asynchronous operations (data/network) MUST have explicit error/failure transition
             if is_async_by_name or is_explicitly_async:
-                transitions = list(state_def.get('on', {}).values())
-                has_error_recovery = any('error' in t.lower() or 'fail' in t.lower() or 'reject' in t.lower() for t in transitions)
+                transitions = state_def.get('on', {})
+                has_error_recovery = False
+                if isinstance(transitions, dict):
+                    for trig, tgt in transitions.items():
+                        if isinstance(trig, str) and any(term in trig.lower() for term in ('error', 'fail', 'reject', 'catch')):
+                            has_error_recovery = True
+                            break
+                        if isinstance(tgt, str) and any(term in tgt.lower() for term in ('error', 'fail', 'reject')):
+                            has_error_recovery = True
+                            break
+                if state_def.get('onError'):
+                    has_error_recovery = True
+
                 if not has_error_recovery:
                     violations.append(f"{fname}: '{state_name}' state must have an explicit error/failure transition for resilience.")
 
@@ -102,25 +130,27 @@ def check_fsm_file(file_path):
     for state_name, state_def in states.items():
         if not isinstance(state_def, dict):
             continue
-        is_final = state_def.get('final') is True or state_def.get('type') == 'final'
+        is_final = state_def.get('final') is True or state_def.get('type') == 'final' or state_def.get('isFinal') is True
         transitions = state_def.get('on', {})
         if not is_final and not transitions:
             violations.append(f"{fname}: Deadlock detected in non-final state '{state_name}' (no outgoing transitions).")
 
     # 5. Graph reachability check (BFS from initialState)
-    if initial_state and initial_state in states:
+    if initial_state and isinstance(initial_state, str) and initial_state in states:
         visited = set()
         queue = deque([initial_state])
         while queue:
             curr = queue.popleft()
-            if curr in visited:
+            if curr in visited or curr not in states:
                 continue
             visited.add(curr)
-            for target in states.get(curr, {}).get('on', {}).values():
-                if target in states and target not in visited:
-                    queue.append(target)
+            transitions = states[curr].get('on', {})
+            if isinstance(transitions, dict):
+                for target in transitions.values():
+                    if isinstance(target, str) and target in states and target not in visited:
+                        queue.append(target)
 
-        unreachable = set(states.keys()) - visited
+        unreachable = sorted(list(set(states.keys()) - visited))
         if unreachable:
             violations.append(f"{fname}: Unreachable orphaned state(s) detected: {', '.join(unreachable)}.")
 
@@ -129,12 +159,17 @@ def check_fsm_file(file_path):
         if not isinstance(state_def, dict):
             continue
         transitions = state_def.get('on', {})
-        for trigger, target in transitions.items():
-            if any(term in trigger.lower() or term in target.lower() for term in ('error', 'fail', 'reject')):
-                if target in states:
-                    target_transitions = states[target].get('on', {})
-                    if not target_transitions:
-                        violations.append(f"{fname}: Error state '{target}' has no recovery transitions (dead-end error trap).")
+        if isinstance(transitions, dict):
+            for trigger, target in transitions.items():
+                if isinstance(trigger, str) and isinstance(target, str):
+                    if any(term in trigger.lower() or term in target.lower() for term in ('error', 'fail', 'reject')):
+                        if target in states:
+                            tgt_def = states[target]
+                            is_target_final = tgt_def.get('final') is True or tgt_def.get('type') == 'final' or tgt_def.get('isFinal') is True
+                            if not is_target_final:
+                                target_transitions = tgt_def.get('on', {})
+                                if not target_transitions:
+                                    violations.append(f"{fname}: Error state '{target}' has no recovery transitions (dead-end error trap).")
 
     return violations
 
@@ -142,29 +177,37 @@ def find_target_fsm_dir(target_path):
     target_abs = os.path.abspath(target_path)
     root_pkg = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-    is_root_or_docs = (target_abs == root_pkg or target_abs == os.path.join(root_pkg, 'docs'))
-    # Dedicated FSM directories take priority over raw target root
-    candidates = [
-        os.path.join(target_abs, 'core', 'fsm'),
-        os.path.join(target_abs, 'fsm'),
-        os.path.join(target_abs, '.orthotect', 'fsm')
-    ]
-    if is_root_or_docs:
-        candidates.append(os.path.join(root_pkg, 'core', 'fsm'))
-    candidates.append(target_abs)
+    # Direct target file
+    if os.path.isfile(target_abs) and target_abs.endswith('.json'):
+        return os.path.dirname(target_abs), [os.path.basename(target_abs)]
 
-    ignored_jsons = {
-        'package.json', 'package-lock.json', 'tsconfig.json',
-        'gallery-data.json', 'manifest.json', 'sitemap.json', 'skills.sh.json'
-    }
+    if not os.path.exists(target_abs) or not os.path.isdir(target_abs):
+        return None, []
 
-    for c in candidates:
-        if os.path.exists(c) and os.path.isdir(c):
-            json_files = [f for f in os.listdir(c) if f.endswith('.json') and f not in ignored_jsons]
+    # 1. Approved dedicated FSM subdirectories within target
+    for sub in [('core', 'fsm'), ('fsm',), ('.orthotect', 'fsm')]:
+        candidate = os.path.join(target_abs, *sub)
+        if os.path.exists(candidate) and os.path.isdir(candidate):
+            json_files = [f for f in os.listdir(candidate) if f.endswith('.json')]
             if json_files:
-                return c, json_files
-    return None, []
+                return candidate, sorted(json_files)
 
+    # 2. Target itself is an approved dedicated FSM directory
+    if os.path.basename(target_abs) in ('fsm', 'state_machines', 'states'):
+        json_files = [f for f in os.listdir(target_abs) if f.endswith('.json')]
+        if json_files:
+            return target_abs, sorted(json_files)
+
+    # 3. Explicit fallback ONLY for repository root or documentation project
+    is_root_or_docs = (target_abs == root_pkg or target_abs == os.path.join(root_pkg, 'docs'))
+    if is_root_or_docs:
+        root_fsm = os.path.join(root_pkg, 'core', 'fsm')
+        if os.path.exists(root_fsm) and os.path.isdir(root_fsm):
+            json_files = [f for f in os.listdir(root_fsm) if f.endswith('.json')]
+            if json_files:
+                return root_fsm, sorted(json_files)
+
+    return None, []
 
 def main():
     target_path = sys.argv[1] if len(sys.argv) > 1 else 'core/fsm'
@@ -197,6 +240,6 @@ def main():
         for v in all_violations:
             print(f"   - {v}")
         sys.exit(1)
-
 if __name__ == '__main__':
     main()
+

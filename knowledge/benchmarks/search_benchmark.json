@@ -1,0 +1,147 @@
+[
+  {
+    "id": "bench-01",
+    "query": "fintech trading high density operations",
+    "intent": "design-context",
+    "expected_ids": [
+      "precision-analytical-console",
+      "high-density-operational"
+    ]
+  },
+  {
+    "id": "bench-02",
+    "query": "healthcare clinical patient intake accessibility",
+    "intent": "design-context",
+    "expected_ids": [
+      "accessible-high-contrast",
+      "wcag-matrix"
+    ]
+  },
+  {
+    "id": "bench-03",
+    "query": "modern saas product pricing bento",
+    "intent": "design-context",
+    "expected_ids": [
+      "contemporary-product-saas",
+      "component-contracts"
+    ]
+  },
+  {
+    "id": "bench-04",
+    "query": "luxury physical goods wholesale ecommerce catalog",
+    "intent": "design-context",
+    "expected_ids": [
+      "material-led-commerce"
+    ]
+  },
+  {
+    "id": "bench-05",
+    "query": "editorial typography clarity reading monograph",
+    "intent": "design-context",
+    "expected_ids": [
+      "restrained-editorial-clarity",
+      "type-scales"
+    ]
+  },
+  {
+    "id": "bench-06",
+    "query": "typographic scale major third hierarchy",
+    "intent": "typography",
+    "expected_ids": [
+      "type-scales",
+      "accessible-high-contrast"
+    ]
+  },
+  {
+    "id": "bench-07",
+    "query": "monospace tabular figures terminal stream",
+    "intent": "typography",
+    "expected_ids": [
+      "precision-analytical-console",
+      "type-scales"
+    ]
+  },
+  {
+    "id": "bench-08",
+    "query": "wcag 2.2 aaa 7:1 contrast ratio matrix",
+    "intent": "accessibility",
+    "expected_ids": [
+      "wcag-matrix",
+      "semantic-roles",
+      "accessible-high-contrast"
+    ]
+  },
+  {
+    "id": "bench-09",
+    "query": "keyboard navigation focus trap outline",
+    "intent": "accessibility",
+    "expected_ids": [
+      "dialog-focus-trap",
+      "accessible-high-contrast",
+      "component-contracts"
+    ]
+  },
+  {
+    "id": "bench-10",
+    "query": "bidi logical properties arabic rtl layout symmetry",
+    "intent": "bidi",
+    "expected_ids": [
+      "logical-rules",
+      "layout-patterns"
+    ]
+  },
+  {
+    "id": "bench-11",
+    "query": "css logical properties margin inline start",
+    "intent": "bidi",
+    "expected_ids": [
+      "logical-rules"
+    ]
+  },
+  {
+    "id": "bench-12",
+    "query": "state machine dialog focus trap fsm",
+    "intent": "components",
+    "expected_ids": [
+      "dialog-focus-trap",
+      "component-contracts"
+    ]
+  },
+  {
+    "id": "bench-13",
+    "query": "semantic color roles primary canvas surface tokens",
+    "intent": "palettes",
+    "expected_ids": [
+      "semantic-roles",
+      "dark-mode-mapping"
+    ]
+  },
+  {
+    "id": "bench-14",
+    "query": "reduced motion duration tokens easing",
+    "intent": "motion",
+    "expected_ids": [
+      "motion-tokens",
+      "accessible-high-contrast"
+    ]
+  },
+  {
+    "id": "bench-15",
+    "query": "تباين الالوان معايير الوصول الشامل",
+    "intent": "arabic-accessibility",
+    "expected_ids": [
+      "wcag-matrix",
+      "semantic-roles",
+      "accessible-high-contrast"
+    ]
+  },
+  {
+    "id": "bench-16",
+    "query": "الاتجاه ثنائي اللغة الخصائص المنطقية",
+    "intent": "arabic-bidi",
+    "expected_ids": [
+      "logical-rules",
+      "layout-patterns"
+    ]
+  }
+]

@@ -60,7 +60,12 @@
         "$value": "#e0e7ff",
         "$type": "color"
       },
+      "400": {
+        "$value": "#818cf8",
+        "$type": "color"
+      },
       "500": {
+
         "$value": "#4f46e5",
         "$type": "color"
       },

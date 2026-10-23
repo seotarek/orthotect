@@ -66,5 +66,13 @@
       "Verify cart quantity FSM prevents double-submission race conditions",
       "Verify mobile sticky checkout bar does not obscure primary content"
     ]
+  },
+  "verificationStatus": "HEURISTIC",
+  "evidence": {
+    "schemaValid": true,
+    "gatesPassed": [],
+    "browserVerified": false,
+    "verifiedAt": "2026-10-23T04:00:00Z",
+    "revision": "v1.6.0"
   }
 }

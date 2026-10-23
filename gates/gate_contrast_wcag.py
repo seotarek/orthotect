@@ -39,14 +39,34 @@ def contrast_ratio(color1, color2):
     darker = min(lum1, lum2)
     return (lighter + 0.05) / (darker + 0.05)
 
-def resolve_ref(val, primitives):
-    if isinstance(val, str) and val.startswith('{') and val.endswith('}'):
-        path = val[1:-1].split('.')
-        curr = primitives
-        for p in path:
-            curr = curr[p]
-        return curr['$value']
-    return val
+def resolve_ref(val, primitives, visited=None):
+    """
+    Resolves DTCG token references (e.g. '{color.neutral.900}') against primitives dictionary.
+    Includes circular reference cycle detection and missing reference validation.
+    """
+    if not isinstance(val, str) or not (val.startswith('{') and val.endswith('}')):
+        return val
+
+    if visited is None:
+        visited = []
+
+    if val in visited:
+        chain = " -> ".join(visited + [val])
+        raise ValueError(f"Circular reference detected in design tokens: {chain}")
+
+    visited_next = list(visited) + [val]
+    path = val[1:-1].split('.')
+    curr = primitives
+    for p in path:
+        if not isinstance(curr, dict) or p not in curr:
+            raise ValueError(f"Unresolved token reference '{val}': missing key '{p}' in token dictionary.")
+        curr = curr[p]
+
+    resolved = curr.get('$value', curr) if isinstance(curr, dict) else curr
+    if isinstance(resolved, str) and resolved.startswith('{') and resolved.endswith('}'):
+        return resolve_ref(resolved, primitives, visited_next)
+
+    return resolved
 
 def find_target_tokens(target_path):
     target_abs = os.path.abspath(target_path)
@@ -72,6 +92,82 @@ def find_target_tokens(target_path):
             
     return None, None
 
+def evaluate_semantic_pairs(theme_name, theme_data, prims):
+    """
+    Builds and evaluates the canonical semantic contrast matrix covering:
+    - Primary, secondary, tertiary text across canvas, panel, subtle, and elevated surfaces
+    - Action controls (primary and danger) and their hover states
+    - Non-text UI components (borders, boundaries, and focus indicators) under WCAG 2.2 SC 1.4.11
+    """
+    surfaces = theme_data.get('surface')
+    contents = theme_data.get('content')
+    borders = theme_data.get('border')
+    actions = theme_data.get('action')
+
+    if not isinstance(surfaces, dict) or not isinstance(contents, dict) or not isinstance(borders, dict) or not isinstance(actions, dict):
+        raise ValueError(f"Theme '{theme_name}' is missing required token groups (surface, content, border, action)")
+
+    def get_rgb(group, key):
+        grp_data = theme_data.get(group, {})
+        tok = grp_data.get(key)
+        if not tok or not isinstance(tok, dict) or '$value' not in tok:
+            raise ValueError(f"Missing required semantic token in theme [{theme_name}]: '{group}.{key}'")
+        raw_val = tok['$value']
+        resolved = resolve_ref(raw_val, prims)
+        try:
+            return parse_hex_color(resolved), resolved
+        except Exception as e:
+            raise ValueError(f"Invalid color value for [{theme_name}] '{group}.{key}' ({raw_val} -> {resolved}): {e}")
+
+    canvas_rgb, canvas_hex = get_rgb('surface', 'canvas')
+    panel_rgb, panel_hex = get_rgb('surface', 'panel')
+    subtle_rgb, subtle_hex = get_rgb('surface', 'subtle')
+    elevated_rgb, elevated_hex = get_rgb('surface', 'elevated')
+
+    cp_rgb, cp_hex = get_rgb('content', 'primary')
+    cs_rgb, cs_hex = get_rgb('content', 'secondary')
+    ct_rgb, ct_hex = get_rgb('content', 'tertiary')
+    ci_rgb, ci_hex = get_rgb('content', 'inverse')
+
+    ap_rgb, ap_hex = get_rgb('action', 'primary')
+    aph_rgb, aph_hex = get_rgb('action', 'primaryHover')
+    ad_rgb, ad_hex = get_rgb('action', 'danger')
+    adh_rgb, adh_hex = get_rgb('action', 'dangerHover')
+
+    bs_rgb, bs_hex = get_rgb('border', 'strong')
+    bf_rgb, bf_hex = get_rgb('border', 'focus')
+
+    pairs = [
+        # Normal Body Text (WCAG 2.2 SC 1.4.3: 4.5:1 AA, 7.0:1 AAA)
+        ("Content Primary on Canvas", cp_rgb, canvas_rgb, 4.5, 7.0, "Body Text"),
+        ("Content Primary on Panel", cp_rgb, panel_rgb, 4.5, 7.0, "Panel Body Text"),
+        ("Content Primary on Subtle Surface", cp_rgb, subtle_rgb, 4.5, 7.0, "Subtle Surface Body Text"),
+        ("Content Primary on Elevated Surface", cp_rgb, elevated_rgb, 4.5, 7.0, "Elevated Surface Body Text"),
+        ("Content Secondary on Canvas", cs_rgb, canvas_rgb, 4.5, 7.0, "Secondary Text"),
+        ("Content Secondary on Panel", cs_rgb, panel_rgb, 4.5, 7.0, "Panel Secondary Text"),
+        ("Content Secondary on Subtle Surface", cs_rgb, subtle_rgb, 4.5, 7.0, "Subtle Surface Secondary Text"),
+        ("Content Secondary on Elevated Surface", cs_rgb, elevated_rgb, 4.5, 7.0, "Elevated Surface Secondary Text"),
+        ("Content Tertiary on Canvas", ct_rgb, canvas_rgb, 3.0, 4.5, "Large/Auxiliary Supporting Text"),
+        ("Content Tertiary on Panel", ct_rgb, panel_rgb, 3.0, 4.5, "Large/Auxiliary Panel Text"),
+
+
+        # Action Button Text & Hover States (4.5:1 AA, 7.0:1 AAA)
+        ("Inverse Text on Action Primary", ci_rgb, ap_rgb, 4.5, 7.0, "Primary Button Label"),
+        ("Inverse Text on Action Primary Hover", ci_rgb, aph_rgb, 4.5, 7.0, "Primary Button Hover Label"),
+        ("Inverse Text on Action Danger", ci_rgb, ad_rgb, 4.5, 7.0, "Destructive Button Label"),
+        ("Inverse Text on Action Danger Hover", ci_rgb, adh_rgb, 4.5, 7.0, "Destructive Button Hover Label"),
+
+        # Non-Text UI Components (WCAG 2.2 SC 1.4.11: 3.0:1 AA, 4.5:1 AAA)
+        ("Action Primary Control Boundary on Canvas", ap_rgb, canvas_rgb, 3.0, 4.5, "Primary Control Boundary"),
+        ("Action Danger Control Boundary on Canvas", ad_rgb, canvas_rgb, 3.0, 4.5, "Destructive Control Boundary"),
+        ("Border Strong on Surface Panel", bs_rgb, panel_rgb, 3.0, 4.5, "Panel Boundary Line"),
+        ("Border Strong on Surface Canvas", bs_rgb, canvas_rgb, 3.0, 4.5, "Canvas Boundary Line"),
+        ("Focus Indicator on Surface Canvas", bf_rgb, canvas_rgb, 3.0, 4.5, "Focus Ring on Canvas"),
+        ("Focus Indicator on Surface Panel", bf_rgb, panel_rgb, 3.0, 4.5, "Focus Ring on Panel"),
+    ]
+    return pairs
+
+get_semantic_contrast_pairs = evaluate_semantic_pairs
 
 def main():
     target_path = sys.argv[1] if len(sys.argv) > 1 else '.'
@@ -101,25 +197,21 @@ def main():
     passed_aaa = 0
     passed_aa = 0
 
-    for theme_name, theme_data in sems.get('theme', {}).items():
+    themes = sems.get('theme', {})
+    if not themes or not isinstance(themes, dict):
+        print("❌ [REJECT] Missing 'theme' declarations in semantics.json")
+        sys.exit(1)
+
+    for theme_name, theme_data in themes.items():
         print(f"\nTheme Scope: [{theme_name.upper()}]")
-        canvas = parse_hex_color(resolve_ref(theme_data['surface']['canvas']['$value'], prims))
-        panel = parse_hex_color(resolve_ref(theme_data['surface']['panel']['$value'], prims))
-        action_primary = parse_hex_color(resolve_ref(theme_data['action']['primary']['$value'], prims))
-        
-        pairs = [
-            ("Content Primary on Canvas", resolve_ref(theme_data['content']['primary']['$value'], prims), canvas, 4.5, 7.0, "Body Text"),
-            ("Content Primary on Panel", resolve_ref(theme_data['content']['primary']['$value'], prims), panel, 4.5, 7.0, "Panel Body Text"),
-            ("Content Secondary on Canvas", resolve_ref(theme_data['content']['secondary']['$value'], prims), canvas, 4.5, 7.0, "Secondary Text"),
-            ("Action Primary on Canvas", resolve_ref(theme_data['action']['primary']['$value'], prims), canvas, 3.0, 4.5, "Primary Control"),
-            ("Action Danger on Canvas", resolve_ref(theme_data['action']['danger']['$value'], prims), canvas, 3.0, 4.5, "Destructive Control"),
-            ("Border Strong on Panel", resolve_ref(theme_data['border']['strong']['$value'], prims), panel, 3.0, 4.5, "UI Component Border"),
-            ("Inverse Text on Action Primary", resolve_ref(theme_data['content']['inverse']['$value'], prims), action_primary, 4.5, 7.0, "Button Label")
-        ]
+        try:
+            pairs = evaluate_semantic_pairs(theme_name, theme_data, prims)
+        except Exception as e:
+            print(f"❌ [REJECT] Token evaluation error in theme [{theme_name}]: {e}")
+            failures += 1
+            continue
 
-
-        for label, fg_hex, bg_rgb, aa_req, aaa_req, usage in pairs:
-            fg_rgb = parse_hex_color(fg_hex) if isinstance(fg_hex, str) else fg_hex
+        for label, fg_rgb, bg_rgb, aa_req, aaa_req, usage in pairs:
             ratio = contrast_ratio(fg_rgb, bg_rgb)
             tested_pairs += 1
             
@@ -138,9 +230,10 @@ def main():
                 failures += 1
                 
             symbol = "✅" if meets_aa else "❌"
-            print(f"  {symbol} {label:<32}: {ratio:5.2f}:1 [{tier:<10}] ({usage})")
+            print(f"  {symbol} {label:<44}: {ratio:5.2f}:1 [{tier:<10}] ({usage})")
 
-    print(f"\nSummary: {tested_pairs} semantic token pairs evaluated.")
+    print(f"\nSummary: {tested_pairs} semantic token pairs evaluated across {len(themes)} theme(s).")
+    print("Scope: Static Design Token Semantic Matrix. (Rendered DOM element contrast must be separately evaluated via browser tests).")
     if failures == 0 and tested_pairs > 0:
         print(f"✅ [PASS] 100% of tested token pairs meet mandatory WCAG 2.2 AA standards ({passed_aa}/{tested_pairs}).")
         print(f"   Enhanced Tier: {passed_aaa}/{tested_pairs} pairs achieved full WCAG 2.2 AAA.")
@@ -149,5 +242,7 @@ def main():
         print(f"❌ [REJECT] {failures} contrast check(s) failed mandatory WCAG 2.2 AA criteria.")
         sys.exit(1)
 
+
 if __name__ == '__main__':
     main()
+

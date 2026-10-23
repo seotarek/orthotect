@@ -9,12 +9,13 @@
     },
     "skeletonLoading": {
       "description": "Preserves exact table dimensions with animated skeleton pulses to prevent CLS layout shift.",
+      "isAsync": true,
+      "allowClick": false,
       "on": {
         "DATA_LOADED": "ready",
         "EMPTY_RESULT": "emptyState",
         "LOAD_FAILED": "errorState"
-      },
-      "allowClick": false
+      }
     },
     "ready": {
       "on": {

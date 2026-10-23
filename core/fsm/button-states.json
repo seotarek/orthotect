@@ -30,6 +30,7 @@
     },
     "loading": {
       "description": "Async execution underway. Action locked against double-submission. Spinner replaces or flanks label without dimming contrast.",
+      "isAsync": true,
       "allowClick": false,
       "on": {
         "RESOLVE_SUCCESS": "successFeedback",

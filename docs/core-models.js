@@ -14,12 +14,13 @@
         },
         "skeletonLoading": {
           "description": "Preserves exact table dimensions with animated skeleton pulses to prevent CLS layout shift.",
+          "isAsync": true,
+          "allowClick": false,
           "on": {
             "DATA_LOADED": "ready",
             "EMPTY_RESULT": "emptyState",
             "LOAD_FAILED": "errorState"
-          },
-          "allowClick": false
+          }
         },
         "ready": {
           "on": {
@@ -159,6 +160,7 @@
         },
         "loading": {
           "description": "Async execution underway. Action locked against double-submission. Spinner replaces or flanks label without dimming contrast.",
+          "isAsync": true,
           "allowClick": false,
           "on": {
             "RESOLVE_SUCCESS": "successFeedback",
@@ -254,6 +256,10 @@
           },
           "100": {
             "$value": "#e0e7ff",
+            "$type": "color"
+          },
+          "400": {
+            "$value": "#818cf8",
             "$type": "color"
           },
           "500": {
@@ -425,7 +431,7 @@
               "$type": "color"
             },
             "tertiary": {
-              "$value": "{color.neutral.400}",
+              "$value": "{color.neutral.500}",
               "$type": "color"
             },
             "inverse": {
@@ -513,7 +519,7 @@
               "$type": "color"
             },
             "focus": {
-              "$value": "{color.brand.500}",
+              "$value": "{color.brand.400}",
               "$type": "color"
             }
           },

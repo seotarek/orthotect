@@ -64,5 +64,13 @@
       "Verify line-length clamps across viewports (375px to 1440px)",
       "Verify high contrast mode renders all text with system borders"
     ]
+  },
+  "verificationStatus": "NOT_EVALUATED",
+  "evidence": {
+    "schemaValid": true,
+    "gatesPassed": [],
+    "browserVerified": false,
+    "verifiedAt": "2026-10-23T04:00:00Z",
+    "revision": "v1.6.0"
   }
 }

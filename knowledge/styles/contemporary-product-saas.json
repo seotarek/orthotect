@@ -65,5 +65,13 @@
       "Verify modal focus trapping and restoration on dismiss",
       "Verify LTR to RTL bidirectional symmetry"
     ]
+  },
+  "verificationStatus": "HEURISTIC",
+  "evidence": {
+    "schemaValid": true,
+    "gatesPassed": ["gate_bidi_logical.py"],
+    "browserVerified": false,
+    "verifiedAt": "2026-10-23T04:00:00Z",
+    "revision": "v1.6.0"
   }
 }

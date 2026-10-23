@@ -93,7 +93,6 @@ CONTRAST_TIERS = {
     'action_text': 4.5      # Primary interactive button text
 }
 
-# Required Semantic Token Pairs for every complete theme
 MANDATORY_SEMANTIC_PAIRS = [
     (('surface', 'canvas'), ('content', 'primary'), 'normal_text'),
     (('surface', 'panel'), ('content', 'primary'), 'normal_text'),
@@ -101,12 +100,17 @@ MANDATORY_SEMANTIC_PAIRS = [
 ]
 
 def verify_theme_contrast(theme_dict, prims, theme_label):
+    """
+    Validates design tokens against the canonical semantic contrast matrix covering
+    content, surfaces, actions, borders, and focus rings.
+    """
     results = []
     surfaces = theme_dict.get('surface', {})
     contents = theme_dict.get('content', {})
     actions = theme_dict.get('action', {})
+    borders = theme_dict.get('border', {})
 
-    # 1. Verify all mandatory semantic pairs exist
+    # 1. Verify mandatory semantic tokens exist
     for (bg_grp, bg_tok), (fg_grp, fg_tok), tier in MANDATORY_SEMANTIC_PAIRS:
         grp_data = theme_dict.get(bg_grp, {})
         tok_data = grp_data.get(bg_tok)
@@ -118,19 +122,35 @@ def verify_theme_contrast(theme_dict, prims, theme_label):
         if not fg_tok_data or not isinstance(fg_tok_data, dict) or '$value' not in fg_tok_data:
             raise ValueError(f"Missing required semantic token: [{theme_label}] '{fg_grp}.{fg_tok}'")
 
-    # 2. Dynamic pairing: test all surface tokens against content.primary and content.secondary
+    # 2. Build full canonical pair list covering text, surfaces, actions, borders, focus
     pairs = []
     for s_name in sorted(surfaces.keys()):
         if 'primary' in contents:
             pairs.append((('surface', s_name), ('content', 'primary'), 'normal_text'))
         if 'secondary' in contents:
             pairs.append((('surface', s_name), ('content', 'secondary'), 'normal_text'))
+        if 'tertiary' in contents:
+            pairs.append((('surface', s_name), ('content', 'tertiary'), 'large_text'))
 
     if 'primary' in actions and 'inverse' in contents:
         pairs.append((('action', 'primary'), ('content', 'inverse'), 'action_text'))
+    if 'primaryHover' in actions and 'inverse' in contents:
+        pairs.append((('action', 'primaryHover'), ('content', 'inverse'), 'action_text'))
     if 'danger' in actions and 'inverse' in contents:
         pairs.append((('action', 'danger'), ('content', 'inverse'), 'action_text'))
+    if 'dangerHover' in actions and 'inverse' in contents:
+        pairs.append((('action', 'dangerHover'), ('content', 'inverse'), 'action_text'))
 
+    if 'strong' in borders and 'panel' in surfaces:
+        pairs.append((('surface', 'panel'), ('border', 'strong'), 'ui_control'))
+    if 'strong' in borders and 'canvas' in surfaces:
+        pairs.append((('surface', 'canvas'), ('border', 'strong'), 'ui_control'))
+    if 'focus' in borders and 'canvas' in surfaces:
+        pairs.append((('surface', 'canvas'), ('border', 'focus'), 'ui_control'))
+    if 'focus' in borders and 'panel' in surfaces:
+        pairs.append((('surface', 'panel'), ('border', 'focus'), 'ui_control'))
+
+    # Evaluate each pair
     for (bg_grp, bg_tok), (fg_grp, fg_tok), tier in pairs:
         bg_val = theme_dict.get(bg_grp, {}).get(bg_tok, {}).get('$value')
         fg_val = theme_dict.get(fg_grp, {}).get(fg_tok, {}).get('$value')
@@ -154,7 +174,6 @@ def verify_theme_contrast(theme_dict, prims, theme_label):
                 )
             rating = "WCAG AAA" if cr >= 7.0 else "WCAG AA"
             results.append(f" *   - [{theme_label}] {bg_grp}.{bg_tok} vs {fg_grp}.{fg_tok}: {cr:.1f}:1 ({rating} - Tier: {tier})")
-
 
     return results
 

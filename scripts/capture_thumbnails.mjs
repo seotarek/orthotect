@@ -53,25 +53,13 @@ async function captureAll() {
       await page.goto(`file://${templatePath}`, { waitUntil: "load" });
       await page.waitForTimeout(60);
 
-      // Try capturing the content section or main wrapper for maximum visual fidelity
-      const targetEl = await page.$(".template-content-section") || await page.$("main");
-
-      if (targetEl) {
-        // Capture element screenshot directly
-        await targetEl.screenshot({
-          path: outputPath,
-          type: "webp",
-          quality: 85
-        });
-      } else {
-        // Fallback: clip viewport
-        await page.screenshot({
-          path: outputPath,
-          type: "webp",
-          quality: 85,
-          clip: { x: 0, y: 60, width: 1200, height: 600 }
-        });
-      }
+      // Capture perfectly framed 1200x600 preview showing header + UI components
+      await page.screenshot({
+        path: outputPath,
+        type: "webp",
+        quality: 85,
+        clip: { x: 0, y: 55, width: 1200, height: 600 }
+      });
 
       count++;
       console.log(`[${count}/${files.length}] Captured: assets/thumbnails/${id}.webp`);

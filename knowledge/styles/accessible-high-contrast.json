@@ -65,5 +65,13 @@
       "Verify 200% browser zoom reflow without text overlapping or horizontal scrolling",
       "Verify Windows High Contrast / Forced Colors mode support"
     ]
+  },
+  "verificationStatus": "VERIFIED_BROWSER",
+  "evidence": {
+    "schemaValid": true,
+    "gatesPassed": ["gate_contrast_wcag.py", "gate_bidi_logical.py", "gate_fsm_integrity.py", "gate_no_slop.py"],
+    "browserVerified": true,
+    "verifiedAt": "2026-10-23T04:00:00Z",
+    "revision": "v1.6.0"
   }
 }

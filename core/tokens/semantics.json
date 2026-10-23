@@ -30,7 +30,7 @@
           "$type": "color"
         },
         "tertiary": {
-          "$value": "{color.neutral.400}",
+          "$value": "{color.neutral.500}",
           "$type": "color"
         },
         "inverse": {
@@ -118,9 +118,10 @@
           "$type": "color"
         },
         "focus": {
-          "$value": "{color.brand.500}",
+          "$value": "{color.brand.400}",
           "$type": "color"
         }
+
       },
       "action": {
         "primary": {

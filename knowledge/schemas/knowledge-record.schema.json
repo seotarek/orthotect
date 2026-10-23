@@ -30,7 +30,17 @@
     "applicableStacks": { "type": "array", "items": { "type": "string" } },
     "accessibilityNotes": { "type": "string" },
     "provenance": { "type": "string" },
-    "verificationStatus": { "type": "string", "enum": ["VERIFIED_DETERMINISTIC", "VERIFIED_BROWSER", "HEURISTIC"] },
+    "verificationStatus": { "type": "string", "enum": ["VERIFIED_DETERMINISTIC", "VERIFIED_BROWSER", "HEURISTIC", "NOT_EVALUATED"] },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "schemaValid": { "type": "boolean" },
+        "gatesPassed": { "type": "array", "items": { "type": "string" } },
+        "browserVerified": { "type": "boolean" },
+        "verifiedAt": { "type": "string" },
+        "revision": { "type": "string" }
+      }
+    },
     "tags": { "type": "array", "items": { "type": "string" } }
   }
 }

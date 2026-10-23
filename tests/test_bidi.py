@@ -43,7 +43,118 @@ class TestBidiScanner(unittest.TestCase):
         with open(fpath, "w") as f:
             f.write(physical_css)
         viols = scan_file(fpath)
+    def test_comments_with_prohibited_terms_ignored(self):
+        """Comments containing physical property terms must be completely ignored by the AST parser."""
+        css_with_comments = """
+        /* margin-left: 20px; float: left; padding-right: 10px; */
+        .box {
+            /* text-align: left; */
+            margin-inline-start: 1rem;
+        }
+        """
+        fpath = os.path.join(self.temp_dir.name, "commented.css")
+        with open(fpath, "w") as f:
+            f.write(css_with_comments)
+        viols = scan_file(fpath)
+        self.assertEqual(len(viols), 0)
+
+    def test_quoted_strings_and_custom_properties_ignored(self):
+        """Quoted strings in content and CSS custom properties (--*) must not trigger false positives."""
+        css_strings = """
+        .badge::before {
+            content: "margin-left: 10px; float: right;";
+            --direction-margin-left: 1rem;
+            --custom-padding-right: 2rem;
+            margin-inline: 1rem;
+        }
+        """
+        fpath = os.path.join(self.temp_dir.name, "strings.css")
+        with open(fpath, "w") as f:
+            f.write(css_strings)
+        viols = scan_file(fpath)
+        self.assertEqual(len(viols), 0)
+
+    def test_multiline_declarations_detected(self):
+        """Multiline declarations must be detected with accurate line and column diagnostics."""
+        css_multiline = """
+        .card {
+            margin-left:
+                24px;
+        }
+        """
+        fpath = os.path.join(self.temp_dir.name, "multiline.css")
+        with open(fpath, "w") as f:
+            f.write(css_multiline)
+        viols = scan_file(fpath)
+        self.assertEqual(len(viols), 1)
+        self.assertEqual(viols[0].line, 3)
+        self.assertEqual(viols[0].col, 13)
+        self.assertEqual(viols[0].suggestion, "margin-inline-start")
+
+    def test_physical_border_longhands_and_corner_radii_detected(self):
+        """Physical border longhands (width, style, color) and corner radii must be rejected."""
+        css_borders = """
+        .panel {
+            border-left-width: 2px;
+            border-right-color: #ff0000;
+            border-top-left-radius: 8px;
+            border-bottom-right-radius: 4px;
+        }
+        """
+        fpath = os.path.join(self.temp_dir.name, "borders.css")
+        with open(fpath, "w") as f:
+            f.write(css_borders)
+        viols = scan_file(fpath)
         self.assertEqual(len(viols), 4)
+
+    def test_html_style_blocks_and_inline_attributes_detected(self):
+        """HTML documents must be parsed for both <style> tags and inline style attributes."""
+        html_content = """<!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                .hero { margin-left: 32px; }
+            </style>
+        </head>
+        <body>
+            <!-- <div style="margin-left: 99px;">Commented out markup</div> -->
+            <div style="padding-left: 16px; float: left;">Content</div>
+        </body>
+        </html>
+        """
+        fpath = os.path.join(self.temp_dir.name, "page.html")
+        with open(fpath, "w") as f:
+            f.write(html_content)
+        viols = scan_file(fpath)
+        # Should detect: .hero margin-left, inline padding-left, inline float: left (commented out one ignored)
+        self.assertEqual(len(viols), 3)
+
+    def test_nested_rules_and_media_queries_detected(self):
+        """Declarations inside media queries and nested CSS rules must be validated."""
+        css_nested = """
+        @media (max-width: 768px) {
+            .container {
+                .sidebar {
+                    margin-right: 12px;
+                }
+            }
+        }
+        """
+        fpath = os.path.join(self.temp_dir.name, "nested.css")
+        with open(fpath, "w") as f:
+            f.write(css_nested)
+        viols = scan_file(fpath)
+        self.assertEqual(len(viols), 1)
+        self.assertEqual(viols[0].suggestion, "margin-inline-end")
+
+    def test_unsupported_file_extension_raises_explicit_error(self):
+        """Gate must reject unsupported file extensions rather than claiming full verification."""
+        fpath = os.path.join(self.temp_dir.name, "script.py")
+        with open(fpath, "w") as f:
+            f.write("print('hello')")
+        with self.assertRaises(ValueError) as ctx:
+            scan_file(fpath)
+        self.assertIn("Unsupported styling format", str(ctx.exception))
 
 class TestBidiGateE2E(unittest.TestCase):
     def setUp(self):
@@ -94,3 +205,4 @@ class TestBidiGateE2E(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
