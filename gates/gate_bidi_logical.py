@@ -409,97 +409,223 @@ def scan_html_content(html_text):
 def strip_js_comments_string_aware(text):
     """
     Strips single-line (//) and multi-line (/* */) JavaScript comments
-    while strictly preserving single-quoted, double-quoted, and template-literal strings.
+    while strictly preserving single-quoted, double-quoted, and template-literal strings,
+    including arbitrarily nested template literal interpolations (${...}).
     Prevents '//' inside strings (e.g. 'https://...') from truncating the rest of the line.
     Preserves all newline characters to maintain exact source line coordinates.
     """
     result = []
     i = 0
     n = len(text)
-    state = 'NORMAL'
+    stack = []
 
     while i < n:
         ch = text[i]
 
-        if state == 'NORMAL':
+        in_expr = bool(stack and isinstance(stack[-1], list) and stack[-1][0] == 'EXPR')
+
+        if not stack or in_expr:
             if ch == "'" and (i == 0 or text[i - 1] != '\\'):
-                state = 'SINGLE_QUOTE'
                 result.append(ch)
                 i += 1
+                while i < n:
+                    c = text[i]
+                    result.append(c)
+                    if c == '\\' and i + 1 < n:
+                        result.append(text[i + 1])
+                        i += 2
+                    elif c == "'":
+                        i += 1
+                        break
+                    else:
+                        i += 1
+                continue
+
             elif ch == '"' and (i == 0 or text[i - 1] != '\\'):
-                state = 'DOUBLE_QUOTE'
                 result.append(ch)
                 i += 1
+                while i < n:
+                    c = text[i]
+                    result.append(c)
+                    if c == '\\' and i + 1 < n:
+                        result.append(text[i + 1])
+                        i += 2
+                    elif c == '"':
+                        i += 1
+                        break
+                    else:
+                        i += 1
+                continue
+
             elif ch == '`' and (i == 0 or text[i - 1] != '\\'):
-                state = 'TEMPLATE_LITERAL'
+                stack.append('TEMPLATE_LITERAL')
                 result.append(ch)
                 i += 1
+                continue
+
             elif ch == '/' and i + 1 < n and text[i + 1] == '/':
-                state = 'LINE_COMMENT'
                 result.append('  ')
                 i += 2
+                while i < n:
+                    if text[i] == '\n':
+                        result.append('\n')
+                        i += 1
+                        break
+                    else:
+                        result.append(' ')
+                        i += 1
+                continue
+
             elif ch == '/' and i + 1 < n and text[i + 1] == '*':
-                state = 'BLOCK_COMMENT'
                 result.append('  ')
                 i += 2
+                while i < n:
+                    if text[i] == '*' and i + 1 < n and text[i + 1] == '/':
+                        result.append('  ')
+                        i += 2
+                        break
+                    elif text[i] == '\n':
+                        result.append('\n')
+                        i += 1
+                    else:
+                        result.append(' ')
+                        i += 1
+                continue
+
+            elif in_expr and ch == '{':
+                stack[-1][1] += 1
+                result.append(ch)
+                i += 1
+                continue
+
+            elif in_expr and ch == '}':
+                stack[-1][1] -= 1
+                if stack[-1][1] == 0:
+                    stack.pop()
+                result.append(ch)
+                i += 1
+                continue
+
             else:
                 result.append(ch)
                 i += 1
+                continue
 
-        elif state == 'SINGLE_QUOTE':
-            result.append(ch)
+        elif stack[-1] == 'TEMPLATE_LITERAL':
             if ch == '\\' and i + 1 < n:
+                result.append(ch)
                 result.append(text[i + 1])
                 i += 2
-            elif ch == "'":
-                state = 'NORMAL'
-                i += 1
-            else:
-                i += 1
-
-        elif state == 'DOUBLE_QUOTE':
-            result.append(ch)
-            if ch == '\\' and i + 1 < n:
-                result.append(text[i + 1])
-                i += 2
-            elif ch == '"':
-                state = 'NORMAL'
-                i += 1
-            else:
-                i += 1
-
-        elif state == 'TEMPLATE_LITERAL':
-            result.append(ch)
-            if ch == '\\' and i + 1 < n:
-                result.append(text[i + 1])
+            elif ch == '$' and i + 1 < n and text[i + 1] == '{':
+                stack.append(['EXPR', 1])
+                result.append('${')
                 i += 2
             elif ch == '`':
-                state = 'NORMAL'
+                stack.pop()
+                result.append(ch)
                 i += 1
             else:
-                i += 1
-
-        elif state == 'LINE_COMMENT':
-            if ch == '\n':
-                result.append('\n')
-                state = 'NORMAL'
-            else:
-                result.append(' ')
-            i += 1
-
-        elif state == 'BLOCK_COMMENT':
-            if ch == '*' and i + 1 < n and text[i + 1] == '/':
-                result.append('  ')
-                state = 'NORMAL'
-                i += 2
-            elif ch == '\n':
-                result.append('\n')
-                i += 1
-            else:
-                result.append(' ')
+                result.append(ch)
                 i += 1
 
     return ''.join(result)
+
+def extract_tagged_template_literals(text):
+    """
+    Extracts tagged template literals (styled.xxx`...` or css`...`) from JS/TS code.
+    Correctly skips nested template literals and expressions inside ${...}, replacing
+    interpolations with dummy CSS values (' 0 ') to ensure tinycss2 can parse declarations.
+    Preserves original newline and line offsets.
+    """
+    results = []
+    tag_regex = re.compile(r'(?:styled(?:\.[a-zA-Z0-9_]+|\([^)]+\))?|css)\s*`')
+    for m in tag_regex.finditer(text):
+        start = m.end() - 1  # index of opening `
+        i = start + 1
+        n = len(text)
+        stack = ["TEMPLATE_LITERAL"]
+        css_chars = []
+
+        while i < n and stack:
+            ch = text[i]
+            in_expr = bool(stack and isinstance(stack[-1], list) and stack[-1][0] == "EXPR")
+
+            if not in_expr:
+                if ch == "\\" and i + 1 < n:
+                    css_chars.append(ch)
+                    css_chars.append(text[i + 1])
+                    i += 2
+                elif ch == "$" and i + 1 < n and text[i + 1] == "{":
+                    stack.append(["EXPR", 1])
+                    expr_start = i
+                    i += 2
+                    while i < n and stack and isinstance(stack[-1], list) and stack[-1][0] == "EXPR":
+                        ec = text[i]
+                        if ec == "\\" and i + 1 < n:
+                            i += 2
+                        elif ec == '"':
+                            i += 1
+                            while i < n and text[i] != '"':
+                                if text[i] == "\\" and i + 1 < n:
+                                    i += 2
+                                else:
+                                    i += 1
+                            if i < n:
+                                i += 1
+                        elif ec == "'":
+                            i += 1
+                            while i < n and text[i] != "'":
+                                if text[i] == "\\" and i + 1 < n:
+                                    i += 2
+                                else:
+                                    i += 1
+                            if i < n:
+                                i += 1
+                        elif ec == "`":
+                            i += 1
+                            nest_stack = 1
+                            while i < n and nest_stack > 0:
+                                if text[i] == "\\" and i + 1 < n:
+                                    i += 2
+                                elif text[i] == "`":
+                                    nest_stack -= 1
+                                    i += 1
+                                elif text[i] == "$" and i + 1 < n and text[i + 1] == "{":
+                                    i += 2
+                                    inner_braces = 1
+                                    while i < n and inner_braces > 0:
+                                        if text[i] == "{":
+                                            inner_braces += 1
+                                        elif text[i] == "}":
+                                            inner_braces -= 1
+                                        i += 1
+                                else:
+                                    i += 1
+                        elif ec == "{":
+                            stack[-1][1] += 1
+                            i += 1
+                        elif ec == "}":
+                            stack[-1][1] -= 1
+                            if stack[-1][1] == 0:
+                                stack.pop()
+                            i += 1
+                        else:
+                            i += 1
+                    expr_str = text[expr_start:i]
+                    newlines = expr_str.count("\n")
+                    css_chars.append(" 0 " + ("\n" * newlines))
+                elif ch == "`":
+                    stack.pop()
+                    i += 1
+                    break
+                else:
+                    css_chars.append(ch)
+                    i += 1
+
+        css_text = "".join(css_chars)
+        start_line = text[:start + 1].count("\n")
+        results.append((css_text, start_line))
+    return results
 
 def scan_js_content(js_text):
     violations = []
@@ -508,10 +634,7 @@ def scan_js_content(js_text):
     masked_js = strip_js_comments_string_aware(js_text)
 
     # 2. Extract and scan tagged template literals (styled-components, emotion, etc.)
-    tmpl_pattern = re.compile(r'(?:styled(?:\.[a-zA-Z0-9_]+|\([^)]+\))?|css)\s*`([\s\S]*?)`', re.DOTALL)
-    for match in tmpl_pattern.finditer(masked_js):
-        css_text = match.group(1)
-        start_line = js_text[:match.start(1)].count('\n')
+    for css_text, start_line in extract_tagged_template_literals(masked_js):
         if not re.search(r'\{[\s\S]*?\}', css_text):
             if not HAVE_TINYCSS2:
                 violations.extend(scan_css_content_fallback(css_text, line_offset=start_line))

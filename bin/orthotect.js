@@ -227,9 +227,14 @@ function generatePageBoilerplate(recipe) {
             fsmButton.textContent = 'Processing...';
             if (statusAnnouncer) statusAnnouncer.textContent = 'Processing request...';
 
+            const shouldSimulateError = (
+              (window.location && new URLSearchParams(window.location.search).get('simulate') === 'error') ||
+              fsmButton.getAttribute('data-simulate') === 'error'
+            );
+
             setTimeout(() => {
-              transition('SUCCESS');
-            }, 1000);
+              transition(shouldSimulateError ? 'ERROR' : 'SUCCESS');
+            }, 500);
             break;
 
           case 'success':
@@ -240,7 +245,7 @@ function generatePageBoilerplate(recipe) {
 
             setTimeout(() => {
               transition('RESET');
-            }, 2000);
+            }, 800);
             break;
 
           case 'error':
@@ -257,6 +262,12 @@ function generatePageBoilerplate(recipe) {
         if (currentState === 'idle') transition('CLICK');
         else if (currentState === 'error') transition('RETRY');
       });
+
+      window.__orthotectFsm = {
+        getState: () => currentState,
+        transition: (event) => transition(event),
+        config: fsmConfig
+      };
     })();
   </script>
 </body>

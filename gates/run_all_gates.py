@@ -90,7 +90,7 @@ def main():
     # Standard ASCII console output
     print("\n╔═══════════════════════════════════════════════════════════════╗")
     print("║            ORTHOTECT DETERMINISTIC QUALITY GATES              ║")
-    print("║         Google-Scale Interface Engineering Protocol           ║")
+    print("║     Deterministic High-Integrity Engineering Protocol         ║")
     print("╚═══════════════════════════════════════════════════════════════╝")
     print(f" Target Path: {target_dir}\n")
 

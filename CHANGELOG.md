@@ -22,17 +22,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Quality Gates & Browser Verification**:
   - Maintained 100% green status across all 5 deterministic quality gates on `docs/` and `examples/golden-showcase` (sub-second parallel execution).
   - Passed Playwright headless Chromium rendered DOM contrast test: 20/20 computed element pairs passing WCAG 2.2 in both Light and Dark themes.
-  - Full test suite passing (225+ tests).
+  - Added `tests/test_scaffold_browser.py` verifying scaffolded FSM page lifecycle (`idle` -> `loading` -> `success` -> `idle`), double-click race condition lock, and error recovery in headless Chromium.
+  - Full test suite passing (234 tests across unit, browser, and negative gate suites).
+- **GitHub Packages Registry Publishing**: Added `.github/workflows/publish-package.yml` and published `@seotarek/orthotect@1.7.0` to GitHub Packages registry.
 
 ### Security
 - **DOM XSS Sanitization & Browser Verification**: Sanitized gallery empty-state search query interpolation and playground FSM simulator inputs via strict HTML entity escaping (`docs/app.js`). Added automated Playwright headless Chromium regression tests `test_gallery_search_xss_sanitization` and `test_fsm_terminal_xss_sanitization` in `tests/test_docs_browser.py`.
 - **CI Supply-Chain Hardening**: Configured explicit minimum permissions (`permissions: contents: read`) in `.github/workflows/ci.yml` and pinned all GitHub Actions across `ci.yml` and `pages.yml` to immutable 40-character commit SHAs.
 
 ### Fixed
-- **BiDi AST Gate String-Aware Lexical Scanner**: Implemented state-machine comment stripper `strip_js_comments_string_aware()` in `gates/gate_bidi_logical.py` to preserve single-, double-, and template-literal strings containing `//` (such as URLs), preventing comment-masking false negatives. Added regression test `test_bidi_js_string_with_url_does_not_mask_violation`.
+- **BiDi AST Gate String-Aware Lexical Scanner & Interpolation Stack**: Implemented state-machine comment stripper `strip_js_comments_string_aware()` and `extract_tagged_template_literals()` in `gates/gate_bidi_logical.py` to handle nested template literals and `${...}` interpolations. Masks expressions with dummy CSS tokens so `tinycss2` reliably flags physical properties in styled-components without false negatives or comment interference. Added tests in `tests/test_bidi.py` (24/24 BiDi tests passing).
 - **Anti-Slop Multi-File Support**: Extended `gates/gate_no_slop.py` to scan `.js`, `.ts`, `.jsx`, and `.tsx` files, banning raw emoji icons in JSX button elements and untokenized hex colors in inline style blocks.
 - **CLI Doctor Semver Validation**: Fixed Node.js version parsing in `orthotect doctor` to check both major and minor numbers (`major > 20 || (major === 20 && minor >= 19)`), properly enforcing `>=20.19.0`.
-- **CLI Design Page Executable FSM Runtime**: Upgraded `orthotect design page` to embed an active, zero-dependency client-side FSM controller into generated HTML boilerplate. Implements full state graph reachability (`idle` -> `loading` -> `success` -> `idle`), double-click race condition locks, and `aria-live` accessible status announcements (supports `--out <file>` and `--stdout`).
+- **CLI Design Page Executable FSM Runtime**: Upgraded `orthotect design page` to embed an active, zero-dependency client-side FSM controller into generated HTML boilerplate. Implements full state graph reachability (`idle` -> `loading` -> `success` -> `idle`), double-click race condition locks, error simulation (`?simulate=error`), and `aria-live` accessible status announcements (supports `--out <file>` and `--stdout`).
+- **Competitive Language & Claims Calibration**: Calibrated `README.md` and `COMPETITORS.md` to remove hyperbolic claims, clearly framing alternative toolkits (component libraries, prompt skills) and delineating Orthotect's deterministic static AST verification role.
 - **Architecture Documentation Alignment**: Synchronized `CONTRIBUTING.md` prerequisites and test counts with `package.json`, and added "Dual-Layer Verification Architecture & Scope Delineation" in `README.md`.
 
 ## [1.6.0] - 2026-10-23

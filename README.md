@@ -13,27 +13,27 @@
 > **Live Interactive Showcase & Playground:** [https://seotarek.github.io/orthotect/](https://seotarek.github.io/orthotect/)  
 > **Engineering Whitepapers:** [Competitor Teardown (COMPETITORS.md)](COMPETITORS.md) | [The 7 Laws Manifesto (MANIFESTO.md)](MANIFESTO.md)
 
-Orthotect is an enterprise-grade interface engineering kit built to enforce **Google-caliber architectural rigor** onto autonomous coding agents (Antigravity, Cursor, Claude Code, Codex, Grok). 
+Orthotect is an enterprise-grade interface engineering toolkit built to enforce **deterministic architectural quality gates and state machine rigor** onto autonomous coding agents (Antigravity, Cursor, Claude Code, Codex, Grok). 
 
 Unlike superficial prompt libraries that merely request "good design", Orthotect provides a **mathematical token foundation**, **Finite State Machine (FSM) graph reachability**, and **objective quality gates** that fail the build with `exit 1` if standards are breached.
 
 ---
 
-## ⚡ Why Orthotect Outperforms Competitors
+## ⚡ Architectural Comparison & Ecosystem Delineation
 
-For an exhaustive technical breakdown, read our [Architectural Teardown Whitepaper](COMPETITORS.md).
+For an in-depth technical analysis, read our [Architectural Comparison Whitepaper](COMPETITORS.md).
 
-| Feature | Competitor Toolkits (e.g. XIAS / taste-skill) | Component Libraries (e.g. shadcn/ui) | 🏛️ Orthotect Architecture (Google-Scale) |
+| Capability / Dimension | Prompt-Only Skills (e.g. XIAS / taste-skill) | Component Libraries (e.g. shadcn/ui) | 🏛️ Orthotect Architecture (Deterministic Gates) |
 |---|---|---|---|
-| **CLI Verification** | Runs gates only on package internal fixtures | Manual visual testing / storybook | **Target-Aware & Zero-Fallback:** Inspects user project directory (`orthotect verify <dir>`) with strict path boundaries and real exit codes |
-| **CLI Initialization** | Simulated console messages | Code copy-pasting | **Real File Scaffolding:** Copies tokens, FSM specs, and `AGENTS.md` directly into target repository (`orthotect init <dir>`) |
-| **State Engineering** | Static UI snapshots (Hover/Active) | Ad-hoc `isLoading` boolean flags | **Finite State Machines (FSM)** with graph reachability, double-submission race locks & async recovery |
-| **BiDi / RTL Support** | Superficial `dir="rtl"` attribute | Physical classes (`ml-*`, `pr-*`) | **100% CSS Logical Properties** (`margin-inline`, `padding-inline`, `border-inline`, `inset-inline`) |
-| **Layout Shift Budget** | None or unverified assertions | Dependent on developer discipline | **Structural Layout-Shift (CLS) Budget** enforcing reserved media dimensions (`width` + `height` or `aspect-ratio`) and stream-based DOM nesting limits |
-| **Motion Engineering** | Generic `0.2s ease` transitions | Hardcoded keyframes | **Spring Physics Curves** (Stiffness, Damping, Mass) |
+| **Verification Model** | Textual guidelines & system prompt rules; no native AST gate runner | Visual inspection, Storybook, or manual unit testing | **Target-Aware & Zero-Fallback:** Inspects user project directory (`orthotect verify <dir>`) with strict path boundaries and real exit codes |
+| **Project Initialization** | Prompt instructions without direct filesystem scaffolding | Code copy-pasting / CLI component adder | **Deterministic File Scaffolding:** Copies tokens, FSM specs, and `AGENTS.md` directly into target repository (`orthotect init <dir>`) |
+| **State Engineering** | Static UI snapshots without transition graphs | Ad-hoc `isLoading` boolean flags | **Formal Finite State Machines (FSM)** with graph reachability, double-submission race locks & async recovery |
+| **BiDi / RTL Support** | Textual guidance recommending logical properties | Physical utility classes (`ml-*`, `pr-*`) common | **Enforced CSS Logical Properties** (`margin-inline`, `padding-inline`, `border-inline`, `inset-inline`) across audited fixtures |
+| **Layout Shift Budget** | Subjective reminders in prompt | Dependent on developer discipline | **Structural Layout-Shift (CLS) Budget** enforcing reserved media dimensions (`width` + `height` or `aspect-ratio`) and stream-based DOM nesting limits |
+| **Motion Engineering** | Generic `0.2s ease` transitions | CSS transition presets | **Spring Physics Curves** (Stiffness, Damping, Mass) |
 | **Cognitive Ergonomics** | Arbitrary card layouts | Component presets | **Fitts' Law** touch targets (≥44px) & **Miller's 7±2 Law** density constraints |
-| **Slop Prevention** | Subjective guidelines | None | **Lexical & Pattern Inspectors** that reject AI indigo-purple gradients, raw emoji icons, and untokenized styles |
-| **Design Tokens** | Inconsistent CSS variables | Custom Tailwind theme | **W3C DTCG 3-Tier Compiler** generating `:root` light and `[data-theme="dark"]` scopes |
+| **Anti-Slop Defense** | Subjective prompt instructions | Out of scope (styling only) | **Lexical & Pattern Inspectors** that reject AI indigo-purple gradients, raw emoji icons, and untokenized styles |
+| **Design Tokens** | Variable guidance in markdown | Tailwind configuration | **W3C DTCG 3-Tier Compiler** generating `:root` light and `[data-theme="dark"]` scopes |
 
 ---
 
@@ -77,7 +77,7 @@ orthotect/
 │   ├── orthotect-tokens          # Token Management & Theme Compilation
 │   ├── orthotect-gates           # Gate Execution Workflows
 │   └── orthotect-visual-qa       # Automated Browser Visual Regression Gate
-├── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (225+ Tests)
+├── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (234 Tests)
 │   ├── test_contrast.py          # Relative luminance & contrast threshold unit tests
 │   ├── test_bidi.py              # BiDi logical scanner positive/negative tests
 │   ├── test_fsm.py               # FSM graph reachability and deadlock tests
@@ -90,9 +90,10 @@ orthotect/
 │   ├── test_cli_expanded.py      # Doctor, skills show/validate, and design CLI tests
 │   ├── test_docs_browser.py      # Playwright 7-view Skill Studio browser integration & negative benchmark tests
 │   ├── test_modal_browser.py     # Playwright headless Chrome focus trap & FSM tests
+│   ├── test_scaffold_browser.py  # Playwright scaffolded page FSM lifecycle & race lock browser tests
 │   └── test_cli_e2e.py           # E2E CLI verification, boundary & negative rejection tests
 ├── .github/workflows/       # Automated CI & GitHub Pages Deployment Pipelines
-│   ├── ci.yml                    # 225+ Unit, Browser & Negative Gate Tests & Full Gate Verification
+│   ├── ci.yml                    # 234 Unit, Browser & Negative Gate Tests & Full Gate Verification
 │   └── pages.yml                 # Automated GitHub Pages Deployment
 ├── agents/
 │   └── orthotect-auditor.md      # Adversarial Quality Auditor Role
@@ -125,7 +126,7 @@ Illustrative Reference Verification Output (Target: `examples/golden-showcase`):
 ```text
 ╔═══════════════════════════════════════════════════════════════╗
 ║            ORTHOTECT DETERMINISTIC QUALITY GATES              ║
-║         Google-Scale Interface Engineering Protocol           ║
+║     Deterministic High-Integrity Engineering Protocol         ║
 ╚═══════════════════════════════════════════════════════════════╝
  Target Path: /your/project/path
 
@@ -154,7 +155,7 @@ Orthotect provides **Deterministic Static & AST Gate Verification** designed to 
 | **Layer 2: Dynamic Browser & Runtime Audit** | axe-core, Playwright, Chrome DevTools, XState | Live ARIA tree calculation, dynamic color contrast across complex background filters, focus management, end-to-end user journeys | 🤝 **Complements Layer 1** (Recommended companion in dynamic CI pipelines) |
 
 > [!NOTE]
-> **Deterministic AST Scope**: Orthotect's static gates verify structural invariants (such as physical vs. logical CSS properties across CSS/JSX/TSX, lexical token compliance, FSM definition validity, and explicit image dimensions) before deployment. For comprehensive accessibility audits covering computed runtime styles, screen reader virtual buffers, and complex DOM tree computations, we recommend pairing Orthotect with dynamic evaluation tools like `axe-core`, `Playwright`, and `Style Dictionary`.
+> **Deterministic AST Scope**: Orthotect's static gates verify structural invariants (such as physical vs. logical CSS properties across CSS/JSX/TSX, lexical token compliance, FSM definition validity, and explicit image dimensions) before deployment. 100% logical property compliance and contrast metrics apply to Orthotect's audited core showcase and verified test fixtures; arbitrary legacy codebases should be audited iteratively. For comprehensive accessibility audits covering computed runtime styles, screen reader virtual buffers, and complex DOM tree computations, we recommend pairing Orthotect with dynamic evaluation tools like `axe-core`, `Playwright`, and `Style Dictionary`.
 
 ---
 

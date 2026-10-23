@@ -1577,7 +1577,7 @@ def render_template_html(item):
               <div class="term-line output">✔ Python gate engine: v3.12 (Supported)</div>
               <div class="term-line output">✔ Design tokens: 96 palettes, 57 styles compiled</div>
               <div class="term-line output">✔ Deterministic quality gates: 5/5 operational (703ms)</div>
-              <div class="term-line output highlight">Status: System healthy. Ready to enforce Google-scale UI engineering.</div>
+              <div class="term-line output highlight">Status: System healthy. Ready to enforce deterministic UI engineering.</div>
             </div>
           </div>
 

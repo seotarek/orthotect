@@ -339,6 +339,57 @@ class TestBidiGateE2E(unittest.TestCase):
         self.assertNotEqual(res.returncode, 0)
         self.assertIn("marginLeft", res.stdout)
 
+    def test_bidi_nested_template_literals_and_interpolations(self):
+        """Verify strip_js_comments_string_aware handles nested template literals and braces in interpolations."""
+        from gates.gate_bidi_logical import strip_js_comments_string_aware
+
+        src = "const msg = `outer ${`nested ${x + 1} more`} end`;"
+        stripped = strip_js_comments_string_aware(src)
+        self.assertEqual(stripped, src)
+
+        # Comments inside interpolation should be stripped
+        src_comment = "const s = `val: ${/* inline comment */ fn({ a: 1 })} end`;"
+        stripped_comment = strip_js_comments_string_aware(src_comment)
+        self.assertNotIn("inline comment", stripped_comment)
+        self.assertIn("fn({ a: 1 })", stripped_comment)
+        self.assertIn("end`", stripped_comment)
+
+        # Preserves line counts identically
+        multiline_src = "const s = `first\n${/* comment\nsecond line */ 42}\nthird`;"
+        stripped_multiline = strip_js_comments_string_aware(multiline_src)
+        self.assertEqual(multiline_src.count('\n'), stripped_multiline.count('\n'))
+
+    def test_bidi_comment_inside_interpolation_does_not_trigger_false_positive(self):
+        """Comments mentioning physical properties inside ${...} must not trigger false positive violations."""
+        js_file = os.path.join(self.temp_dir, 'interpolation_clean.js')
+        with open(js_file, 'w') as f:
+            f.write("""
+            const banner = `Notice: ${
+                // do not use margin-left or padding-right here
+                formatMessage('ok')
+            }`;
+            const Card = styled.div`
+                margin-inline-start: 16px;
+                padding-inline-end: 20px;
+            `;
+            """)
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("BiDi Logical Check Passed", res.stdout)
+
+    def test_bidi_styled_template_inside_nested_interpolation_catches_violation(self):
+        """Violations inside styled components with nested template interpolation must be caught."""
+        js_file = os.path.join(self.temp_dir, 'styled_violation.js')
+        with open(js_file, 'w') as f:
+            f.write("""
+            const Box = styled.div`
+                margin-left: ${props => `${props.spacing}px`};
+            `;
+            """)
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("margin-left", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
 

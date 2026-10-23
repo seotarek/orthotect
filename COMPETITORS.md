@@ -1,6 +1,6 @@
-# Architectural Teardown & Competitor Analysis: Orthotect vs The Industry
+# Architectural Comparison & Ecosystem Delineation: Orthotect & Modern UI Frameworks
 
-> **Document Classification:** Engineering Whitepaper / Architectural Teardown  
+> **Document Classification:** Engineering Whitepaper / Architectural Comparison  
 > **Status:** Production Standard  
 > **Target Audience:** Systems Architects, Principal Frontend Engineers, AI Agent Developers  
 
@@ -8,31 +8,31 @@
 
 ## Executive Summary
 
-As AI coding agents (Claude Code, Antigravity, Cursor, Codex, Grok) increasingly generate enterprise user interfaces, the software industry faces a catastrophic reliability gap: **AI coding assistants generate code based on statistical probability, not deterministic physical or mathematical laws.**
+As AI coding agents (Claude Code, Antigravity, Cursor, Codex, Grok) increasingly generate enterprise user interfaces, software engineering faces a key reliability challenge: **AI coding assistants generate code based on statistical probability, not deterministic physical or mathematical laws.**
 
-Existing solutions in the ecosystem—ranging from prompt-only skills (XIAS, `taste-skill`, `ui-ux-pro-max`) to component copy-paste libraries (`shadcn/ui`, `Tailwind UI`) and generative web platforms (`v0`, `Bolt`, `Lovable`)—suffer from systemic design flaws:
-1. They lack **runtime verification** and depend on subjective human visual inspection.
-2. They treat Bidirectional (BiDi/RTL) support as an afterthought, emitting broken physical layout coordinates (`margin-left`, `right: 0`).
-3. They allow unhandled async UI states, double-submissions, and race conditions by relying on loose boolean state flags (`isLoading: boolean`).
-4. They introduce Cumulative Layout Shift (CLS) through unreserved media dimensions.
-5. They suffer from generic "AI Slop" (cluttered gradients, low-contrast text, nested DOM soup).
+Existing solutions in the ecosystem—ranging from prompt-only skills (XIAS, `taste-skill`, `ui-ux-pro-max`) to component copy-paste libraries (`shadcn/ui`, `Tailwind UI`) and generative web platforms (`v0`, `Bolt`, `Lovable`)—address different layers of the development lifecycle:
+1. Prompt guidelines provide stylistic steering but lack **automated runtime verification gates**.
+2. Component libraries provide high-quality visual primitives, but agents can easily emit broken physical layout coordinates (`margin-left`, `right: 0`) when modifying or extending them.
+3. Loosely typed async state (`isLoading: boolean`) in generated code risks race conditions and double-submissions.
+4. Generated markup frequently introduces Cumulative Layout Shift (CLS) when media dimensions are omitted.
+5. Statistical sampling often produces repetitive "AI Slop" artifacts (uncalibrated gradients, low contrast, unneeded DOM depth).
 
-**Orthotect** is engineered as the deterministic gatekeeper. It treats interface code with the same mathematical rigor that Google infrastructure applies to distributed systems.
+**Orthotect** is engineered as a deterministic static gatekeeper. It treats interface code with formal automated checks, AST inspectors, and mathematical luminance equations.
 
 ---
 
 ## The Competitor Landscape: Side-by-Side Architectural Matrix
 
-| Architectural Capability | XIAS / Prompt Skills (`taste-skill`, `ui-ux-pro-max`) | Component Libraries (`shadcn/ui`, `MUI`) | AI UI Platforms (`v0`, `Bolt`, `Lovable`) | Token Engines (`Style Dictionary`) | **Orthotect Architecture (Google-Scale)** |
+| Architectural Capability | Prompt Skills (`taste-skill`, `ui-ux-pro-max`) | Component Libraries (`shadcn/ui`, `MUI`) | AI UI Platforms (`v0`, `Bolt`, `Lovable`) | Token Engines (`Style Dictionary`) | **Orthotect Architecture (Deterministic Gates)** |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Verification Model** | ❌ None (Prompt guidelines only) | ❌ Manual unit tests / visual QA | ❌ None (Black-box generation) | ⚠️ Build-time validation only | **✅ 5 Deterministic Runtime Gates (< 400ms parallel)** |
-| **Bidirectional Symmetry (BiDi / RTL)** | ⚠️ Superficial `dir="rtl"` suggestion | ❌ Physical classes common (`ml-*`, `pr-*`) | ❌ Often broken or unstyled | ⚠️ N/A | **✅ 100% Strict CSS Logical Properties (`inline`/`block`)** |
-| **State Machine Integrity** | ❌ Ad-hoc boolean flags (`isLoading`) | ⚠️ Partial (XState optional, complex) | ❌ Unhandled async edge states | ❌ None | **✅ Formal JSON FSM with Graph Reachability & Race Locks** |
-| **Accessibility (WCAG 2.2)** | ⚠️ Unenforced markdown advice | ⚠️ Radix primitives (breakable by agent) | ❌ Frequent contrast & focus failures | ⚠️ Color math only | **✅ Mathematical Luminance Matrix (WCAG AAA 7:1 & AA 4.5:1)** |
-| **Core Web Vitals Enforcement** | ❌ None | ❌ Dependent on developer hygiene | ❌ High CLS, unbudgeted DOM depth | ❌ None | **✅ AST Image Aspect-Ratio & Stream DOM Depth Budget (<32)** |
-| **Anti-Slop Pattern Defense** | ⚠️ Textual prompts ("don't use gradients") | ❌ N/A | ❌ Emits heavy purple/indigo AI slop | ❌ N/A | **✅ Automated AST/Regex Gate banning slop artifacts** |
-| **Design Token Standard** | ❌ Inconsistent variables | ⚠️ Custom Tailwind config | ⚠️ Ad-hoc inline CSS | ⚠️ W3C DTCG (requires heavy setup) | **✅ Native W3C DTCG 3-Tier Compiler (`:root` & `[data-theme]`)** |
-| **Agent Ecosystem Native** | ⚠️ Requires massive context token usage | ❌ Not designed for agents | ❌ Proprietary closed platform | ❌ Developer CLI only | **✅ Drop-in Skills for Claude, Antigravity, Cursor, Codex** |
+| **Verification Model** | ❌ None (Prompt guidelines only) | ❌ Out of scope (focuses on component styling & primitives) | ❌ None (Black-box generation) | ⚠️ Build-time validation only | **✅ 5 Deterministic Static Gates (< 400ms parallel)** |
+| **Bidirectional Symmetry (BiDi / RTL)** | ⚠️ Superficial `dir="rtl"` suggestion | ⚠️ Physical utility classes (`ml-*`, `pr-*`) common without strict AST gates | ❌ Often unstyled in RTL | ⚠️ N/A | **✅ Enforced CSS Logical Properties (`inline`/`block`) across audited fixtures** |
+| **State Machine Integrity** | ❌ Ad-hoc boolean flags (`isLoading`) | ⚠️ Primitives provided; application state left to ad-hoc booleans unless paired with XState | ❌ Unhandled async edge states | ❌ None | **✅ Formal JSON FSM with Graph Reachability & Race Locks** |
+| **Accessibility (WCAG 2.2)** | ⚠️ Unenforced markdown advice | ✅ Accessible primitives (Radix UI), but agent styling can introduce contrast flaws | ❌ Frequent contrast & focus failures | ⚠️ Color math only | **✅ Mathematical Luminance Matrix (WCAG AAA 7:1 & AA 4.5:1)** |
+| **Core Web Vitals Enforcement** | ❌ None | ❌ Out of scope (dependent on developer hygiene) | ❌ High CLS, unbudgeted DOM depth | ❌ None | **✅ AST Image Aspect-Ratio & Stream DOM Depth Budget (<32)** |
+| **Anti-Slop Pattern Defense** | ⚠️ Textual prompts ("don't use gradients") | ❌ Out of scope (styling only) | ❌ Emits heavy purple/indigo AI slop | ❌ N/A | **✅ Automated AST/Regex Gate banning slop artifacts** |
+| **Design Token Standard** | ❌ Inconsistent variables | ⚠️ Custom Tailwind or theme config | ⚠️ Ad-hoc inline CSS | ⚠️ W3C DTCG (requires heavy setup) | **✅ Native W3C DTCG 3-Tier Compiler (`:root` & `[data-theme]`)** |
+| **Agent Ecosystem Native** | ⚠️ Requires massive context token usage | ⚠️ Human-centric components; requires prompting for agent usage | ❌ Proprietary closed platform | ❌ Developer CLI only | **✅ Drop-in Skills for Claude, Antigravity, Cursor, Codex** |
 | **External Dependencies** | 0 (pure text) | High (React, Radix, Tailwind, etc.) | Closed SaaS cloud | High (Node.js runtime + plugins) | **Zero (Python 3 stdlib + Node built-ins)** |
 
 ---
@@ -155,13 +155,13 @@ Running `npx orthotect compile` outputs optimized, tree-shakeable CSS Custom Pro
 
 ---
 
-## Conclusion: Why Orthotect Wins
+## Conclusion: Complementary Ecosystem Roles
 
-| Requirement | Alternative Tools | Orthotect |
+| Requirement | Component & Prompt Tools | Orthotect Deterministic Gates |
 | :--- | :--- | :--- |
-| **Can you prove compliance in CI?** | ❌ No | ✅ Yes (`exit 0` / `exit 1` in GitHub Actions) |
-| **Can an agent break it silently?** | ❌ Yes (Common) | ✅ Impossible (Gates block commit) |
-| **Does it work with any framework?** | ❌ Framework-locked | ✅ Universal (Vanilla, React, Vue, Svelte, Lit) |
-| **Execution overhead** | ❌ Heavy / slow | ✅ Parallel sub-400ms verification |
+| **Can you prove static compliance in CI?** | ⚠️ Requires custom CI lint configs | ✅ Built-in deterministic gates (`exit 0` / `exit 1`) |
+| **Can an agent break rules silently?** | ⚠️ Possible if unverified by gates | 🛡️ Gates catch AST/pattern regressions |
+| **Does it work with any framework?** | ⚠️ Often framework-specific | ✅ Universal (Vanilla, React, Vue, Svelte, Lit) |
+| **Execution overhead** | ⚠️ Heavy dynamic tooling | ✅ Parallel sub-second AST verification |
 
-Orthotect is not just an incremental improvement over existing UI tools; it is a paradigm shift from **probabilistic AI generation** to **deterministic interface engineering**.
+Orthotect complements existing design systems and component libraries by acting as the **deterministic gatekeeper** in agentic workflows, transforming probabilistic AI code generation into verifiable interface engineering.
