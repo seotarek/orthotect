@@ -85,7 +85,23 @@ def resolve_ref(val, primitives, visited=None):
 
     return resolved
 
-# Explicit WCAG 2.2 Threshold Tiers
+def load_contrast_matrix(tokens_dir=None):
+    candidates = []
+    if tokens_dir:
+        candidates.append(os.path.join(tokens_dir, 'contrast-matrix.json'))
+    candidates.append(os.path.join(os.path.dirname(__file__), 'tokens', 'contrast-matrix.json'))
+    candidates.append(os.path.join(os.path.dirname(__file__), '..', 'core', 'tokens', 'contrast-matrix.json'))
+
+    for c in candidates:
+        if os.path.exists(c):
+            try:
+                with open(c, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except Exception:
+                pass
+    return None
+
+# Explicit WCAG 2.2 Threshold Tiers Fallback
 CONTRAST_TIERS = {
     'normal_text': 4.5,     # WCAG 2.2 SC 1.4.3 Level AA (Body & Headings < 18pt)
     'large_text': 3.0,      # WCAG 2.2 SC 1.4.3 Level AA (Large Text >= 18pt or 14pt bold)
@@ -99,18 +115,62 @@ MANDATORY_SEMANTIC_PAIRS = [
     (('action', 'primary'), ('content', 'inverse'), 'action_text')
 ]
 
-def verify_theme_contrast(theme_dict, prims, theme_label):
+def verify_theme_contrast(theme_dict, prims, theme_label, tokens_dir=None):
     """
     Validates design tokens against the canonical semantic contrast matrix covering
     content, surfaces, actions, borders, and focus rings.
+    Loads pair definitions and tiers directly from contrast-matrix.json.
     """
     results = []
+    matrix = load_contrast_matrix(tokens_dir)
+
+    if matrix and 'pairs' in matrix:
+        tiers = matrix.get('tiers', {})
+        for pair in matrix['pairs']:
+            name = pair.get('name', 'Unnamed Pair')
+            bg_grp, bg_tok = pair['background']
+            fg_grp, fg_tok = pair['foreground']
+            tier = pair.get('tier', 'normal_text')
+
+            bg_tok_obj = theme_dict.get(bg_grp, {}).get(bg_tok)
+            fg_tok_obj = theme_dict.get(fg_grp, {}).get(fg_tok)
+            if not bg_tok_obj or not isinstance(bg_tok_obj, dict) or '$value' not in bg_tok_obj:
+                raise ValueError(f"Missing required semantic token: [{theme_label}] '{bg_grp}.{bg_tok}'")
+            if not fg_tok_obj or not isinstance(fg_tok_obj, dict) or '$value' not in fg_tok_obj:
+                raise ValueError(f"Missing required semantic token: [{theme_label}] '{fg_grp}.{fg_tok}'")
+
+            bg_val = bg_tok_obj['$value']
+            fg_val = fg_tok_obj['$value']
+            res_bg = resolve_ref(bg_val, prims)
+            res_fg = resolve_ref(fg_val, prims)
+            cr = calculate_contrast(res_bg, res_fg)
+
+            tier_info = tiers.get(tier, {})
+            required_threshold = tier_info.get('minRatioAA', CONTRAST_TIERS.get(tier, 4.5))
+            aaa_threshold = tier_info.get('minRatioAAA', 7.0)
+
+            if cr is None:
+                raise ValueError(
+                    f"Invalid or uncomputable color format for contrast pair: [{theme_label}] "
+                    f"{bg_grp}.{bg_tok} ({res_bg}) vs {fg_grp}.{fg_tok} ({res_fg})"
+                )
+            if cr < required_threshold:
+                raise ValueError(
+                    f"WCAG 2.2 Contrast Failure during token compilation: [{theme_label}] "
+                    f"{bg_grp}.{bg_tok} ({res_bg}) vs {fg_grp}.{fg_tok} ({res_fg}) "
+                    f"contrast ratio is {cr:.2f}:1 (Must be >= {required_threshold}:1 for {tier} - {name})."
+                )
+            rating = "WCAG AAA" if cr >= aaa_threshold else "WCAG AA"
+            results.append(f" *   - [{theme_label}] {name} ({bg_grp}.{bg_tok} vs {fg_grp}.{fg_tok}): {cr:.1f}:1 ({rating} - Tier: {tier})")
+
+        return results
+
+    # Fallback if contrast-matrix.json is absent
     surfaces = theme_dict.get('surface', {})
     contents = theme_dict.get('content', {})
     actions = theme_dict.get('action', {})
     borders = theme_dict.get('border', {})
 
-    # 1. Verify mandatory semantic tokens exist
     for (bg_grp, bg_tok), (fg_grp, fg_tok), tier in MANDATORY_SEMANTIC_PAIRS:
         grp_data = theme_dict.get(bg_grp, {})
         tok_data = grp_data.get(bg_tok)
@@ -122,7 +182,6 @@ def verify_theme_contrast(theme_dict, prims, theme_label):
         if not fg_tok_data or not isinstance(fg_tok_data, dict) or '$value' not in fg_tok_data:
             raise ValueError(f"Missing required semantic token: [{theme_label}] '{fg_grp}.{fg_tok}'")
 
-    # 2. Build full canonical pair list covering text, surfaces, actions, borders, focus
     pairs = []
     for s_name in sorted(surfaces.keys()):
         if 'primary' in contents:
@@ -130,7 +189,7 @@ def verify_theme_contrast(theme_dict, prims, theme_label):
         if 'secondary' in contents:
             pairs.append((('surface', s_name), ('content', 'secondary'), 'normal_text'))
         if 'tertiary' in contents:
-            pairs.append((('surface', s_name), ('content', 'tertiary'), 'large_text'))
+            pairs.append((('surface', s_name), ('content', 'tertiary'), 'normal_text'))
 
     if 'primary' in actions and 'inverse' in contents:
         pairs.append((('action', 'primary'), ('content', 'inverse'), 'action_text'))
@@ -154,7 +213,6 @@ def verify_theme_contrast(theme_dict, prims, theme_label):
     if 'danger' in actions and 'canvas' in surfaces:
         pairs.append((('surface', 'canvas'), ('action', 'danger'), 'ui_control'))
 
-    # Evaluate each pair
     for (bg_grp, bg_tok), (fg_grp, fg_tok), tier in pairs:
         bg_tok_obj = theme_dict.get(bg_grp, {}).get(bg_tok)
         fg_tok_obj = theme_dict.get(fg_grp, {}).get(fg_tok)
@@ -231,9 +289,9 @@ def compile_tokens(tokens_dir):
 
     contrast_logs = []
     if light_theme:
-        contrast_logs.extend(verify_theme_contrast(light_theme, prims, "light"))
+        contrast_logs.extend(verify_theme_contrast(light_theme, prims, "light", tokens_dir))
     if dark_theme:
-        contrast_logs.extend(verify_theme_contrast(dark_theme, prims, "dark"))
+        contrast_logs.extend(verify_theme_contrast(dark_theme, prims, "dark", tokens_dir))
 
     lines = [
         "/**",

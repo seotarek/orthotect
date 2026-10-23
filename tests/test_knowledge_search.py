@@ -228,9 +228,19 @@ class TestKnowledgeSearch(unittest.TestCase):
         """Benchmark verification: Search quality over benchmark queries must satisfy enterprise thresholds."""
         from core.knowledge_search import run_search_benchmark
         metrics = run_search_benchmark()
+        self.assertEqual(metrics["total_queries"], 32, f"Total benchmark queries must be 32, got {metrics['total_queries']}")
         self.assertGreaterEqual(metrics["mrr"], 0.75, f"MRR {metrics['mrr']} must meet >= 0.75 threshold")
         self.assertGreaterEqual(metrics["precision_at_1"], 0.70, f"P@1 {metrics['precision_at_1']} must meet >= 0.70 threshold")
         self.assertGreaterEqual(metrics["recall_at_3"], 0.65, f"Recall@3 {metrics['recall_at_3']} must meet >= 0.65 threshold")
+
+    def test_search_benchmark_dataset_contains_32_queries(self):
+        """Verify the expanded benchmark dataset contains all 32 diverse queries."""
+        from core.knowledge_search import DEFAULT_BENCHMARK_PATH
+        with open(DEFAULT_BENCHMARK_PATH, 'r', encoding='utf-8') as f:
+            benchmarks = json.load(f)
+        self.assertEqual(len(benchmarks), 32)
+        arabic_queries = [b for b in benchmarks if b.get('intent', '').startswith('arabic-')]
+        self.assertGreaterEqual(len(arabic_queries), 6)
 
     def test_no_result_query_returns_empty_list(self):
         """Search query with nonsense tokens must return clean empty list without exceptions."""
@@ -248,29 +258,72 @@ class TestKnowledgeSearch(unittest.TestCase):
         self.assertEqual(status, "NOT_EVALUATED")
 
     def test_status_derivation_with_gates_is_verified_deterministic(self):
-        """Record with automated gatesPassed evidence derives VERIFIED_DETERMINISTIC."""
+        """Record with automated gatesPassed evidence and provenance derives VERIFIED_DETERMINISTIC."""
         from core.knowledge_search import derive_verification_status
         record_gate_evidence = {
             "id": "test",
             "evidence": {
-                "gatesPassed": ["gate_contrast_wcag.py", "gate_bidi_logical.py"]
+                "gatesPassed": ["gate_contrast_wcag.py", "gate_bidi_logical.py"],
+                "verifier": "orthotect-gate-runner",
+                "verifiedAt": "2026-10-23T07:00:00Z",
+                "revision": "68399b3"
             }
         }
         status = derive_verification_status(record_gate_evidence)
         self.assertEqual(status, "VERIFIED_DETERMINISTIC")
 
+    def test_status_derivation_rejects_unverified_gate_claims(self):
+        """Negative test: Claiming gatesPassed without verifier/timestamp/revision must fall back to NOT_EVALUATED."""
+        from core.knowledge_search import derive_verification_status
+        fake_gate_record = {
+            "id": "test",
+            "evidence": {
+                "gatesPassed": ["gate_contrast_wcag.py"]  # Missing verifier, verifiedAt, revision!
+            }
+        }
+        self.assertEqual(derive_verification_status(fake_gate_record), "NOT_EVALUATED")
+
+        unrecognized_gate_record = {
+            "id": "test",
+            "evidence": {
+                "gatesPassed": ["fake_nonexistent_gate.py"],
+                "verifier": "test",
+                "verifiedAt": "2026-10-23T07:00:00Z",
+                "revision": "v1.6.0"
+            }
+        }
+        self.assertEqual(derive_verification_status(unrecognized_gate_record), "NOT_EVALUATED")
+
     def test_status_derivation_with_browser_is_verified_browser(self):
-        """Record with browser verified DOM evidence derives VERIFIED_BROWSER."""
+        """Record with browser verified DOM evidence and provenance derives VERIFIED_BROWSER."""
         from core.knowledge_search import derive_verification_status
         record_browser_evidence = {
             "id": "test",
             "evidence": {
                 "browserVerified": True,
-                "browserEvidence": { "testedThemes": ["light", "dark"] }
+                "browserEvidence": {
+                    "testSuite": "tests/verify_browser_contrast.mjs",
+                    "testedThemes": ["light", "dark"],
+                    "verifiedAt": "2026-10-23T07:00:00Z"
+                },
+                "verifier": "playwright-browser-runner",
+                "verifiedAt": "2026-10-23T07:00:00Z",
+                "revision": "68399b3"
             }
         }
         status = derive_verification_status(record_browser_evidence)
         self.assertEqual(status, "VERIFIED_BROWSER")
+
+    def test_status_derivation_rejects_unverified_browser_claims(self):
+        """Negative test: Claiming browserVerified without browserEvidence details must fall back to NOT_EVALUATED."""
+        from core.knowledge_search import derive_verification_status
+        unproven_browser = {
+            "id": "test",
+            "evidence": {
+                "browserVerified": True  # Missing browserEvidence, verifier, etc.
+            }
+        }
+        self.assertEqual(derive_verification_status(unproven_browser), "NOT_EVALUATED")
 
     def test_status_derivation_with_heuristic_advice(self):
         """Advisory/opinion design principles without deterministic gates derive HEURISTIC."""
@@ -364,6 +417,37 @@ class TestKnowledgeSearch(unittest.TestCase):
         self.assertEqual(valid_res, [])
         invalid_res = _validate_schema_builtin(["a", 123, "c"], array_schema)
         self.assertTrue(any("Expected string" in e for e in invalid_res))
+
+    def test_builtin_validator_enforces_root_string_and_numeric_constraints(self):
+        """Builtin validator enforces pattern, minLength, maxLength, minimum, maximum, and enum at root level."""
+        from core.knowledge_search import _validate_schema_builtin
+        str_schema = {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 8,
+            "pattern": r"^[a-z]+$"
+        }
+        self.assertEqual(_validate_schema_builtin("valid", str_schema), [])
+        err_short = _validate_schema_builtin("ab", str_schema)
+        self.assertTrue(any("too short" in e for e in err_short))
+        err_long = _validate_schema_builtin("toolongstring", str_schema)
+        self.assertTrue(any("too long" in e for e in err_long))
+        err_pattern = _validate_schema_builtin("12345", str_schema)
+        self.assertTrue(any("does not match pattern" in e for e in err_pattern))
+
+        num_schema = {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 50,
+            "enum": [10, 20, 30, 40, 50]
+        }
+        self.assertEqual(_validate_schema_builtin(20, num_schema), [])
+        err_min = _validate_schema_builtin(5, num_schema)
+        self.assertTrue(any("minimum" in e for e in err_min))
+        err_max = _validate_schema_builtin(60, num_schema)
+        self.assertTrue(any("maximum" in e for e in err_max))
+        err_enum = _validate_schema_builtin(25, num_schema)
+        self.assertTrue(any("not in allowed enum" in e for e in err_enum))
 
 if __name__ == '__main__':
     unittest.main()

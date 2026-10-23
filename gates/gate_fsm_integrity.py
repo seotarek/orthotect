@@ -67,9 +67,11 @@ def check_fsm_file(file_path):
     if has_structural_error:
         return violations
 
-    # 3. Asynchronous execution & transition lock validation
-    # Supports explicit schema properties ('isAsync', 'type: "async"', 'locksInteraction', 'allowClick: false')
-    # and maintains documented naming conventions for backwards compatibility
+    # 3. Explicit Asynchronous execution & transition lock validation
+    # Orthotect FSM contract strictly requires explicit declarations:
+    #   - 'isAsync: true' (or type: 'async') for in-flight async operations
+    #   - 'allowClick: false' (or locksInteraction: true) for pointer/keyboard locks
+    # Substring name guessing is deprecated and rejected with actionable diagnostics.
     async_keywords = {'loading', 'submitting', 'pending', 'processing', 'fetching', 'skeletonloading', 'syncing'}
     transition_keywords = {'opening', 'closing', 'transitioning'}
 
@@ -80,51 +82,50 @@ def check_fsm_file(file_path):
         name_lower = state_name.lower()
         is_async_by_name = any(kw in name_lower for kw in async_keywords)
         is_transition_by_name = any(kw in name_lower for kw in transition_keywords)
+
         is_explicitly_async = (
             state_def.get('isAsync') is True or
             state_def.get('async') is True or
             state_def.get('type') == 'async'
         )
-        requires_lock = (
-            is_async_by_name or
-            is_explicitly_async or
-            is_transition_by_name or
+        is_explicitly_locked = (
+            state_def.get('allowClick') is False or
             state_def.get('locksInteraction') is True or
             state_def.get('isLocked') is True or
-            state_def.get('locked') is True or
-            ('allowClick' in state_def and state_def.get('allowClick') is False)
+            state_def.get('locked') is True
         )
+        has_explicit_contract = is_explicitly_async or is_explicitly_locked
 
-        if requires_lock:
-            # Race condition lock check: MUST lock pointer/keyboard actions (allowClick: false)
-            is_locked = (
-                state_def.get('allowClick') is False or
-                state_def.get('locksInteraction') is True or
-                state_def.get('isLocked') is True or
-                state_def.get('locked') is True
+        # Explicit Contract Enforcement: undeclared async-sounding states must be declared
+        if (is_async_by_name or is_transition_by_name) and not has_explicit_contract:
+            violations.append(
+                f"{fname}: State '{state_name}' must explicitly declare 'isAsync: true' or 'locksInteraction: true' "
+                f"(must explicitly declare 'allowClick: false') under the Orthotect FSM contract to prevent interaction race conditions."
             )
-            if state_def.get('allowClick', False) is True:
-                violations.append(f"{fname}: '{state_name}' state must lock pointer/keyboard actions (allowClick: false) to prevent race conditions.")
-            elif not is_locked:
-                violations.append(f"{fname}: '{state_name}' state must explicitly declare 'allowClick: false' (or locksInteraction: true) to prevent interaction race conditions.")
 
-            # Resilience check: Asynchronous operations (data/network) MUST have explicit error/failure transition
-            if is_async_by_name or is_explicitly_async:
-                transitions = state_def.get('on', {})
-                has_error_recovery = False
-                if isinstance(transitions, dict):
-                    for trig, tgt in transitions.items():
-                        if isinstance(trig, str) and any(term in trig.lower() for term in ('error', 'fail', 'reject', 'catch')):
-                            has_error_recovery = True
-                            break
-                        if isinstance(tgt, str) and any(term in tgt.lower() for term in ('error', 'fail', 'reject')):
-                            has_error_recovery = True
-                            break
-                if state_def.get('onError'):
-                    has_error_recovery = True
+        # Race condition lock check: MUST lock pointer/keyboard actions (allowClick: false)
+        if state_def.get('allowClick') is True:
+            violations.append(f"{fname}: '{state_name}' state must lock pointer/keyboard actions (allowClick: false) to prevent race conditions.")
+        elif (is_explicitly_async or is_async_by_name or is_transition_by_name) and not is_explicitly_locked:
+            violations.append(f"{fname}: '{state_name}' state must explicitly declare 'allowClick: false' (or locksInteraction: true) to prevent interaction race conditions.")
 
-                if not has_error_recovery:
-                    violations.append(f"{fname}: '{state_name}' state must have an explicit error/failure transition for resilience.")
+        # Resilience check: Asynchronous operations (data/network) MUST have explicit error/failure transition
+        if is_explicitly_async or is_async_by_name:
+            transitions = state_def.get('on', {})
+            has_error_recovery = False
+            if isinstance(transitions, dict):
+                for trig, tgt in transitions.items():
+                    if isinstance(trig, str) and any(term in trig.lower() for term in ('error', 'fail', 'reject', 'catch')):
+                        has_error_recovery = True
+                        break
+                    if isinstance(tgt, str) and any(term in tgt.lower() for term in ('error', 'fail', 'reject')):
+                        has_error_recovery = True
+                        break
+            if state_def.get('onError'):
+                has_error_recovery = True
+
+            if not has_error_recovery:
+                violations.append(f"{fname}: '{state_name}' state must have an explicit error/failure transition for resilience.")
 
     # 4. Deadlock detection: Ensure every non-terminal state has transitions
     for state_name, state_def in states.items():

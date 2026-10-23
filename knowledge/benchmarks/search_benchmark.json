@@ -143,5 +143,147 @@
       "logical-rules",
       "layout-patterns"
     ]
+  },
+  {
+    "id": "bench-17",
+    "query": "dual theme surface layering dark mode synchronization",
+    "intent": "palettes",
+    "expected_ids": [
+      "dark-mode-mapping",
+      "semantic-roles"
+    ]
+  },
+  {
+    "id": "bench-18",
+    "query": "spring physics transition duration tokens easing",
+    "intent": "motion",
+    "expected_ids": [
+      "motion-tokens",
+      "accessible-high-contrast"
+    ]
+  },
+  {
+    "id": "bench-19",
+    "query": "bento grid split rails responsive layout patterns",
+    "intent": "patterns",
+    "expected_ids": [
+      "layout-patterns",
+      "contemporary-product-saas"
+    ]
+  },
+  {
+    "id": "bench-20",
+    "query": "fitts law cognitive ergonomic progressive disclosure",
+    "intent": "ux-guidelines",
+    "expected_ids": [
+      "patterns"
+    ]
+  },
+  {
+    "id": "bench-21",
+    "query": "modal dialog focus trap restoration protocol",
+    "intent": "components",
+    "expected_ids": [
+      "dialog-focus-trap",
+      "component-contracts"
+    ]
+  },
+  {
+    "id": "bench-22",
+    "query": "swiss grotesque editorial typography serif body hierarchy",
+    "intent": "typography",
+    "expected_ids": [
+      "restrained-editorial-clarity",
+      "type-scales"
+    ]
+  },
+  {
+    "id": "bench-23",
+    "query": "ultra high density telemetry mission control trading console",
+    "intent": "design-context",
+    "expected_ids": [
+      "precision-analytical-console",
+      "high-density-operational"
+    ]
+  },
+  {
+    "id": "bench-24",
+    "query": "حركة سلسة تقليل الحركة فيزياء النوابض",
+    "intent": "arabic-motion",
+    "expected_ids": [
+      "motion-tokens",
+      "accessible-high-contrast"
+    ]
+  },
+  {
+    "id": "bench-25",
+    "query": "شاشات الحوار حصر التركيز واستعادة المؤشر",
+    "intent": "arabic-components",
+    "expected_ids": [
+      "dialog-focus-trap",
+      "component-contracts"
+    ]
+  },
+  {
+    "id": "bench-26",
+    "query": "شبكة بينتو تقسيم الحاويات تخطيط متجاوب",
+    "intent": "arabic-patterns",
+    "expected_ids": [
+      "layout-patterns"
+    ]
+  },
+  {
+    "id": "bench-27",
+    "query": "قوانين الإدراك البصري وقانون فيتس",
+    "intent": "arabic-ux",
+    "expected_ids": [
+      "patterns"
+    ]
+  },
+  {
+    "id": "bench-28",
+    "query": "accessible high contrast screen reader colorblind",
+    "intent": "accessibility",
+    "expected_ids": [
+      "accessible-high-contrast",
+      "wcag-matrix"
+    ]
+  },
+  {
+    "id": "bench-29",
+    "query": "tailwind css universal responsive component contracts",
+    "intent": "stacks",
+    "stack": "tailwind",
+    "expected_ids": [
+      "component-contracts",
+      "contemporary-product-saas"
+    ]
+  },
+  {
+    "id": "bench-30",
+    "query": "react keyboard accessible focus restoration modal",
+    "intent": "stacks",
+    "stack": "react",
+    "expected_ids": [
+      "dialog-focus-trap",
+      "component-contracts"
+    ]
+  },
+  {
+    "id": "bench-31",
+    "query": "physical goods ecommerce catalog tactile craftsmanship",
+    "intent": "design-context",
+    "expected_ids": [
+      "material-led-commerce"
+    ]
+  },
+  {
+    "id": "bench-32",
+    "query": "relative luminance contrast formula 21:1 matrix",
+    "intent": "accessibility",
+    "expected_ids": [
+      "wcag-matrix",
+      "semantic-roles"
+    ]
   }
 ]

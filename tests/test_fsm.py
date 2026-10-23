@@ -327,6 +327,24 @@ class TestFsmValidator(unittest.TestCase):
         viols3 = check_fsm_file(fpath3)
         self.assertEqual(len(viols3), 0)
 
+    def test_undeclared_async_state_produces_strict_contract_diagnostic(self):
+        """Strict contract test: An async-named state omitting explicit declarations must receive actionable contract diagnostic."""
+        fsm_undeclared = {
+            "name": "UndeclaredAsync",
+            "initialState": "idle",
+            "states": {
+                "idle": { "on": { "LOAD": "loading" } },
+                "loading": {
+                    "on": { "RESOLVE": "idle", "REJECT": "idle" }
+                }
+            }
+        }
+        fpath = os.path.join(self.temp_dir.name, "undeclared.json")
+        with open(fpath, "w") as f:
+            json.dump(fsm_undeclared, f)
+        viols = check_fsm_file(fpath)
+        self.assertTrue(any("must explicitly declare 'isAsync: true' or 'locksInteraction: true'" in v for v in viols))
+
 class TestFsmGateE2E(unittest.TestCase):
     def setUp(self):
         self.root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))

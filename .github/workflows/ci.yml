@@ -27,9 +27,15 @@ jobs:
           npm ci
           pip install -r requirements.txt
 
-      - name: Run 206 Unit, Browser & Negative Gate Tests
+      - name: Run 214 Unit, Browser & Negative Gate Tests
         run: |
           npm test
+
+      - name: Verify Knowledge Base Schema & Search Quality Benchmark (32 Queries)
+        run: |
+          python3 core/knowledge_search.py --validate
+          python3 core/knowledge_search.py --validate --fallback
+          python3 core/knowledge_search.py --benchmark
 
       - name: Verify Documentation & Skill Studio Gates
         run: |

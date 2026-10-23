@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Orthotect Canonical Contrast Matrix Specification",
+  "version": "1.6.0",
+  "tiers": {
+    "normal_text": {
+      "minRatioAA": 4.5,
+      "minRatioAAA": 7.0,
+      "description": "Normal body text and headings under 18pt (WCAG 2.2 SC 1.4.3)"
+    },
+    "action_text": {
+      "minRatioAA": 4.5,
+      "minRatioAAA": 7.0,
+      "description": "Interactive action button and control labels"
+    },
+    "ui_control": {
+      "minRatioAA": 3.0,
+      "minRatioAAA": 4.5,
+      "description": "Non-text UI components, boundaries, and focus indicators (WCAG 2.2 SC 1.4.11)"
+    }
+  },
+  "pairs": [
+    {
+      "name": "Content Primary on Canvas",
+      "background": [
+        "surface",
+        "canvas"
+      ],
+      "foreground": [
+        "content",
+        "primary"
+      ],
+      "tier": "normal_text",
+      "role": "Body Text"
+    },
+    {
+      "name": "Content Primary on Panel",
+      "background": [
+        "surface",
+        "panel"
+      ],
+      "foreground": [
+        "content",
+        "primary"
+      ],
+      "tier": "normal_text",
+      "role": "Panel Body Text"
+    },
+    {
+      "name": "Content Primary on Subtle Surface",
+      "background": [
+        "surface",
+        "subtle"
+      ],
+      "foreground": [
+        "content",
+        "primary"
+      ],
+      "tier": "normal_text",
+      "role": "Subtle Surface Body Text"
+    },
+    {
+      "name": "Content Primary on Elevated Surface",
+      "background": [
+        "surface",
+        "elevated"
+      ],
+      "foreground": [
+        "content",
+        "primary"
+      ],
+      "tier": "normal_text",
+      "role": "Elevated Surface Body Text"
+    },
+    {
+      "name": "Content Secondary on Canvas",
+      "background": [
+        "surface",
+        "canvas"
+      ],
+      "foreground": [
+        "content",
+        "secondary"
+      ],
+      "tier": "normal_text",
+      "role": "Secondary Text"
+    },
+    {
+      "name": "Content Secondary on Panel",
+      "background": [
+        "surface",
+        "panel"
+      ],
+      "foreground": [
+        "content",
+        "secondary"
+      ],
+      "tier": "normal_text",
+      "role": "Panel Secondary Text"
+    },
+    {
+      "name": "Content Secondary on Subtle Surface",
+      "background": [
+        "surface",
+        "subtle"
+      ],
+      "foreground": [
+        "content",
+        "secondary"
+      ],
+      "tier": "normal_text",
+      "role": "Subtle Surface Secondary Text"
+    },
+    {
+      "name": "Content Secondary on Elevated Surface",
+      "background": [
+        "surface",
+        "elevated"
+      ],
+      "foreground": [
+        "content",
+        "secondary"
+      ],
+      "tier": "normal_text",
+      "role": "Elevated Surface Secondary Text"
+    },
+    {
+      "name": "Content Tertiary on Canvas",
+      "background": [
+        "surface",
+        "canvas"
+      ],
+      "foreground": [
+        "content",
+        "tertiary"
+      ],
+      "tier": "normal_text",
+      "role": "Auxiliary Supporting Text (AA 4.5:1)"
+    },
+    {
+      "name": "Content Tertiary on Panel",
+      "background": [
+        "surface",
+        "panel"
+      ],
+      "foreground": [
+        "content",
+        "tertiary"
+      ],
+      "tier": "normal_text",
+      "role": "Auxiliary Panel Text (AA 4.5:1)"
+    },
+    {
+      "name": "Inverse Text on Action Primary",
+      "background": [
+        "action",
+        "primary"
+      ],
+      "foreground": [
+        "content",
+        "inverse"
+      ],
+      "tier": "action_text",
+      "role": "Primary Button Label"
+    },
+    {
+      "name": "Inverse Text on Action Primary Hover",
+      "background": [
+        "action",
+        "primaryHover"
+      ],
+      "foreground": [
+        "content",
+        "inverse"
+      ],
+      "tier": "action_text",
+      "role": "Primary Button Hover Label"
+    },
+    {
+      "name": "Inverse Text on Action Danger",
+      "background": [
+        "action",
+        "danger"
+      ],
+      "foreground": [
+        "content",
+        "inverse"
+      ],
+      "tier": "action_text",
+      "role": "Destructive Button Label"
+    },
+    {
+      "name": "Inverse Text on Action Danger Hover",
+      "background": [
+        "action",
+        "dangerHover"
+      ],
+      "foreground": [
+        "content",
+        "inverse"
+      ],
+      "tier": "action_text",
+      "role": "Destructive Button Hover Label"
+    },
+    {
+      "name": "Border Strong on Surface Panel",
+      "background": [
+        "surface",
+        "panel"
+      ],
+      "foreground": [
+        "border",
+        "strong"
+      ],
+      "tier": "ui_control",
+      "role": "Panel Boundary Line"
+    },
+    {
+      "name": "Border Strong on Surface Canvas",
+      "background": [
+        "surface",
+        "canvas"
+      ],
+      "foreground": [
+        "border",
+        "strong"
+      ],
+      "tier": "ui_control",
+      "role": "Canvas Boundary Line"
+    },
+    {
+      "name": "Focus Indicator on Surface Canvas",
+      "background": [
+        "surface",
+        "canvas"
+      ],
+      "foreground": [
+        "border",
+        "focus"
+      ],
+      "tier": "ui_control",
+      "role": "Focus Ring on Canvas"
+    },
+    {
+      "name": "Focus Indicator on Surface Panel",
+      "background": [
+        "surface",
+        "panel"
+      ],
+      "foreground": [
+        "border",
+        "focus"
+      ],
+      "tier": "ui_control",
+      "role": "Focus Ring on Panel"
+    },
+    {
+      "name": "Action Primary Control Boundary on Canvas",
+      "background": [
+        "surface",
+        "canvas"
+      ],
+      "foreground": [
+        "action",
+        "primary"
+      ],
+      "tier": "ui_control",
+      "role": "Primary Control Boundary"
+    },
+    {
+      "name": "Action Danger Control Boundary on Canvas",
+      "background": [
+        "surface",
+        "canvas"
+      ],
+      "foreground": [
+        "action",
+        "danger"
+      ],
+      "tier": "ui_control",
+      "role": "Destructive Control Boundary"
+    }
+  ]
+}

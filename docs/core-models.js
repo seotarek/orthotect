@@ -497,11 +497,11 @@
               "$type": "color"
             },
             "secondary": {
-              "$value": "{color.neutral.400}",
+              "$value": "{color.neutral.300}",
               "$type": "color"
             },
             "tertiary": {
-              "$value": "{color.neutral.500}",
+              "$value": "{color.neutral.400}",
               "$type": "color"
             },
             "inverse": {

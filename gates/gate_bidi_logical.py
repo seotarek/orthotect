@@ -111,26 +111,205 @@ def walk_css_nodes(nodes, line_offset=0):
             ))
     return violations
 
+class CssSyntaxTokenizer:
+    """
+    Pure standard-library, syntax-aware CSS state-machine tokenizer and declaration parser.
+    Operates without third-party dependencies (tinycss2 fallback).
+    Tracks character streams with exact line and column coordinates,
+    ignoring comments, strings, and custom properties, while properly handling
+    at-rules, nested selectors, and multiline declarations.
+    """
+    def __init__(self, text, line_offset=0):
+        self.text = text
+        self.line_offset = line_offset
+        self.length = len(text)
+
+    def parse_declarations(self):
+        """
+        Parses all CSS declarations from the text stream, returning:
+        [(prop_name, prop_val, line, col), ...]
+        """
+        declarations = []
+        n = self.length
+        i = 0
+        line = 1 + self.line_offset
+        col = 1
+        tokens = []
+
+        while i < n:
+            ch = self.text[i]
+
+            # 1. Multi-line comment: /* ... */
+            if ch == '/' and i + 1 < n and self.text[i + 1] == '*':
+                i += 2
+                col += 2
+                while i < n:
+                    if self.text[i] == '\n':
+                        line += 1
+                        col = 1
+                        i += 1
+                    elif self.text[i] == '*' and i + 1 < n and self.text[i + 1] == '/':
+                        i += 2
+                        col += 2
+                        break
+                    else:
+                        i += 1
+                        col += 1
+                continue
+
+            # 2. String literal: single quote '...'
+            if ch == "'":
+                start_l, start_c = line, col
+                str_val = []
+                i += 1
+                col += 1
+                while i < n:
+                    c = self.text[i]
+                    if c == '\\' and i + 1 < n:
+                        str_val.append(self.text[i:i+2])
+                        i += 2
+                        col += 2
+                    elif c == "'":
+                        i += 1
+                        col += 1
+                        break
+                    elif c == '\n':
+                        line += 1
+                        col = 1
+                        i += 1
+                        str_val.append('\n')
+                    else:
+                        str_val.append(c)
+                        i += 1
+                        col += 1
+                tokens.append(('STRING', ''.join(str_val), start_l, start_c))
+                continue
+
+            # 3. String literal: double quote "..."
+            if ch == '"':
+                start_l, start_c = line, col
+                str_val = []
+                i += 1
+                col += 1
+                while i < n:
+                    c = self.text[i]
+                    if c == '\\' and i + 1 < n:
+                        str_val.append(self.text[i:i+2])
+                        i += 2
+                        col += 2
+                    elif c == '"':
+                        i += 1
+                        col += 1
+                        break
+                    elif c == '\n':
+                        line += 1
+                        col = 1
+                        i += 1
+                        str_val.append('\n')
+                    else:
+                        str_val.append(c)
+                        i += 1
+                        col += 1
+                tokens.append(('STRING', ''.join(str_val), start_l, start_c))
+                continue
+
+            # 4. Whitespace
+            if ch in (' ', '\t', '\r', '\n'):
+                if ch == '\n':
+                    line += 1
+                    col = 1
+                else:
+                    col += 1
+                i += 1
+                continue
+
+            # 5. Structural characters and delimiters
+            if ch in ('{', '}', '(', ')', '[', ']', ':', ';'):
+                tokens.append((ch, ch, line, col))
+                i += 1
+                col += 1
+                continue
+
+            # 6. Word / Identifier / Value Part
+            start_l, start_c = line, col
+            word = []
+            while i < n and self.text[i] not in (' ', '\t', '\r', '\n', '{', '}', '(', ')', '[', ']', ':', ';', "'", '"', '/'):
+                word.append(self.text[i])
+                i += 1
+                col += 1
+            if word:
+                w_str = ''.join(word)
+                tokens.append(('WORD', w_str, start_l, start_c))
+
+        # Declaration extraction with block and paren tracking
+        t_idx = 0
+        num_toks = len(tokens)
+        paren_depth = 0
+
+        while t_idx < num_toks:
+            tok_type, tok_val, tok_l, tok_c = tokens[t_idx]
+
+            if tok_type == '(':
+                paren_depth += 1
+                t_idx += 1
+                continue
+            elif tok_type == ')':
+                paren_depth = max(0, paren_depth - 1)
+                t_idx += 1
+                continue
+
+            # Look for property declaration pattern: WORD followed immediately by ':' at paren_depth == 0
+            if paren_depth == 0 and tok_type == 'WORD' and t_idx + 1 < num_toks and tokens[t_idx + 1][0] == ':':
+                prop_name = tok_val
+                prop_line = tok_l
+                prop_col = tok_c
+
+                val_tokens = []
+                j = t_idx + 2
+                is_valid_decl = True
+                term_idx = j
+
+                while j < num_toks:
+                    jt_type, jt_val, _, _ = tokens[j]
+                    if jt_type == '{':
+                        # Block opening before semicolon indicates a selector/rule, not a declaration
+                        is_valid_decl = False
+                        break
+                    elif jt_type == ';':
+                        term_idx = j + 1
+                        break
+                    elif jt_type == '}':
+                        term_idx = j
+                        break
+                    else:
+                        val_tokens.append(jt_val)
+                        j += 1
+                else:
+                    term_idx = j
+
+                if is_valid_decl and not prop_name.startswith('--'):
+                    prop_value = ' '.join(val_tokens).strip()
+                    declarations.append((prop_name, prop_value, prop_line, prop_col))
+                    t_idx = term_idx
+                    continue
+
+            t_idx += 1
+
+        return declarations
+
 def scan_css_content_fallback(css_text, line_offset=0):
     """
     Dependency-free, syntax-aware fallback scanner for environments without tinycss2.
-    Strips comments and strings before matching CSS property declarations.
+    Uses pure-Python state-machine CssSyntaxTokenizer to extract declarations
+    and validate directional properties.
     """
     violations = []
-    # 1. Mask CSS comments while preserving newlines
-    masked = re.sub(r'/\*.*?\*/', lambda m: '\n' * m.group(0).count('\n'), css_text, flags=re.DOTALL)
+    tokenizer = CssSyntaxTokenizer(css_text, line_offset=line_offset)
+    declarations = tokenizer.parse_declarations()
 
-    # 2. Mask quoted strings so content: "left" is ignored
-    masked = re.sub(r'"(?:\\.|[^"\\])*"', '""', masked)
-    masked = re.sub(r"'(?:\\.|[^'\\])*'", "''", masked)
-
-    # 3. Find declarations (ignoring CSS custom properties --*)
-    decl_pattern = re.compile(r'(?<![\w-])(?!--)([a-zA-Z][\w-]*)\s*:\s*([^;}{]+)', re.MULTILINE)
-    for m in decl_pattern.finditer(masked):
-        name = m.group(1).lower().strip()
-        val = m.group(2).strip()
-        line = css_text[:m.start(1)].count('\n') + 1 + line_offset
-        col = m.start(1) - css_text[:m.start(1)].rfind('\n') if '\n' in css_text[:m.start(1)] else m.start(1) + 1
+    for name_raw, val_raw, line, col in declarations:
+        name = name_raw.lower()
+        val = val_raw.lower()
 
         if name in BANNED_PROPERTIES:
             violations.append(BidiViolation(line, col, name, val, BANNED_PROPERTIES[name]))

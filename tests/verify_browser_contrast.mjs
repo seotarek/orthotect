@@ -20,10 +20,29 @@ if (!chromePath) {
   process.exit(1);
 }
 
-function parseRgb(colorStr) {
-  const match = colorStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+function parseRgba(colorStr) {
+  if (!colorStr) return null;
+  const match = colorStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
   if (!match) return null;
-  return [parseInt(match[1], 10), parseInt(match[2], 10), parseInt(match[3], 10)];
+  const r = parseInt(match[1], 10);
+  const g = parseInt(match[2], 10);
+  const b = parseInt(match[3], 10);
+  const a = match[4] !== undefined ? parseFloat(match[4]) : 1.0;
+  return [r, g, b, a];
+}
+
+/**
+ * Composites a foreground RGBA color over an underlying base RGB color
+ * according to W3C alpha blending formula:
+ * C_comp = (1 - alpha) * C_bg + alpha * C_fg
+ */
+function compositeColor([fgR, fgG, fgB, alpha], [bgR, bgG, bgB]) {
+  if (alpha >= 1.0) return [fgR, fgG, fgB];
+  return [
+    Math.round((1 - alpha) * bgR + alpha * fgR),
+    Math.round((1 - alpha) * bgG + alpha * fgG),
+    Math.round((1 - alpha) * bgB + alpha * fgB)
+  ];
 }
 
 function channelToLuminance(c) {
@@ -53,11 +72,14 @@ async function evaluateTheme(page, theme) {
     { name: "Brand Title on Header Panel", selector: ".brand-title", bgSelector: ".top-bar", threshold: 4.5, type: "normal_text" },
     { name: "Hero Stat Figure on Panel", selector: ".hero-figure", bgSelector: ".hero-stat", threshold: 4.5, type: "large_text" },
     { name: "Hero Label (Secondary Text) on Panel", selector: ".hero-label", bgSelector: ".hero-stat", threshold: 4.5, type: "normal_text" },
+    { name: "Card Title (Secondary Text) on Panel", selector: ".card-title", bgSelector: ".card", threshold: 4.5, type: "normal_text" },
+    { name: "Card Value (Primary Text) on Panel", selector: ".card-val", bgSelector: ".card", threshold: 4.5, type: "normal_text" },
+    { name: "Table Header Text on Subtle Surface", selector: "th", bgSelector: "th", threshold: 4.5, type: "normal_text" },
+    { name: "Table Cell Text on Panel", selector: "td", bgSelector: ".table-container", threshold: 4.5, type: "normal_text" },
     { name: "Primary Action Button Label", selector: "#btn-deploy", bgSelector: "#btn-deploy", useButtonBg: true, threshold: 4.5, type: "action_text" },
     { name: "Destructive Action Button Label", selector: "#btn-rollback", bgSelector: "#btn-rollback", useButtonBg: true, threshold: 4.5, type: "action_text" },
     { name: "Dialog Trigger Button Label", selector: "#btn-open-modal", bgSelector: "#btn-open-modal", useButtonBg: true, threshold: 4.5, type: "action_text" },
   ];
-
 
   const results = [];
 
@@ -75,7 +97,8 @@ async function evaluateTheme(page, theme) {
         const bgEl = document.querySelector(bgSelector) || document.body;
         bg = window.getComputedStyle(bgEl).backgroundColor;
       }
-      return { fg, bg };
+      const canvasBg = window.getComputedStyle(document.body).backgroundColor;
+      return { fg, bg, canvasBg };
     }, t);
 
     if (!data) {
@@ -83,15 +106,23 @@ async function evaluateTheme(page, theme) {
       continue;
     }
 
-    const fgRgb = parseRgb(data.fg);
-    const bgRgb = parseRgb(data.bg);
+    const fgRgba = parseRgba(data.fg);
+    const bgRgba = parseRgba(data.bg);
+    const canvasRgba = parseRgba(data.canvasBg) || [255, 255, 255, 1.0];
 
-    if (!fgRgb || !bgRgb) {
+    if (!fgRgba || !bgRgba) {
       results.push({ name: t.name, status: "ERROR", error: `Unparseable colors: ${data.fg} / ${data.bg}` });
       continue;
     }
 
-    const ratio = contrastRatio(fgRgb, bgRgb);
+    // Alpha compositing for background against canvas if translucent
+    const baseCanvasRgb = [canvasRgba[0], canvasRgba[1], canvasRgba[2]];
+    const effectiveBgRgb = bgRgba[3] < 1.0 ? compositeColor(bgRgba, baseCanvasRgb) : [bgRgba[0], bgRgba[1], bgRgba[2]];
+
+    // Alpha compositing for foreground against effective background if translucent
+    const effectiveFgRgb = fgRgba[3] < 1.0 ? compositeColor(fgRgba, effectiveBgRgb) : [fgRgba[0], fgRgba[1], fgRgba[2]];
+
+    const ratio = contrastRatio(effectiveFgRgb, effectiveBgRgb);
     const passed = ratio >= t.threshold;
     results.push({
       name: t.name,

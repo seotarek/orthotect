@@ -51,37 +51,121 @@ def tokenize(text):
         return []
     return re.findall(r"[\w\-]+", norm, re.UNICODE)
 
+ARABIC_CONCEPT_MAP = {
+    'تباين': ['contrast', 'wcag', 'ratio'],
+    'الوان': ['color', 'colors', 'palette'],
+    'الالوان': ['color', 'colors', 'palette'],
+    'وصول': ['accessibility', 'accessible', 'a11y'],
+    'الوصول': ['accessibility', 'accessible', 'a11y'],
+    'شامل': ['inclusive', 'accessibility'],
+    'الشامل': ['inclusive', 'accessibility'],
+    'معايير': ['standards', 'wcag', 'matrix'],
+    'اتجاه': ['bidi', 'direction', 'rtl', 'symmetry'],
+    'الاتجاه': ['bidi', 'direction', 'rtl', 'symmetry'],
+    'ثنائي': ['bidirectional', 'bidi'],
+    'لغة': ['language', 'bidi'],
+    'اللغة': ['language', 'bidi'],
+    'خصائص': ['properties', 'rules'],
+    'الخصائص': ['properties', 'rules'],
+    'منطقية': ['logical', 'properties'],
+    'المنطقية': ['logical', 'properties'],
+    'حوار': ['dialog', 'modal'],
+    'الحوار': ['dialog', 'modal'],
+    'شاشات': ['dialog', 'modal'],
+    'تركيز': ['focus', 'trap'],
+    'التركيز': ['focus', 'trap'],
+    'حصر': ['trap', 'trapping', 'focus'],
+    'حركة': ['motion', 'animation', 'spring'],
+    'الحركة': ['motion', 'animation', 'spring'],
+    'نوابض': ['spring', 'physics'],
+    'النوابض': ['spring', 'physics'],
+    'سلسة': ['smooth', 'easing'],
+    'تقليل': ['reduced', 'motion'],
+    'خط': ['typography', 'font', 'type'],
+    'خطوط': ['typography', 'fonts', 'type'],
+    'الخطوط': ['typography', 'fonts', 'type'],
+    'شبكة': ['grid', 'layout', 'bento'],
+    'بينتو': ['bento', 'grid', 'layout'],
+    'تخطيط': ['layout', 'patterns'],
+    'متجاوب': ['responsive', 'layout'],
+    'فيتس': ['fitts', 'laws', 'patterns'],
+    'ادراك': ['cognitive', 'ergonomic'],
+    'الادراك': ['cognitive', 'ergonomic'],
+    'بصري': ['visual', 'ergonomic'],
+    'البصري': ['visual', 'ergonomic']
+}
+
+def expand_query_tokens(tokens):
+    """Expands query tokens with cross-lingual Arabic/English conceptual synonyms."""
+    if not tokens:
+        return []
+    expanded = list(tokens)
+    for t in tokens:
+        if t in ARABIC_CONCEPT_MAP:
+            expanded.extend(ARABIC_CONCEPT_MAP[t])
+    return expanded
+
+CANONICAL_GATES = {
+    "gate_contrast_wcag.py",
+    "gate_bidi_logical.py",
+    "gate_fsm_integrity.py",
+    "gate_no_slop.py",
+    "gate_cwv_budget.mjs"
+}
+
 def derive_verification_status(data, evidence=None):
     """
-    Derives verification status strictly based on verifiable evidence.
-    Evidence dimensions:
-      - schemaValid (bool)
-      - gatesPassed (list of string gate names)
-      - browserVerified (bool)
-    Returns:
-      - VERIFIED_BROWSER if real browser execution is recorded
-      - VERIFIED_DETERMINISTIC if deterministic gates passed
-      - HEURISTIC for advisory guidance without gate certifications
-      - NOT_EVALUATED if unverified / evidence absent
+    Derives verification status strictly based on verifiable execution evidence.
+    Evidence requirements for VERIFIED_DETERMINISTIC:
+      - gatesPassed: non-empty list of canonical Orthotect quality gates
+      - verifier: non-empty string identifier (e.g. 'orthotect-gate-runner' or 'ci-pipeline')
+      - verifiedAt: ISO-8601 timestamp string
+      - revision: non-empty string (commit SHA or release tag)
+    Evidence requirements for VERIFIED_BROWSER:
+      - browserVerified: True
+      - browserEvidence: non-empty dict containing testSuite, testedThemes, and verifiedAt
+      - verifier: non-empty string
+      - revision: non-empty string
+    Advisory guidance:
+      - HEURISTIC for design opinions / heuristic guidelines without gate execution
+    Absence of full independent provenance:
+      - NOT_EVALUATED
     """
     ev = evidence or data.get("evidence", {})
     if not isinstance(ev, dict):
         ev = {}
 
+    has_verifier = bool(ev.get("verifier") and isinstance(ev.get("verifier"), str) and ev.get("verifier").strip())
+    has_timestamp = bool(ev.get("verifiedAt") or ev.get("timestamp"))
+    has_revision = bool(ev.get("revision") or ev.get("commitSha") or ev.get("runId"))
+
+    # Browser verification requires real execution proof + provenance
     if ev.get("browserVerified") is True:
-        return "VERIFIED_BROWSER"
-    
+        b_ev = ev.get("browserEvidence")
+        if (
+            isinstance(b_ev, dict) and
+            b_ev.get("testSuite") and
+            has_verifier and
+            has_timestamp and
+            has_revision
+        ):
+            return "VERIFIED_BROWSER"
+        # Incomplete browser evidence fails to NOT_EVALUATED
+        return "NOT_EVALUATED"
+
+    # Deterministic verification requires recognized gate suite + provenance
     gates = ev.get("gatesPassed", [])
     if isinstance(gates, list) and len(gates) >= 1:
-        return "VERIFIED_DETERMINISTIC"
+        valid_gates = [g for g in gates if g in CANONICAL_GATES]
+        if valid_gates and has_verifier and has_timestamp and has_revision:
+            return "VERIFIED_DETERMINISTIC"
+        # Claiming gates without valid verifier/timestamp/revision fails to NOT_EVALUATED
+        return "NOT_EVALUATED"
 
     if ev.get("heuristic") is True or data.get("verificationStatus") == "HEURISTIC":
         return "HEURISTIC"
 
-    if data.get("verificationStatus") == "NOT_EVALUATED":
-        return "NOT_EVALUATED"
-
-    # In absence of recorded evidence, default to NOT_EVALUATED
+    # In absence of complete recorded evidence, default to NOT_EVALUATED
     return "NOT_EVALUATED"
 
 
@@ -268,7 +352,7 @@ def search_knowledge(query=None, category=None, tag=None, stack=None, limit=10, 
     Searches the knowledge base with BM25 relevance ranking and filtering.
     """
     records = load_knowledge_base(knowledge_dir)
-    query_tokens = tokenize(query) if query else []
+    query_tokens = expand_query_tokens(tokenize(query)) if query else []
     
     # Pre-filter by metadata
     filtered_records = []
@@ -338,33 +422,57 @@ def _validate_schema_builtin(data, schema, path="root", strict_mode=True):
             errors.append(f"{path}: Unsupported schema keyword(s) in strict fallback mode: {sorted(list(unsupported))}")
             return errors
 
-    # 2. Root data type validation
+    # 2. Type validation
     expected_root_type = schema.get("type") if isinstance(schema, dict) else None
     if expected_root_type:
+        leaf_name = path.split('.')[-1] if '.' in path else path
+        is_prop = (path != "root" and not path.endswith("]"))
+        prop_prefix = f"Property '{leaf_name}' must be an" if (is_prop and expected_root_type in ("integer", "object", "array")) else (f"Property '{leaf_name}' must be a" if is_prop else "Expected")
+
         if expected_root_type == "object" and (not isinstance(data, dict) or data is None):
-            errors.append(f"{path}: Expected object, got {type(data).__name__ if data is not None else 'null'}")
+            errors.append(f"{path}: {prop_prefix} object, got {type(data).__name__ if data is not None else 'null'}")
             return errors
         elif expected_root_type == "array" and (not isinstance(data, list) or data is None):
-            errors.append(f"{path}: Expected array, got {type(data).__name__ if data is not None else 'null'}")
+            errors.append(f"{path}: {prop_prefix} array, got {type(data).__name__ if data is not None else 'null'}")
             return errors
         elif expected_root_type == "string" and not isinstance(data, str):
-            errors.append(f"{path}: Expected string, got {type(data).__name__}")
+            errors.append(f"{path}: {prop_prefix} string, got {type(data).__name__}")
             return errors
         elif expected_root_type == "number" and (not isinstance(data, (int, float)) or isinstance(data, bool)):
-            errors.append(f"{path}: Expected number, got {type(data).__name__}")
+            errors.append(f"{path}: {prop_prefix} number, got {type(data).__name__}")
             return errors
         elif expected_root_type == "integer" and (not isinstance(data, int) or isinstance(data, bool)):
-            errors.append(f"{path}: Expected integer, got {type(data).__name__}")
+            errors.append(f"{path}: {prop_prefix} integer, got {type(data).__name__}")
             return errors
         elif expected_root_type == "boolean" and not isinstance(data, bool):
-            errors.append(f"{path}: Expected boolean, got {type(data).__name__}")
+            errors.append(f"{path}: {prop_prefix} boolean, got {type(data).__name__}")
             return errors
 
     # Check enum constraint at current level
     if isinstance(schema, dict) and "enum" in schema and data not in schema["enum"]:
         errors.append(f"{path}: Value '{data}' not in allowed enum: {schema['enum']}")
 
-    # 3. Array items recursive check (if data is a list)
+    # 3. String constraints at current level
+    if isinstance(data, str) and isinstance(schema, dict):
+        if "minLength" in schema and len(data) < schema["minLength"]:
+            errors.append(f"{path}: String too short (length {len(data)} < {schema['minLength']})")
+        if "maxLength" in schema and len(data) > schema["maxLength"]:
+            errors.append(f"{path}: String too long (length {len(data)} > {schema['maxLength']})")
+        if "pattern" in schema:
+            try:
+                if not re.search(schema["pattern"], data):
+                    errors.append(f"{path}: Value '{data}' does not match pattern '{schema['pattern']}'")
+            except Exception as re_err:
+                errors.append(f"{path}: Invalid regex pattern '{schema['pattern']}': {re_err}")
+
+    # 4. Numeric constraints at current level (preventing bool inheritance)
+    if isinstance(data, (int, float)) and not isinstance(data, bool) and isinstance(schema, dict):
+        if "minimum" in schema and data < schema["minimum"]:
+            errors.append(f"{path}: Value {data} < minimum {schema['minimum']}")
+        if "maximum" in schema and data > schema["maximum"]:
+            errors.append(f"{path}: Value {data} > maximum {schema['maximum']}")
+
+    # 5. Array items recursive check (if data is a list)
     if isinstance(data, list) and isinstance(schema, dict):
         items_schema = schema.get("items")
         if strict_mode and isinstance(items_schema, dict):
@@ -377,7 +485,7 @@ def _validate_schema_builtin(data, schema, path="root", strict_mode=True):
                 sub_errs = _validate_schema_builtin(item, items_schema, path=item_path, strict_mode=strict_mode)
                 errors.extend(sub_errs)
 
-    # 4. Object properties, required fields, and additionalProperties recursive check
+    # 6. Object properties, required fields, and additionalProperties recursive check
     if isinstance(data, dict) and isinstance(schema, dict):
         properties = schema.get("properties", {})
         required = schema.get("required", [])
@@ -393,78 +501,13 @@ def _validate_schema_builtin(data, schema, path="root", strict_mode=True):
             if req not in data:
                 errors.append(f"{path}: Missing required property: '{req}'")
 
-        # Recursively validate every present property
+        # Recursively validate every present property against its schema
         for prop_name, prop_val in data.items():
             if prop_name in properties:
                 prop_schema = properties[prop_name]
                 prop_path = f"{path}.{prop_name}" if path != "root" else prop_name
-
-                # Check unsupported keywords on the property schema itself
-                if strict_mode and isinstance(prop_schema, dict):
-                    prop_unsupported = set(prop_schema.keys()) - SUPPORTED_SCHEMA_KEYWORDS
-                    if prop_unsupported:
-                        errors.append(f"{prop_path}: Unsupported schema keyword(s) in strict fallback mode: {sorted(list(prop_unsupported))}")
-                        continue
-
-                prop_type = prop_schema.get("type")
-
-                # Strict type checks preventing bool inheritance issues
-                if prop_type == "string":
-                    if not isinstance(prop_val, str):
-                        errors.append(f"{prop_path}: Property '{prop_name}' must be a string, got {type(prop_val).__name__}")
-                    else:
-                        if "minLength" in prop_schema and len(prop_val) < prop_schema["minLength"]:
-                            errors.append(f"{prop_path}: Property '{prop_name}' string too short (length {len(prop_val)} < {prop_schema['minLength']})")
-                        if "maxLength" in prop_schema and len(prop_val) > prop_schema["maxLength"]:
-                            errors.append(f"{prop_path}: Property '{prop_name}' string too long (length {len(prop_val)} > {prop_schema['maxLength']})")
-                        if "pattern" in prop_schema:
-                            try:
-                                if not re.search(prop_schema["pattern"], prop_val):
-                                    errors.append(f"{prop_path}: Property '{prop_name}' value '{prop_val}' does not match pattern '{prop_schema['pattern']}'")
-                            except Exception as re_err:
-                                errors.append(f"{prop_path}: Invalid regex pattern '{prop_schema['pattern']}': {re_err}")
-                elif prop_type == "number":
-                    if not isinstance(prop_val, (int, float)) or isinstance(prop_val, bool):
-                        errors.append(f"{prop_path}: Property '{prop_name}' must be a number, got {type(prop_val).__name__}")
-                    else:
-                        if "minimum" in prop_schema and prop_val < prop_schema["minimum"]:
-                            errors.append(f"{prop_path}: Property '{prop_name}' number {prop_val} < minimum {prop_schema['minimum']}")
-                        if "maximum" in prop_schema and prop_val > prop_schema["maximum"]:
-                            errors.append(f"{prop_path}: Property '{prop_name}' number {prop_val} > maximum {prop_schema['maximum']}")
-                elif prop_type == "integer":
-                    if not isinstance(prop_val, int) or isinstance(prop_val, bool):
-                        errors.append(f"{prop_path}: Property '{prop_name}' must be an integer, got {type(prop_val).__name__}")
-                    else:
-                        if "minimum" in prop_schema and prop_val < prop_schema["minimum"]:
-                            errors.append(f"{prop_path}: Property '{prop_name}' integer {prop_val} < minimum {prop_schema['minimum']}")
-                        if "maximum" in prop_schema and prop_val > prop_schema["maximum"]:
-                            errors.append(f"{prop_path}: Property '{prop_name}' integer {prop_val} > maximum {prop_schema['maximum']}")
-                elif prop_type == "boolean" and not isinstance(prop_val, bool):
-                    errors.append(f"{prop_path}: Property '{prop_name}' must be a boolean, got {type(prop_val).__name__}")
-                elif prop_type == "array":
-                    if not isinstance(prop_val, list):
-                        errors.append(f"{prop_path}: Property '{prop_name}' must be an array, got {type(prop_val).__name__}")
-                    else:
-                        items_schema = prop_schema.get("items")
-                        if strict_mode and isinstance(items_schema, dict):
-                            items_unsupported = set(items_schema.keys()) - SUPPORTED_SCHEMA_KEYWORDS
-                            if items_unsupported:
-                                errors.append(f"{prop_path}.items: Unsupported schema keyword(s) in strict fallback mode: {sorted(list(items_unsupported))}")
-                        if items_schema:
-                            for idx, item in enumerate(prop_val):
-                                item_path = f"{prop_path}[{idx}]"
-                                sub_errs = _validate_schema_builtin(item, items_schema, path=item_path, strict_mode=strict_mode)
-                                errors.extend(sub_errs)
-                elif prop_type == "object":
-                    if not isinstance(prop_val, dict):
-                        errors.append(f"{prop_path}: Property '{prop_name}' must be an object, got {type(prop_val).__name__}")
-                    else:
-                        sub_errs = _validate_schema_builtin(prop_val, prop_schema, path=prop_path, strict_mode=strict_mode)
-                        errors.extend(sub_errs)
-
-                # Enum validation
-                if "enum" in prop_schema and prop_val not in prop_schema["enum"]:
-                    errors.append(f"{prop_path}: Property '{prop_name}' value '{prop_val}' not in allowed enum: {prop_schema['enum']}")
+                sub_errs = _validate_schema_builtin(prop_val, prop_schema, path=prop_path, strict_mode=strict_mode)
+                errors.extend(sub_errs)
 
     return errors
 

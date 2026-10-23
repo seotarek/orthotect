@@ -180,6 +180,32 @@ class TestContrastGateE2E(unittest.TestCase):
         self.assertEqual(res.returncode, 0, f"Browser contrast verification failed:\n{res.stdout}\n{res.stderr}")
         self.assertIn("Real browser computed-style contrast verified", res.stdout)
 
+    def test_compiler_and_gate_contrast_matrix_symmetry(self):
+        """Verify that compiler and gate use identical canonical contrast matrix specification."""
+        import core.compiler as compiler_mod
+        import gates.gate_contrast_wcag as gate_mod
+
+        comp_matrix = compiler_mod.load_contrast_matrix()
+        gate_matrix = gate_mod.load_contrast_matrix()
+
+        self.assertIsNotNone(comp_matrix)
+        self.assertIsNotNone(gate_matrix)
+        self.assertEqual(len(comp_matrix['pairs']), 20)
+        self.assertEqual(len(gate_matrix['pairs']), 20)
+        self.assertEqual([p['name'] for p in comp_matrix['pairs']], [p['name'] for p in gate_matrix['pairs']])
+
+    def test_tertiary_content_enforces_aa_4_5_threshold(self):
+        """Verify that Content Tertiary on Canvas and Panel require AA threshold of 4.5:1, not 3.0:1."""
+        import gates.gate_contrast_wcag as gate_mod
+        matrix = gate_mod.load_contrast_matrix()
+        tiers = matrix['tiers']
+        self.assertEqual(tiers['normal_text']['minRatioAA'], 4.5)
+
+        tertiary_pairs = [p for p in matrix['pairs'] if 'Tertiary' in p['name']]
+        self.assertEqual(len(tertiary_pairs), 2)
+        for p in tertiary_pairs:
+            self.assertEqual(p['tier'], 'normal_text')
+
 if __name__ == '__main__':
     unittest.main()
 

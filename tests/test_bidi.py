@@ -178,6 +178,26 @@ class TestBidiScanner(unittest.TestCase):
         # Verify custom property and comment were ignored
         self.assertNotIn("--sidebar-left", props)
 
+    def test_css_syntax_tokenizer_nested_at_rules_and_escapes(self):
+        """Verify the state-machine CssSyntaxTokenizer handles nested @media, escaped quotes, and pseudo-classes."""
+        from gates.gate_bidi_logical import scan_css_content_fallback
+        complex_css = """
+        @media screen and (max-width: 900px) {
+            /* Nested media query */
+            .box:hover {
+                content: "escaped \\"margin-left\\" string";
+                padding-left: 12px;
+            }
+            .safe {
+                margin-inline-start: 1rem;
+            }
+        }
+        """
+        viols = scan_css_content_fallback(complex_css)
+        self.assertEqual(len(viols), 1)
+        self.assertEqual(viols[0].name, "padding-left")
+        self.assertEqual(viols[0].suggestion, "padding-inline-start")
+
     def test_html_inline_and_block_styles_scan(self):
         """Verify HTML files with both <style> blocks and inline style attributes are detected correctly."""
         import gates.gate_bidi_logical as bidi_mod

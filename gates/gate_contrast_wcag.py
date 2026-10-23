@@ -92,12 +92,36 @@ def find_target_tokens(target_path):
             
     return None, None
 
-def evaluate_semantic_pairs(theme_name, theme_data, prims):
+def load_contrast_matrix(target_path=None):
+    root_pkg = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    candidates = []
+    if target_path:
+        target_abs = os.path.abspath(target_path)
+        candidates.extend([
+            target_abs,
+            os.path.join(target_abs, 'core', 'tokens'),
+            os.path.join(target_abs, 'tokens'),
+            os.path.join(target_abs, '.orthotect', 'tokens')
+        ])
+    candidates.append(os.path.join(root_pkg, 'core', 'tokens'))
+
+    for c in candidates:
+        m_file = os.path.join(c, 'contrast-matrix.json') if not c.endswith('.json') else c
+        if os.path.exists(m_file):
+            try:
+                with open(m_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except Exception:
+                pass
+    return None
+
+def evaluate_semantic_pairs(theme_name, theme_data, prims, matrix_data=None):
     """
     Builds and evaluates the canonical semantic contrast matrix covering:
     - Primary, secondary, tertiary text across canvas, panel, subtle, and elevated surfaces
     - Action controls (primary and danger) and their hover states
     - Non-text UI components (borders, boundaries, and focus indicators) under WCAG 2.2 SC 1.4.11
+    Loads from canonical contrast-matrix.json when available.
     """
     surfaces = theme_data.get('surface')
     contents = theme_data.get('content')
@@ -119,6 +143,31 @@ def evaluate_semantic_pairs(theme_name, theme_data, prims):
         except Exception as e:
             raise ValueError(f"Invalid color value for [{theme_name}] '{group}.{key}' ({raw_val} -> {resolved}): {e}")
 
+    if matrix_data is None:
+        matrix_data = load_contrast_matrix()
+
+    if matrix_data and 'pairs' in matrix_data:
+        tiers = matrix_data.get('tiers', {})
+        pairs = []
+        for pair in matrix_data['pairs']:
+            label = pair.get('name', 'Unnamed Pair')
+            bg_grp, bg_tok = pair['background']
+            fg_grp, fg_tok = pair['foreground']
+            tier = pair.get('tier', 'normal_text')
+            role = pair.get('role', '')
+
+            tier_info = tiers.get(tier, {})
+            aa_req = tier_info.get('minRatioAA', 4.5)
+            aaa_req = tier_info.get('minRatioAAA', 7.0)
+
+            bg_rgb, bg_hex = get_rgb(bg_grp, bg_tok)
+            fg_rgb, fg_hex = get_rgb(fg_grp, fg_tok)
+
+            pairs.append((label, fg_rgb, bg_rgb, aa_req, aaa_req, role))
+
+        return pairs
+
+    # Fallback to hardcoded canonical matrix if contrast-matrix.json is missing
     canvas_rgb, canvas_hex = get_rgb('surface', 'canvas')
     panel_rgb, panel_hex = get_rgb('surface', 'panel')
     subtle_rgb, subtle_hex = get_rgb('surface', 'subtle')
@@ -147,9 +196,8 @@ def evaluate_semantic_pairs(theme_name, theme_data, prims):
         ("Content Secondary on Panel", cs_rgb, panel_rgb, 4.5, 7.0, "Panel Secondary Text"),
         ("Content Secondary on Subtle Surface", cs_rgb, subtle_rgb, 4.5, 7.0, "Subtle Surface Secondary Text"),
         ("Content Secondary on Elevated Surface", cs_rgb, elevated_rgb, 4.5, 7.0, "Elevated Surface Secondary Text"),
-        ("Content Tertiary on Canvas", ct_rgb, canvas_rgb, 3.0, 4.5, "Large/Auxiliary Supporting Text"),
-        ("Content Tertiary on Panel", ct_rgb, panel_rgb, 3.0, 4.5, "Large/Auxiliary Panel Text"),
-
+        ("Content Tertiary on Canvas", ct_rgb, canvas_rgb, 4.5, 7.0, "Auxiliary Supporting Text (AA 4.5:1)"),
+        ("Content Tertiary on Panel", ct_rgb, panel_rgb, 4.5, 7.0, "Auxiliary Panel Text (AA 4.5:1)"),
 
         # Action Button Text & Hover States (4.5:1 AA, 7.0:1 AAA)
         ("Inverse Text on Action Primary", ci_rgb, ap_rgb, 4.5, 7.0, "Primary Button Label"),
@@ -202,10 +250,11 @@ def main():
         print("❌ [REJECT] Missing 'theme' declarations in semantics.json")
         sys.exit(1)
 
+    matrix_data = load_contrast_matrix(target_path)
     for theme_name, theme_data in themes.items():
         print(f"\nTheme Scope: [{theme_name.upper()}]")
         try:
-            pairs = evaluate_semantic_pairs(theme_name, theme_data, prims)
+            pairs = evaluate_semantic_pairs(theme_name, theme_data, prims, matrix_data)
         except Exception as e:
             print(f"❌ [REJECT] Token evaluation error in theme [{theme_name}]: {e}")
             failures += 1
