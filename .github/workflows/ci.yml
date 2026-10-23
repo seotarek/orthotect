@@ -53,8 +53,8 @@ jobs:
 
       - name: Test Style Recipe Page Scaffolding
         run: |
-          node bin/orthotect.js design page contemporary-product-saas --out /tmp/ci_scaffold.html
-          node bin/orthotect.js verify /tmp/ci_scaffold.html
+          node bin/orthotect.js design page contemporary-product-saas --out /tmp/ci_test_project/scaffold.html
+          node bin/orthotect.js verify /tmp/ci_test_project
 
       - name: Test W3C DTCG Token Compiler
         run: |
