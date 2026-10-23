@@ -4,11 +4,35 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.3] - 2026-10-23
+
+### Fixed
+- **Semantic chunking scope preservation (`core/context_optimizer.py`)**:
+  - Reworked `semantic_chunk()` to split deterministically at top-level declarations first, then nested declaration boundaries for oversized declarations.
+  - Added explicit structural fallback metadata (`split_strategy`, `context_path`, `oversized_scope`) and continuation breadcrumbs when a single declaration still exceeds token budget.
+  - Improved JS/TS lexical brace scanning in symbol extraction to ignore braces inside comments/strings/template literals/regex literals and improved Python indentation handling with tab-aware indentation normalization.
+- **Token-estimation claim accuracy (`core/context_optimizer.py`, `tests/test_context_optimizer.py`)**:
+  - Removed unsupported tokenizer-calibration wording and clarified `estimate_tokens()` as a deterministic approximation.
+  - Added representative approximation tests covering punctuation-heavy code, Unicode identifiers/text, minified code, and whitespace handling.
+- **Depth-pruning verification (`tests/test_context_optimizer.py`)**:
+  - Added an instrumented traversal regression test proving `generate_context_skeleton(max_depth=N)` prunes `os.walk` descent at the defined cutoff (root depth = 0 semantics).
+- **BiDi regex/division regression hardening (`tests/test_bidi.py`)**:
+  - Added regression coverage for nested condition parentheses, escaped regex slashes/character classes, trailing comments, and arithmetic division after grouping/function calls to ensure downstream physical-direction violations are still detected.
+- **Package metadata consistency (`package.json`, `package-lock.json`, `scripts/check-package-metadata.mjs`)**:
+  - Synchronized scoped package name/version metadata between `package.json` and `package-lock.json`.
+  - Added `npm run check:package-metadata` for lightweight consistency validation in CI/publish flow.
+
+### CI
+- **Safe publish gating (`.github/workflows/publish-package.yml`)**:
+  - Added repository-wide workflow `concurrency` guard to avoid concurrent publish races.
+  - Hardened registry pre-check to distinguish "version missing" from indeterminate registry/auth/network errors and fail closed on ambiguity.
+  - Kept `workflow_dispatch` as verification-only and made release-published the canonical path for `npm publish`.
+
 ## [1.7.2] - 2026-10-23
 
 ### Added
 - **Context Architecture & Token Optimizer Subsystem (`core/context_optimizer.py` & `skills/orthotect-context/`)**:
-  - Implemented zero-dependency context engine featuring calibrated heuristic token estimation, AST-density profiling, and semantic symbol extraction.
+  - Implemented zero-dependency context engine featuring heuristic token estimation, AST-density profiling, and semantic symbol extraction.
   - Added nesting-aware semantic chunking (`semantic_chunk`) decomposing source files along top-level class, function, and component boundaries without severing closure scopes. When large classes exceed token budgets, partitions at nested method boundaries with context continuation breadcrumbs (e.g. `// [Context Continuation: class X | chunk #N]`).
   - Added progressive architectural skeleton generation (`generate_context_skeleton`) with directory traversal depth pruning (`dirs[:] = []` at `depth >= max_depth`), preventing unnecessary filesystem traversals.
   - Authored official autonomous agent skill `orthotect-context` (16 total modular skills certified).

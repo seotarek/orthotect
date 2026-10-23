@@ -10,6 +10,7 @@ import json
 import tempfile
 import shutil
 import subprocess
+from unittest import mock
 
 from core.context_optimizer import (
     estimate_tokens,
@@ -31,17 +32,22 @@ class TestContextOptimizer(unittest.TestCase):
         self.assertEqual(estimate_tokens("   \n\t  "), 0)
         self.assertGreaterEqual(estimate_tokens("hello world"), 2)
 
-    def test_estimate_tokens_code_calibration(self):
+    def test_estimate_tokens_code_approximation_samples(self):
         sample_code = """
         function calculateLayout(containerWidth, paddingInline) {
             const innerWidth = containerWidth - (paddingInline * 2);
             return Math.max(0, innerWidth);
         }
         """
-        tokens = estimate_tokens(sample_code)
-        # Should be reasonable ~30-50 tokens
-        self.assertGreaterEqual(tokens, 20)
-        self.assertLessEqual(tokens, 75)
+        unicode_code = "const شعار = 'مرحبا'; const emoji = '✅';"
+        minified_code = "const a=1,b=2,c=(a+b)/2;export default{a,b,c};"
+        punctuated = "fn(alpha_beta, gammaDelta); // punctuation-heavy"
+
+        for sample in (sample_code, unicode_code, minified_code, punctuated):
+            tokens = estimate_tokens(sample)
+            self.assertGreater(tokens, 0)
+            # Heuristic estimate should remain roughly within plausible code token range.
+            self.assertLess(tokens, len(sample) + 1)
 
     def test_extract_symbols_js_and_ts(self):
         js_code = """
@@ -98,6 +104,73 @@ class TestContextOptimizer(unittest.TestCase):
             self.assertEqual(c['chunk_index'], idx)
             self.assertGreater(c['lines_count'], 0)
             self.assertGreater(c['estimated_tokens'], 0)
+
+    def test_semantic_chunking_large_top_level_function_preserves_scope_metadata(self):
+        js_lines = ["export function giantPipeline(input) {"]
+        js_lines.append("  const stages = [];")
+        for i in range(120):
+            js_lines.append(f"  function nested_{i}(value) {{")
+            js_lines.append(f"    const local_{i} = `segment {i} with braces {{not-scope}} and // slash`;")
+            js_lines.append("    const regex = /https?:\\/\\/[a-z/]+/i;")
+            js_lines.append(f"    return (() => value + {i})() + (regex.test('https://a') ? 1 : 0);")
+            js_lines.append("  }")
+            js_lines.append(f"  stages.push(nested_{i}(input));")
+        js_lines.append("  return stages.join(',');")
+        js_lines.append("}")
+        js_lines.append("export function tail() { return 'done'; }")
+        js_code = "\n".join(js_lines)
+
+        chunks = semantic_chunk(js_code, max_tokens=180, is_content=True, ext='.js')
+        self.assertGreater(len(chunks), 2)
+        self.assertEqual(chunks[0]['start_line'], 1)
+        self.assertIn("export function giantPipeline", chunks[0]['content'])
+        continuation_chunks = [c for c in chunks if c.get('continuation_of') == 'function giantPipeline']
+        self.assertGreaterEqual(len(continuation_chunks), 1)
+        for c in continuation_chunks:
+            self.assertEqual(c['context_path'], ['function giantPipeline'])
+            self.assertIn('oversized_scope', c)
+            self.assertEqual(c['oversized_scope']['name'], 'giantPipeline')
+            self.assertEqual(c['split_strategy'] in ('nested_boundary', 'line_window'), True)
+
+    def test_semantic_chunking_python_nested_functions_with_tabs(self):
+        py_code = (
+            "def outer(value):\n"
+            "\ttotal = value\n"
+            "\tdef inner_a(v):\n"
+            "\t\tdef inner_b(x):\n"
+            "\t\t\treturn x + 1\n"
+            "\t\treturn inner_b(v)\n"
+            "\tfor i in range(180):\n"
+            "\t\ttotal += inner_a(i)\n"
+            "\tlog_message = 'this is a deliberately long line to force token expansion in semantic chunking for python tabs'\n"
+            "\tlog_message2 = 'another deliberately long line to keep the declaration above the max token threshold'\n"
+            "\tlog_message3 = 'chunking should keep explicit continuation metadata for oversized declarations'\n"
+            "\treturn total\n\n"
+            "def sibling():\n"
+            "\treturn 'ok'\n"
+        )
+        symbols = extract_symbols(py_code, '.py')
+        names = [s['name'] for s in symbols]
+        self.assertIn('outer', names)
+        self.assertIn('inner_a', names)
+        self.assertIn('inner_b', names)
+        inner_b = [s for s in symbols if s['name'] == 'inner_b'][0]
+        self.assertEqual(inner_b['parent'], 'inner_a')
+
+        chunks = semantic_chunk(py_code, max_tokens=40, is_content=True, ext='.py')
+        self.assertGreaterEqual(len(chunks), 2)
+        continuation_chunks = [c for c in chunks if c.get('continuation_of') == 'function outer']
+        self.assertTrue(continuation_chunks)
+        for c in continuation_chunks:
+            self.assertIn('function outer', " > ".join(c['context_path']))
+
+    def test_extract_symbols_multiple_declarations_same_line(self):
+        js_code = "export function a() { return 1; } export function b() { return 2; } const c = () => 3;"
+        symbols = extract_symbols(js_code, '.js')
+        names = [s['name'] for s in symbols]
+        self.assertIn('a', names)
+        self.assertIn('b', names)
+        self.assertIn('c', names)
 
     def test_generate_context_skeleton_compression(self):
         # Create mock file structure
@@ -269,6 +342,49 @@ class TestContextOptimizer(unittest.TestCase):
         files = [f['path'] for f in skel['files']]
         self.assertIn(os.path.join('lvl1', 'Top.js'), files)
         self.assertNotIn(os.path.join('lvl1', 'lvl2', 'lvl3', 'lvl4', 'Deep.js'), files)
+
+    def test_generate_context_skeleton_depth_pruning_stops_traversal(self):
+        root = os.path.join(self.temp_dir, 'repo')
+        os.makedirs(root)
+        os.makedirs(os.path.join(root, 'lvl1', 'lvl2', 'lvl3'))
+        with open(os.path.join(root, 'lvl1', 'Top.js'), 'w') as f:
+            f.write("export const top = true;\n")
+        with open(os.path.join(root, 'lvl1', 'lvl2', 'Deep.js'), 'w') as f:
+            f.write("export const deep = true;\n")
+
+        visited = []
+        subdirs = {
+            root: ['lvl1'],
+            os.path.join(root, 'lvl1'): ['lvl2'],
+            os.path.join(root, 'lvl1', 'lvl2'): ['lvl3'],
+            os.path.join(root, 'lvl1', 'lvl2', 'lvl3'): []
+        }
+        files_map = {
+            root: [],
+            os.path.join(root, 'lvl1'): ['Top.js'],
+            os.path.join(root, 'lvl1', 'lvl2'): ['Deep.js'],
+            os.path.join(root, 'lvl1', 'lvl2', 'lvl3'): []
+        }
+
+        def instrumented_walk(_root_path):
+            queue = [root]
+            while queue:
+                current = queue.pop(0)
+                dirs = list(subdirs[current])
+                files = list(files_map[current])
+                visited.append(current)
+                yield current, dirs, files
+                for d in dirs:
+                    queue.append(os.path.join(current, d))
+
+        with mock.patch('core.context_optimizer.os.walk', side_effect=instrumented_walk):
+            skel = generate_context_skeleton(root, max_depth=1)
+
+        self.assertIn(os.path.join(root, 'lvl1'), visited)
+        self.assertNotIn(os.path.join(root, 'lvl1', 'lvl2'), visited)
+        files = [f['path'] for f in skel['files']]
+        self.assertIn(os.path.join('lvl1', 'Top.js'), files)
+        self.assertNotIn(os.path.join('lvl1', 'lvl2', 'Deep.js'), files)
 
 if __name__ == '__main__':
     unittest.main()

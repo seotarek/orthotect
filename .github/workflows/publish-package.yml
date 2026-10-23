@@ -5,6 +5,10 @@ on:
     types: [published]
   workflow_dispatch:
 
+concurrency:
+  group: publish-package
+  cancel-in-progress: false
+
 jobs:
   publish:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
@@ -32,6 +36,9 @@ jobs:
           npm ci
           pip install -r requirements.txt
 
+      - name: Verify package metadata consistency
+        run: npm run check:package-metadata
+
       - name: Run Pre-Publish Verification Suite & Gates
         run: |
           npm test
@@ -41,20 +48,38 @@ jobs:
       - name: Check if Version Already Published
         id: check_version
         run: |
+          set -euo pipefail
           CURRENT_VERSION=$(node -p "require('./package.json').version")
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
           echo "Target version: ${CURRENT_VERSION}"
-          if npm view "@seotarek/orthotect@${CURRENT_VERSION}" version --registry=https://npm.pkg.github.com > /dev/null 2>&1; then
+
+          set +e
+          CHECK_OUTPUT=$(npm view "${PACKAGE_NAME}@${CURRENT_VERSION}" version --registry=https://npm.pkg.github.com 2>&1)
+          CHECK_STATUS=$?
+          set -e
+
+          if [ "$CHECK_STATUS" -eq 0 ]; then
             echo "Version ${CURRENT_VERSION} is already published on GitHub Packages."
             echo "already_published=true" >> "$GITHUB_OUTPUT"
-          else
+          elif echo "$CHECK_OUTPUT" | grep -Eqi '(E404|404 Not Found|No match found for version|not in this registry)'; then
             echo "Version ${CURRENT_VERSION} is not yet published."
             echo "already_published=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Unable to determine whether ${PACKAGE_NAME}@${CURRENT_VERSION} is published."
+            echo "$CHECK_OUTPUT"
+            exit 1
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to GitHub Packages
-        if: steps.check_version.outputs.already_published != 'true'
+        if: github.event_name == 'release' && steps.check_version.outputs.already_published != 'true'
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Manual run publication note
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "workflow_dispatch intentionally runs verification/check steps only."
+          echo "Canonical publishing path is the release-published event."

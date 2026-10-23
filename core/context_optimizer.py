@@ -25,15 +25,13 @@ DEFAULT_SUPPORTED_EXTENSIONS = {
 
 def estimate_tokens(text: str) -> int:
     """
-    Zero-dependency heuristic token estimator calibrated against OpenAI cl100k_base / Gemini tokenizer.
-    Provides deterministic, fast estimation for source code and structured text (~3.7-3.8 chars/token).
-    NOTE: This is a lightweight heuristic approximation, not an exact BPE/WordPiece encoder, designed
-    to run deterministically with zero runtime dependencies.
+    Zero-dependency heuristic token estimator.
+    This is a deterministic approximation for source code and structured text, not an
+    exact tokenizer implementation for any vendor/model.
     """
     if not text:
         return 0
 
-    # Fast heuristic approximation calibrated against OpenAI cl100k_base / Gemini tokenizer
     # 1. Split on whitespace
     words = text.split()
     token_count = 0
@@ -56,6 +54,175 @@ def estimate_tokens(text: str) -> int:
 
     return max(1, token_count) if text.strip() else 0
 
+def _js_is_regex_start(text: str, slash_idx: int) -> bool:
+    """
+    Best-effort lexical disambiguation for JS/TS `/` token:
+    returns True when `/` is likely a regex literal start and False for division.
+    """
+    j = slash_idx - 1
+    while j >= 0 and text[j] in ' \t\r\n':
+        j -= 1
+    if j < 0:
+        return True
+
+    prev_ch = text[j]
+    if prev_ch in '=(,{[;:!&|?~^+-*<>%':
+        return True
+    if prev_ch == ')':
+        depth = 1
+        k = j - 1
+        while k >= 0 and depth > 0:
+            if text[k] == ')':
+                depth += 1
+            elif text[k] == '(':
+                depth -= 1
+            k -= 1
+        if depth == 0:
+            w = k
+            while w >= 0 and text[w] in ' \t\r\n':
+                w -= 1
+            word_end = w
+            while w >= 0 and (text[w].isalnum() or text[w] in '_$'):
+                w -= 1
+            kw = text[w + 1:word_end + 1]
+            return kw in ('if', 'while', 'for', 'with', 'catch')
+        return False
+
+    k = j
+    while k >= 0 and (text[k].isalnum() or text[k] in '_$'):
+        k -= 1
+    word = text[k + 1:j + 1]
+    return word in ('return', 'case', 'typeof', 'delete', 'void', 'throw', 'yield', 'await', 'default')
+
+
+def _scan_js_line_for_brace_depth(line: str, full_text: str, absolute_index: int, state: dict) -> tuple[int, int]:
+    """
+    Scan one JS/TS line and return (open_braces, close_braces) in executable code.
+    Ignores braces inside comments, strings, template literals, and regex literals.
+    This is lexical (non-AST) parsing and intentionally best-effort.
+    """
+    open_braces = 0
+    close_braces = 0
+    i = 0
+    n = len(line)
+
+    while i < n:
+        ch = line[i]
+        abs_i = absolute_index + i
+
+        if state['in_block_comment']:
+            if ch == '*' and i + 1 < n and line[i + 1] == '/':
+                state['in_block_comment'] = False
+                i += 2
+            else:
+                i += 1
+            continue
+
+        if state['string_quote']:
+            if ch == '\\' and i + 1 < n:
+                i += 2
+            elif ch == state['string_quote']:
+                state['string_quote'] = None
+                i += 1
+            else:
+                i += 1
+            continue
+
+        if state['in_template']:
+            if ch == '\\' and i + 1 < n:
+                i += 2
+            elif ch == '`':
+                state['in_template'] = False
+                i += 1
+            else:
+                i += 1
+            continue
+
+        if state['in_regex']:
+            if ch == '\\' and i + 1 < n:
+                i += 2
+            elif ch == '[' and not state['in_regex_char_class']:
+                state['in_regex_char_class'] = True
+                i += 1
+            elif ch == ']' and state['in_regex_char_class']:
+                state['in_regex_char_class'] = False
+                i += 1
+            elif ch == '/' and not state['in_regex_char_class']:
+                state['in_regex'] = False
+                i += 1
+                while i < n and line[i].isalpha():
+                    i += 1
+            else:
+                i += 1
+            continue
+
+        if ch == '/' and i + 1 < n and line[i + 1] == '/':
+            break
+        if ch == '/' and i + 1 < n and line[i + 1] == '*':
+            state['in_block_comment'] = True
+            i += 2
+            continue
+        if ch in ("'", '"'):
+            state['string_quote'] = ch
+            i += 1
+            continue
+        if ch == '`':
+            state['in_template'] = True
+            i += 1
+            continue
+        if ch == '/' and i + 1 < n and line[i + 1] not in ('/', '*') and _js_is_regex_start(full_text, abs_i):
+            state['in_regex'] = True
+            state['in_regex_char_class'] = False
+            i += 1
+            continue
+        if ch == '{':
+            open_braces += 1
+        elif ch == '}':
+            close_braces += 1
+        i += 1
+
+    return open_braces, close_braces
+
+
+def _compute_python_indent(line: str) -> int:
+    """Compute Python indentation depth with tabs normalized to 8-column stops."""
+    expanded = line.expandtabs(8)
+    return len(expanded) - len(expanded.lstrip(' '))
+
+
+def _build_scope_path(symbol: dict, symbol_map: dict) -> list:
+    path = []
+    current = symbol
+    visited = set()
+    while current and current.get('name') and current['name'] not in visited:
+        visited.add(current['name'])
+        label = f"{current.get('type', 'scope')} {current['name']}"
+        path.append(label)
+        parent_name = current.get('parent')
+        current = symbol_map.get(parent_name) if parent_name else None
+    return list(reversed(path))
+
+
+def _split_oversized_range_by_lines(lines: list, range_start: int, range_end: int, max_tokens: int) -> list:
+    """
+    Deterministic structural fallback for a single oversized declaration range.
+    Splits by line windows sized by local token density.
+    """
+    text = "\n".join(lines[range_start - 1:range_end])
+    tokens = estimate_tokens(text)
+    total_lines = max(1, range_end - range_start + 1)
+    tokens_per_line = max(1.0, tokens / total_lines)
+    window_lines = max(20, int(max_tokens / tokens_per_line))
+
+    spans = []
+    cursor = range_start
+    while cursor <= range_end:
+        end_line = min(range_end, cursor + window_lines - 1)
+        spans.append((cursor, end_line, 'line_window'))
+        cursor = end_line + 1
+    return spans
+
+
 def extract_symbols(content: str, ext: str):
     """
     Extract major architectural symbols (classes, functions, methods, components, selectors)
@@ -68,7 +235,15 @@ def extract_symbols(content: str, ext: str):
     if ext in ('.js', '.jsx', '.ts', '.tsx', '.mjs'):
         scope_stack = []
         brace_depth = 0
-        in_block_comment = False
+        scanner_state = {
+            'in_block_comment': False,
+            'string_quote': None,
+            'in_template': False,
+            'in_regex': False,
+            'in_regex_char_class': False
+        }
+        full_text = content
+        absolute_index = 0
 
         for idx, line in enumerate(lines, 1):
             stripped = line.strip()
@@ -80,84 +255,58 @@ def extract_symbols(content: str, ext: str):
             is_top = (cur_depth == 0)
             parent = scope_stack[-1]['name'] if scope_stack else None
 
-            # 1. Class declarations
-            m_class = re.match(r'^(?:export\s+(?:default\s+)?)?class\s+([A-Za-z0-9_$]+)', stripped)
-            if m_class:
-                c_name = m_class.group(1)
-                symbols.append({'line': idx, 'type': 'class', 'name': c_name, 'is_top_level': is_top, 'parent': parent, 'depth': cur_depth})
-                scope_stack.append({'open_brace_depth': cur_depth + 1, 'type': 'class', 'name': c_name})
-            else:
-                # 2. Function declarations
-                m_func = re.match(r'^(?:export\s+(?:default\s+)?)?(?:async\s+)?function\s*([A-Za-z0-9_$]+)', stripped)
-                if m_func:
+            if stripped:
+                class_pattern = r'(?<![\w$])(?:export\s+(?:default\s+)?)?class\s+([A-Za-z0-9_$]+)'
+                func_pattern = r'(?<![\w$])(?:export\s+(?:default\s+)?)?(?:async\s+)?function\s+([A-Za-z0-9_$]+)\s*\('
+                arrow_pattern = r'(?<![\w$])(?:export\s+)?(?:const|let|var)\s+([A-Za-z0-9_$]+)\s*=\s*(?:async\s*)?(?:\([^)]*\)|[A-Za-z0-9_$]+)\s*=>'
+                method_pattern = r'^(?:(?:async|get|set|static)\s+)*([A-Za-z0-9_$]+)\s*\([^)]*\)\s*\{?'
+
+                for m_class in re.finditer(class_pattern, stripped):
+                    c_name = m_class.group(1)
+                    symbols.append({'line': idx, 'type': 'class', 'name': c_name, 'is_top_level': is_top, 'parent': parent, 'depth': cur_depth})
+                    scope_stack.append({'open_brace_depth': cur_depth + 1, 'type': 'class', 'name': c_name})
+                    parent = c_name
+                    is_top = False
+
+                for m_func in re.finditer(func_pattern, stripped):
                     f_name = m_func.group(1)
                     stype = 'function'
-                    symbols.append({'line': idx, 'type': stype, 'name': f_name, 'is_top_level': is_top, 'parent': parent, 'depth': cur_depth})
+                    symbols.append({'line': idx, 'type': stype, 'name': f_name, 'is_top_level': (cur_depth == 0), 'parent': scope_stack[-1]['name'] if scope_stack else None, 'depth': cur_depth})
                     scope_stack.append({'open_brace_depth': cur_depth + 1, 'type': stype, 'name': f_name})
-                else:
-                    # 3. Arrow functions or React component assignments
-                    m_arrow = re.match(r'^(?:export\s+)?(?:const|let|var)\s+([A-Za-z0-9_$]+)\s*=\s*(?:async\s*)?(?:\([^)]*\)|[A-Za-z0-9_$]+)\s*=>', stripped)
-                    if m_arrow:
-                        a_name = m_arrow.group(1)
-                        symbols.append({'line': idx, 'type': 'function', 'name': a_name, 'is_top_level': is_top, 'parent': parent, 'depth': cur_depth})
-                    elif scope_stack and scope_stack[-1]['type'] == 'class':
-                        # 4. Class methods
-                        m_method = re.match(r'^(?:(?:async|get|set|static)\s+)*([A-Za-z0-9_$]+)\s*\([^)]*\)\s*\{?', stripped)
-                        if m_method and m_method.group(1) not in ('if', 'while', 'for', 'switch', 'catch'):
-                            m_name = m_method.group(1)
-                            symbols.append({'line': idx, 'type': 'method', 'name': m_name, 'is_top_level': False, 'parent': scope_stack[-1]['name'], 'depth': cur_depth})
-                            scope_stack.append({'open_brace_depth': cur_depth + 1, 'type': 'method', 'name': m_name})
 
-            # Update brace_depth through the line
-            i = 0
-            n = len(line)
-            while i < n:
-                ch = line[i]
-                if not in_block_comment:
-                    if ch == '/' and i + 1 < n and line[i + 1] == '/':
-                        break
-                    elif ch == '/' and i + 1 < n and line[i + 1] == '*':
-                        in_block_comment = True
-                        i += 2
-                        continue
-                    elif ch in ('"', "'", '`'):
-                        q = ch
-                        i += 1
-                        while i < n and line[i] != q:
-                            if line[i] == '\\':
-                                i += 1
-                            i += 1
-                    elif ch == '{':
-                        brace_depth += 1
-                    elif ch == '}':
-                        brace_depth = max(0, brace_depth - 1)
-                        while scope_stack and scope_stack[-1]['open_brace_depth'] > brace_depth:
-                            scope_stack.pop()
-                else:
-                    if ch == '*' and i + 1 < n and line[i + 1] == '/':
-                        in_block_comment = False
-                        i += 2
-                        continue
-                i += 1
+                for m_arrow in re.finditer(arrow_pattern, stripped):
+                    a_name = m_arrow.group(1)
+                    symbols.append({'line': idx, 'type': 'function', 'name': a_name, 'is_top_level': (cur_depth == 0), 'parent': scope_stack[-1]['name'] if scope_stack else None, 'depth': cur_depth})
+
+                if scope_stack and scope_stack[-1]['type'] == 'class':
+                    m_method = re.match(method_pattern, stripped)
+                    if m_method and m_method.group(1) not in ('if', 'while', 'for', 'switch', 'catch'):
+                        m_name = m_method.group(1)
+                        symbols.append({'line': idx, 'type': 'method', 'name': m_name, 'is_top_level': False, 'parent': scope_stack[-1]['name'], 'depth': cur_depth})
+                        scope_stack.append({'open_brace_depth': cur_depth + 1, 'type': 'method', 'name': m_name})
+
+            opened, closed = _scan_js_line_for_brace_depth(line, full_text, absolute_index, scanner_state)
+            brace_depth += opened
+            brace_depth = max(0, brace_depth - closed)
+            while scope_stack and scope_stack[-1]['open_brace_depth'] > brace_depth:
+                scope_stack.pop()
+            absolute_index += len(line) + 1
 
     # Python
     elif ext == '.py':
         scope_stack = []
-        base_indent = None
         for idx, line in enumerate(lines, 1):
             stripped = line.strip()
             if not stripped or stripped.startswith('#'):
                 continue
-            indent = len(line) - len(line.lstrip(' '))
+            indent = _compute_python_indent(line)
             while scope_stack and scope_stack[-1]['indent'] >= indent:
                 scope_stack.pop()
 
             m_class = re.match(r'^class\s+([A-Za-z0-9_]+)', stripped)
             if m_class:
                 c_name = m_class.group(1)
-                if base_indent is None:
-                    base_indent = indent
-                is_top = len(scope_stack) == 0 and indent <= base_indent
+                is_top = len(scope_stack) == 0
                 parent = scope_stack[-1]['name'] if scope_stack else None
                 symbols.append({'line': idx, 'type': 'class', 'name': c_name, 'is_top_level': is_top, 'parent': parent, 'depth': len(scope_stack)})
                 scope_stack.append({'type': 'class', 'name': c_name, 'indent': indent})
@@ -166,9 +315,7 @@ def extract_symbols(content: str, ext: str):
             m_func = re.match(r'^(?:async\s+)?def\s+([A-Za-z0-9_]+)\s*\(', stripped)
             if m_func:
                 f_name = m_func.group(1)
-                if base_indent is None:
-                    base_indent = indent
-                is_top = len(scope_stack) == 0 and indent <= base_indent
+                is_top = len(scope_stack) == 0
                 parent = scope_stack[-1]['name'] if scope_stack else None
                 stype = 'method' if (scope_stack and scope_stack[-1]['type'] == 'class') else 'function'
                 symbols.append({'line': idx, 'type': stype, 'name': f_name, 'is_top_level': is_top, 'parent': parent, 'depth': len(scope_stack)})
@@ -236,10 +383,17 @@ def analyze_file_density(filepath_or_content: str, is_content: bool = False, ext
 
 def semantic_chunk(filepath_or_content: str, max_tokens: int = 500, is_content: bool = False, ext: str = '.js') -> list:
     """
-    Semantically partition file into coherent blocks bounded by top-level declarations,
-    avoiding arbitrary line splitting that severs function closures or class scopes.
-    When large classes or blocks exceed max_tokens, splits at nested method boundaries
-    and prepends context breadcrumbs (e.g. `// [Context Continuation: class X | chunk #N]`).
+    Semantically partition content into deterministic chunks.
+
+    Guarantees:
+    - For JS/TS/Python inputs, prefers boundaries at top-level declarations and then nested
+      declarations before any line-window fallback.
+    - A single oversized declaration is never silently split without metadata: every fallback
+      chunk includes explicit enclosing-scope breadcrumbs and `split_strategy` metadata.
+
+    Limits:
+    - JS/TS parsing is lexical (non-AST). It is resilient to comments, strings, template
+      literals, and regex literals for brace counting, but does not claim full grammar coverage.
     """
     if is_content:
         content = filepath_or_content
@@ -258,87 +412,130 @@ def semantic_chunk(filepath_or_content: str, max_tokens: int = 500, is_content: 
     if total_lines == 0:
         return []
 
-    symbols = extract_symbols(content, ext)
-    symbol_by_line = {s['line']: s for s in symbols}
-
-    def get_next_symbol(line_idx):
-        k = line_idx + 1
-        while k <= total_lines:
-            if k in symbol_by_line:
-                return symbol_by_line[k]
-            if lines[k - 1].strip():
-                return None
-            k += 1
-        return None
-
     comment_prefix = '#' if ext == '.py' else '//'
-
     chunks = []
-    current_chunk_lines = []
-    current_start_line = 1
-    current_symbols = []
-    continuation_parent = None
+    symbols = extract_symbols(content, ext)
+    symbols_sorted = sorted(symbols, key=lambda s: (s.get('line', 0), s.get('depth', 0)))
+    symbol_map = {s['name']: s for s in symbols_sorted if s.get('name')}
 
-    for idx, line in enumerate(lines, 1):
-        if idx in symbol_by_line:
-            sym = symbol_by_line[idx]
-            current_symbols.append(sym['name'])
+    top_level_symbols = [s for s in symbols_sorted if s.get('is_top_level')]
+    top_level_symbols.sort(key=lambda s: s['line'])
 
-        current_chunk_lines.append(line)
-        candidate_text = "\n".join(current_chunk_lines)
-        curr_tokens = estimate_tokens(candidate_text)
+    ranges = []
+    if top_level_symbols:
+        first_start = top_level_symbols[0]['line']
+        if first_start > 1:
+            ranges.append({'start': 1, 'end': first_start - 1, 'symbol': None, 'strategy': 'preamble'})
 
-        is_last_line = (idx == total_lines)
-        next_sym = get_next_symbol(idx)
+        for i, sym in enumerate(top_level_symbols):
+            start = sym['line']
+            end = (top_level_symbols[i + 1]['line'] - 1) if i + 1 < len(top_level_symbols) else total_lines
+            ranges.append({'start': start, 'end': end, 'symbol': sym, 'strategy': 'top_level'})
+    else:
+        ranges.append({'start': 1, 'end': total_lines, 'symbol': None, 'strategy': 'file_window'})
 
-        should_split = False
-        next_continuation = None
+    def collect_chunk_symbols(start_line, end_line):
+        return [s['name'] for s in symbols_sorted if start_line <= s['line'] <= end_line]
 
-        if is_last_line:
-            should_split = True
-        elif curr_tokens >= max_tokens:
-            if next_sym:
-                if next_sym.get('is_top_level', True):
-                    should_split = True
-                    next_continuation = None
-                else:
-                    should_split = True
-                    p_name = next_sym.get('parent') or 'enclosing scope'
-                    next_continuation = f"class {p_name}" if next_sym.get('type') == 'method' else p_name
-            elif curr_tokens >= int(max_tokens * 1.5):
-                should_split = True
-                enclosing = None
-                for s in reversed(symbols):
-                    if s['line'] <= idx:
-                        enclosing = f"class {s['parent']}" if s.get('parent') else f"{s['type']} {s['name']}"
-                        break
-                next_continuation = enclosing or "scope"
+    def append_chunk(start_line, end_line, continuation_of=None, split_strategy='top_level', context_path=None, oversized_scope=None):
+        chunk_idx = len(chunks) + 1
+        raw_content = "\n".join(lines[start_line - 1:end_line])
+        final_content = raw_content
+        if continuation_of:
+            breadcrumb = f"{comment_prefix} [Context Continuation: {continuation_of} | chunk #{chunk_idx}]\n"
+            final_content = breadcrumb + raw_content
+        chunk = {
+            'chunk_index': chunk_idx,
+            'file': filename,
+            'start_line': start_line,
+            'end_line': end_line,
+            'lines_count': (end_line - start_line + 1),
+            'estimated_tokens': estimate_tokens(final_content),
+            'continuation_of': continuation_of,
+            'split_strategy': split_strategy,
+            'context_path': context_path or [],
+            'symbols': collect_chunk_symbols(start_line, end_line),
+            'content': final_content
+        }
+        if oversized_scope:
+            chunk['oversized_scope'] = oversized_scope
+        chunks.append(chunk)
 
-        if should_split:
-            chunk_idx = len(chunks) + 1
-            raw_content = "\n".join(current_chunk_lines)
-            if continuation_parent:
-                breadcrumb = f"{comment_prefix} [Context Continuation: {continuation_parent} | chunk #{chunk_idx}]\n"
-                final_content = breadcrumb + raw_content
+    for r in ranges:
+        r_start = r['start']
+        r_end = r['end']
+        if r_end < r_start:
+            continue
+
+        r_text = "\n".join(lines[r_start - 1:r_end])
+        r_tokens = estimate_tokens(r_text)
+        symbol = r['symbol']
+
+        if r_tokens <= max_tokens:
+            append_chunk(
+                r_start,
+                r_end,
+                continuation_of=None,
+                split_strategy=r['strategy'],
+                context_path=_build_scope_path(symbol, symbol_map) if symbol else []
+            )
+            continue
+
+        if not symbol:
+            for sub_start, sub_end, strategy in _split_oversized_range_by_lines(lines, r_start, r_end, max_tokens):
+                append_chunk(sub_start, sub_end, continuation_of='file scope', split_strategy=strategy, context_path=[])
+            continue
+
+        symbol_name = f"{symbol['type']} {symbol['name']}"
+        context_path = _build_scope_path(symbol, symbol_map)
+        child_symbols = [
+            s for s in symbols_sorted
+            if r_start < s['line'] <= r_end and (s.get('parent') == symbol.get('name'))
+        ]
+        child_starts = sorted({s['line'] for s in child_symbols})
+
+        sub_ranges = []
+        if child_starts:
+            cursor = r_start
+            for child_start in child_starts:
+                if child_start > cursor:
+                    sub_ranges.append((cursor, child_start - 1, 'nested_boundary'))
+                cursor = child_start
+            if cursor <= r_end:
+                sub_ranges.append((cursor, r_end, 'nested_boundary'))
+        else:
+            sub_ranges = _split_oversized_range_by_lines(lines, r_start, r_end, max_tokens)
+
+        oversized_meta = {
+            'name': symbol.get('name'),
+            'type': symbol.get('type'),
+            'start_line': r_start,
+            'end_line': r_end
+        }
+
+        for idx_sub, (sub_start, sub_end, strategy) in enumerate(sub_ranges):
+            sub_text = "\n".join(lines[sub_start - 1:sub_end])
+            sub_tokens = estimate_tokens(sub_text)
+            if sub_tokens > max_tokens and strategy != 'line_window':
+                finer = _split_oversized_range_by_lines(lines, sub_start, sub_end, max_tokens)
+                for j, (f_start, f_end, f_strategy) in enumerate(finer):
+                    continuation = None if (idx_sub == 0 and j == 0 and f_start == r_start) else symbol_name
+                    append_chunk(
+                        f_start, f_end,
+                        continuation_of=continuation,
+                        split_strategy=f_strategy,
+                        context_path=context_path,
+                        oversized_scope=oversized_meta
+                    )
             else:
-                final_content = raw_content
-
-            chunks.append({
-                'chunk_index': chunk_idx,
-                'file': filename,
-                'start_line': current_start_line,
-                'end_line': idx,
-                'lines_count': len(current_chunk_lines),
-                'estimated_tokens': estimate_tokens(final_content),
-                'continuation_of': continuation_parent,
-                'symbols': list(current_symbols),
-                'content': final_content
-            })
-
-            current_chunk_lines = []
-            current_start_line = idx + 1
-            current_symbols = []
-            continuation_parent = next_continuation
+                continuation = None if (idx_sub == 0 and sub_start == r_start) else symbol_name
+                append_chunk(
+                    sub_start, sub_end,
+                    continuation_of=continuation,
+                    split_strategy=strategy,
+                    context_path=context_path,
+                    oversized_scope=oversized_meta
+                )
 
     return chunks
 
@@ -346,6 +543,12 @@ def generate_context_skeleton(root_dir: str, max_depth: int = 3, ignore_dirs: se
     """
     Generate an ultra-compact architectural skeleton of files and their major symbols.
     Compresses codebase context by >85% compared to raw file reading.
+
+    Depth semantics:
+    - root directory depth is 0
+    - direct children are depth 1
+    - when current directory depth >= max_depth, traversal is pruned by clearing `dirs[:]`
+      before `os.walk` descends further.
     """
     if ignore_dirs is None:
         ignore_dirs = DEFAULT_IGNORE_DIRS

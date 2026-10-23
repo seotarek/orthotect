@@ -1,6 +1,6 @@
 {
   "name": "@seotarek/orthotect",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "description": "The Deterministic Interface Engineering & Runtime Gate Architecture for AI Coding Agents.",
   "main": "bin/orthotect.js",
   "bin": {
@@ -13,6 +13,7 @@
   "scripts": {
     "test": "python3 -m unittest discover -s tests -p 'test_*.py' && python3 gates/run_all_gates.py examples/golden-showcase",
     "test:unit": "python3 -m unittest discover -s tests -p 'test_*.py'",
+    "check:package-metadata": "node scripts/check-package-metadata.mjs",
     "gate:all": "python3 gates/run_all_gates.py",
     "gate:bidi": "python3 gates/gate_bidi_logical.py",
     "gate:contrast": "python3 gates/gate_contrast_wcag.py",
@@ -73,7 +74,6 @@
     "node": ">=20.19.0",
     "python": ">=3.9.0"
   },
-
   "dependencies": {
     "parse5": "^8.0.1"
   },
