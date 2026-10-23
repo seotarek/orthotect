@@ -12,13 +12,14 @@ import re
 
 SLOP_PATTERNS = [
     (r'linear-gradient\s*\([^)]*(#6366f1|#a855f7|indigo|purple)[^)]*\)', 'Generic AI Purple/Indigo Gradient'),
-    (r'<button[^>]*>[^<]*[🚀🔥✨💡🎉📈📊🧠🤖][^<]*</button>', 'Raw Emoji in Button Icon instead of SVG vector'),
-    (r'<h[1-3][^>]*>[^<]*[🚀🔥✨💡🎉📈📊🧠🤖]', 'Raw Emoji in Heading element'),
+    (r'<[A-Za-z0-9_]*button[^>]*>[^<]*[🚀🔥✨💡🎉📈📊🧠🤖][^<]*</[A-Za-z0-9_]*button>', 'Raw Emoji in Button Icon instead of SVG vector'),
+    (r'<h[1-6][^>]*>[^<]*[🚀🔥✨💡🎉📈📊🧠🤖]', 'Raw Emoji in Heading element'),
     (r'style="[^"]*(#[0-9a-fA-F]{3,6}|rgb\([^)]+\))[^"]*"', 'Inline style bypassing DTCG tokens'),
+    (r'style\s*=\s*\{\{\s*[^}]*(?:color|background|backgroundColor)\s*:\s*[\'"](#[0-9a-fA-F]{3,6}|rgba?\([^)]+\))[\'"]', 'JSX Inline style bypassing DTCG tokens'),
 ]
 
 IGNORE_DIRS = {'node_modules', '.git', 'dist', '__pycache__', '.claude', 'tmp'}
-EXTENSIONS = {'.html', '.jsx', '.tsx', '.vue', '.svelte', '.css', '.scss'}
+EXTENSIONS = {'.html', '.htm', '.jsx', '.tsx', '.vue', '.svelte', '.css', '.scss', '.less', '.js', '.ts'}
 
 def scan_file(filepath):
     findings = []

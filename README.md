@@ -77,7 +77,7 @@ orthotect/
 │   ├── orthotect-tokens          # Token Management & Theme Compilation
 │   ├── orthotect-gates           # Gate Execution Workflows
 │   └── orthotect-visual-qa       # Automated Browser Visual Regression Gate
-├── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (218 Tests)
+├── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (225+ Tests)
 │   ├── test_contrast.py          # Relative luminance & contrast threshold unit tests
 │   ├── test_bidi.py              # BiDi logical scanner positive/negative tests
 │   ├── test_fsm.py               # FSM graph reachability and deadlock tests
@@ -92,7 +92,7 @@ orthotect/
 │   ├── test_modal_browser.py     # Playwright headless Chrome focus trap & FSM tests
 │   └── test_cli_e2e.py           # E2E CLI verification, boundary & negative rejection tests
 ├── .github/workflows/       # Automated CI & GitHub Pages Deployment Pipelines
-│   ├── ci.yml                    # 218 Unit, Browser & Negative Gate Tests & Full Gate Verification
+│   ├── ci.yml                    # 225+ Unit, Browser & Negative Gate Tests & Full Gate Verification
 │   └── pages.yml                 # Automated GitHub Pages Deployment
 ├── agents/
 │   └── orthotect-auditor.md      # Adversarial Quality Auditor Role
@@ -141,6 +141,20 @@ Total Verification Time (Parallel): 554.2ms
 
 🎉 ALL GATES PASSED! Build certified for enterprise production.
 ```
+
+---
+
+## 🛡️ Dual-Layer Verification Architecture & Scope Delineation
+
+Orthotect provides **Deterministic Static & AST Gate Verification** designed to run at millisecond speed in CLI, agent loops, and pre-commit hooks:
+
+| Layer | Tooling & Mechanism | Target Scope | Orthotect Alignment |
+|---|---|---|---|
+| **Layer 1: Static AST & Pattern Verification** | Orthotect Python AST & Node Gates | Lexical slop, CSS logical properties, color tokens, FSM graph locks, DOM layout shift budgets | 🏛️ **Orthotect Native Core** (Pre-commit / CI gate / Subagent feedback loop) |
+| **Layer 2: Dynamic Browser & Runtime Audit** | axe-core, Playwright, Chrome DevTools, XState | Live ARIA tree calculation, dynamic color contrast across complex background filters, focus management, end-to-end user journeys | 🤝 **Complements Layer 1** (Recommended companion in dynamic CI pipelines) |
+
+> [!NOTE]
+> **Deterministic AST Scope**: Orthotect's static gates verify structural invariants (such as physical vs. logical CSS properties across CSS/JSX/TSX, lexical token compliance, FSM definition validity, and explicit image dimensions) before deployment. For comprehensive accessibility audits covering computed runtime styles, screen reader virtual buffers, and complex DOM tree computations, we recommend pairing Orthotect with dynamic evaluation tools like `axe-core`, `Playwright`, and `Style Dictionary`.
 
 ---
 

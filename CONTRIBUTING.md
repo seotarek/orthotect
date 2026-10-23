@@ -5,15 +5,15 @@ Thank you for contributing to Orthotect! We maintain rigorous Google-caliber eng
 ## Development Workflow
 
 ### 1. Prerequisites
-- **Node.js**: >= 18.0.0
-- **Python**: >= 3.9.0
+- **Node.js**: >= 20.19.0
+- **Python**: >= 3.10.0
 
 ### 2. Running Tests
 Before submitting any changes, you must run the full automated test suite:
 ```bash
 npm test
 ```
-All 39 unit and integration tests must pass.
+All 225+ unit, browser, AST, and integration gate tests must pass.
 
 ### 3. Running Deterministic Quality Gates
 Verify that the reference showcase satisfies all 5 objective gates:

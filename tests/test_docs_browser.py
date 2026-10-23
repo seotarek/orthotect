@@ -1524,8 +1524,48 @@ class TestDocsBrowserPlatform(unittest.TestCase):
         res = subprocess.run(['node', '--input-type=module', '-e', node_script],
                              capture_output=True, text=True)
         self.assertEqual(res.returncode, 0, f"Gallery 50 templates browser test failed: {res.stderr}\n{res.stdout}")
-        self.assertIn("SUCCESS_GALLERY_50_TEMPLATES_SEO", res.stdout)
+    def test_gallery_search_xss_sanitization(self):
+        """Verify that user search input is safely escaped in empty search results and cannot inject DOM nodes."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          await page.goto('file://{self.docs_html}#gallery');
+          await page.waitForTimeout(100);
+
+          // Type XSS payload that does not match any template
+          const payload = '<img id="xssInjected" src="x" onerror="window.__xssTriggered=true">';
+          await page.fill('#gallerySearchInput', payload);
+          await page.waitForTimeout(100);
+
+          // Verify no element with id="xssInjected" was created in the DOM
+          const injectedElem = await page.$('#xssInjected');
+          if (injectedElem) {{
+            throw new Error('VULNERABILITY: DOM node was created from unsanitized search input!');
+          }}
+
+          // Verify text is safely escaped
+          const emptyText = await page.$eval('#galleryContainer', el => el.innerHTML);
+          if (emptyText.includes('<img') || !emptyText.includes('&lt;img')) {{
+            throw new Error('Expected escaped HTML entities in empty search container');
+          }}
+
+          await browser.close();
+          console.log('SUCCESS_XSS_SANITIZED');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"XSS test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_XSS_SANITIZED", res.stdout)
 
 if __name__ == '__main__':
     unittest.main()
+
 

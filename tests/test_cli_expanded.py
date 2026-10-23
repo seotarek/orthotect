@@ -82,6 +82,36 @@ class TestCLIExpanded(unittest.TestCase):
         self.assertEqual(res.returncode, 0)
         self.assertIn("Scaffolding page using style recipe: precision-analytical-console", res.stdout)
         self.assertIn("Thesis:", res.stdout)
+        self.assertIn("Certified HTML boilerplate ready", res.stdout)
+
+    def test_cli_design_page_custom_out(self):
+        """Verify 'orthotect design page <recipe> --out <path>' writes to custom destination."""
+        out_path = '/tmp/temp_test_scaffold.html'
+        if os.path.exists(out_path):
+            os.remove(out_path)
+        try:
+            res = subprocess.run(['node', self.cli_path, 'design', 'page', 'contemporary-product-saas', '--out', out_path],
+                                 capture_output=True, text=True)
+            self.assertEqual(res.returncode, 0)
+            self.assertTrue(os.path.exists(out_path))
+            with open(out_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            self.assertIn("Contemporary Product SaaS", content)
+            self.assertIn("margin-block", content)
+            self.assertIn("data-fsm", content)
+        finally:
+            if os.path.exists(out_path):
+                os.remove(out_path)
+
+    def test_cli_design_page_stdout(self):
+        """Verify 'orthotect design page <recipe> --stdout' streams boilerplate to stdout."""
+        res = subprocess.run(['node', self.cli_path, 'design', 'page', 'contemporary-product-saas', '--stdout'],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("<!DOCTYPE html>", res.stdout)
+        self.assertIn("Contemporary Product SaaS", res.stdout)
 
 if __name__ == '__main__':
     unittest.main()
+
+

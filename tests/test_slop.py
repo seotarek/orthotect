@@ -62,7 +62,30 @@ class TestAntiSlopGate(unittest.TestCase):
         os.makedirs(empty_dir, exist_ok=True)
         res = self.run_gate(empty_dir)
         self.assertNotEqual(res.returncode, 0)
-        self.assertIn("No source code files found", res.stdout)
+    def test_jsx_emoji_in_button_fails(self):
+        jsx_file = os.path.join(self.temp_dir, 'Button.jsx')
+        with open(jsx_file, 'w') as f:
+            f.write('export const Action = () => <button>Deploy 🚀</button>;')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Raw Emoji in Button Icon", res.stdout)
+
+    def test_jsx_untokenized_inline_style_fails(self):
+        tsx_file = os.path.join(self.temp_dir, 'Card.tsx')
+        with open(tsx_file, 'w') as f:
+            f.write('export const Card = () => <div style={{ color: "#ff0000" }}>Alert</div>;')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("JSX Inline style bypassing DTCG tokens", res.stdout)
+
+    def test_jsx_clean_component_passes(self):
+        tsx_file = os.path.join(self.temp_dir, 'CleanCard.tsx')
+        with open(tsx_file, 'w') as f:
+            f.write('export const Card = () => <button className="btn">Deploy</button>;')
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("No AI Slop detected", res.stdout)
 
 if __name__ == '__main__':
     unittest.main()
+

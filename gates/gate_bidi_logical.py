@@ -46,9 +46,28 @@ BANNED_PROPERTIES = {
     'border-bottom-right-radius': 'border-end-end-radius',
 }
 
+BANNED_CAMELCASE_PROPERTIES = {
+    'marginLeft': 'marginInlineStart',
+    'marginRight': 'marginInlineEnd',
+    'paddingLeft': 'paddingInlineStart',
+    'paddingRight': 'paddingInlineEnd',
+    'borderLeft': 'borderInlineStart',
+    'borderRight': 'borderInlineEnd',
+    'borderLeftWidth': 'borderInlineStartWidth',
+    'borderRightWidth': 'borderInlineEndWidth',
+    'borderLeftStyle': 'borderInlineStartStyle',
+    'borderRightStyle': 'borderInlineEndStyle',
+    'borderLeftColor': 'borderInlineStartColor',
+    'borderRightColor': 'borderInlineEndColor',
+    'borderTopLeftRadius': 'borderStartStartRadius',
+    'borderTopRightRadius': 'borderStartEndRadius',
+    'borderBottomLeftRadius': 'borderEndStartRadius',
+    'borderBottomRightRadius': 'borderEndEndRadius',
+}
+
 ALLOWED_OFFSETS = {'auto', 'inherit', 'initial', 'unset', 'revert'}
 IGNORE_DIRS = {'node_modules', '.git', 'dist', '__pycache__', '.claude', '.gemini', 'tmp'}
-SUPPORTED_EXTENSIONS = {'.css', '.scss', '.less', '.html', '.htm', '.vue', '.svelte'}
+SUPPORTED_EXTENSIONS = {'.css', '.scss', '.less', '.html', '.htm', '.vue', '.svelte', '.jsx', '.tsx', '.js', '.ts'}
 
 def check_declaration(d, line_offset=0):
     violations = []
@@ -387,6 +406,92 @@ def scan_html_content(html_text):
 
     return violations
 
+def scan_js_content(js_text):
+    violations = []
+
+    # 1. Mask comments so commented-out code is ignored
+    def mask_comments(text):
+        def replacer(match):
+            s = match.group(0)
+            return '\n' * s.count('\n')
+        pattern = re.compile(r'//.*?$|/\*.*?\*/', re.MULTILINE | re.DOTALL)
+        return pattern.sub(replacer, text)
+
+    masked_js = mask_comments(js_text)
+
+    # 2. Extract and scan tagged template literals (styled-components, emotion, etc.)
+    tmpl_pattern = re.compile(r'(?:styled(?:\.[a-zA-Z0-9_]+|\([^)]+\))?|css)\s*`([\s\S]*?)`', re.DOTALL)
+    for match in tmpl_pattern.finditer(masked_js):
+        css_text = match.group(1)
+        start_line = js_text[:match.start(1)].count('\n')
+        if not re.search(r'\{[\s\S]*?\}', css_text):
+            if not HAVE_TINYCSS2:
+                violations.extend(scan_css_content_fallback(css_text, line_offset=start_line))
+            else:
+                decls = tinycss2.parse_declaration_list(css_text)
+                violations.extend(check_declarations(decls, line_offset=start_line))
+        else:
+            violations.extend(scan_css_content(css_text, line_offset=start_line))
+
+    # 3. Extract and scan JSX style={{ ... }} and style={ { ... } }
+    jsx_style_pattern = re.compile(r'\bstyle\s*=\s*\{\{\s*([\s\S]*?)\s*\}\}', re.DOTALL)
+    for match in jsx_style_pattern.finditer(masked_js):
+        block_text = match.group(1)
+        block_start_line = js_text[:match.start(1)].count('\n')
+        violations.extend(scan_js_style_block(block_text, line_offset=block_start_line))
+
+    # 4. Extract and scan StyleSheet.create({ ... }) blocks
+    ss_pattern = re.compile(r'StyleSheet\s*\.\s*create\s*\(\s*\{([\s\S]*?)\}\s*\)', re.DOTALL)
+    for match in ss_pattern.finditer(masked_js):
+        block_text = match.group(1)
+        block_start_line = js_text[:match.start(1)].count('\n')
+        violations.extend(scan_js_style_block(block_text, line_offset=block_start_line))
+
+    return violations
+
+def scan_js_style_block(block_text, line_offset=0):
+    violations = []
+    # Check camelCase banned properties
+    for prop_camel, suggestion in BANNED_CAMELCASE_PROPERTIES.items():
+        pattern = re.compile(r'\b(' + re.escape(prop_camel) + r')\s*:\s*([^,;}\n]+)')
+        for match in pattern.finditer(block_text):
+            line = block_text[:match.start()].count('\n') + 1 + line_offset
+            col = match.start() - block_text.rfind('\n', 0, match.start())
+            val = match.group(2).strip().strip('\'"')
+            violations.append(BidiViolation(line, col, match.group(1), val, suggestion))
+
+    # Check kebab-case in quotes (e.g., 'margin-left': '10px')
+    for prop_kebab, suggestion in BANNED_PROPERTIES.items():
+        pattern = re.compile(r'[\'"](' + re.escape(prop_kebab) + r')[\'"]\s*:\s*([^,;}\n]+)')
+        for match in pattern.finditer(block_text):
+            line = block_text[:match.start()].count('\n') + 1 + line_offset
+            col = match.start() - block_text.rfind('\n', 0, match.start())
+            val = match.group(2).strip().strip('\'"')
+            violations.append(BidiViolation(line, col, match.group(1), val, suggestion))
+
+    # Check left / right offsets
+    offset_pattern = re.compile(r'\b(left|right)\s*:\s*([^,;}\n]+)')
+    for match in offset_pattern.finditer(block_text):
+        val = match.group(2).strip().strip('\'"')
+        if val in ALLOWED_OFFSETS:
+            continue
+        line = block_text[:match.start()].count('\n') + 1 + line_offset
+        col = match.start() - block_text.rfind('\n', 0, match.start())
+        prop = match.group(1).lower()
+        sug = 'inset-inline-start' if prop == 'left' else 'inset-inline-end'
+        violations.append(BidiViolation(line, col, prop, val, sug))
+
+    # Check textAlign: 'left' / 'right'
+    ta_pattern = re.compile(r'\b(?:textAlign|[\'"]text-align[\'"])\s*:\s*[\'"](left|right)[\'"]')
+    for match in ta_pattern.finditer(block_text):
+        line = block_text[:match.start()].count('\n') + 1 + line_offset
+        col = match.start() - block_text.rfind('\n', 0, match.start())
+        val = match.group(1).lower()
+        sug = 'textAlign: "start"' if val == 'left' else 'textAlign: "end"'
+        violations.append(BidiViolation(line, col, 'textAlign', val, sug))
+
+    return violations
+
 def scan_file(filepath):
     ext = os.path.splitext(filepath)[1].lower()
     if ext not in SUPPORTED_EXTENSIONS:
@@ -397,6 +502,8 @@ def scan_file(filepath):
 
     if ext in ('.html', '.htm', '.vue', '.svelte'):
         return scan_html_content(content)
+    elif ext in ('.jsx', '.tsx', '.js', '.ts'):
+        return scan_js_content(content)
     else:
         return scan_css_content(content)
 

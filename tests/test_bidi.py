@@ -297,9 +297,35 @@ class TestBidiGateE2E(unittest.TestCase):
         with open(css_file, 'w') as f:
             f.write(".card { margin-inline: auto; padding-inline: 1.5rem; inset-inline-start: 0; }")
         res = self.run_gate(self.temp_dir)
+    def test_jsx_inline_styles_camelcase_rejected(self):
+        """Negative test: Gate must REJECT React JSX/TSX with camelCase physical properties like marginLeft."""
+        jsx_file = os.path.join(self.temp_dir, 'Component.jsx')
+        with open(jsx_file, 'w') as f:
+            f.write("export const Card = () => <div style={{ marginLeft: 16, paddingRight: '8px' }}>Test</div>;")
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("marginLeft", res.stdout)
+        self.assertIn("paddingRight", res.stdout)
+
+    def test_js_styled_components_rejected(self):
+        """Negative test: Gate must REJECT styled-components template literals with physical properties."""
+        js_file = os.path.join(self.temp_dir, 'styled.js')
+        with open(js_file, 'w') as f:
+            f.write("const Box = styled.div`\n  margin-left: 20px;\n  border-left: 1px solid red;\n`;")
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("margin-left", res.stdout)
+
+    def test_jsx_logical_properties_pass(self):
+        """Positive test: Gate must PASS JSX using CSS Logical Properties."""
+        tsx_file = os.path.join(self.temp_dir, 'Card.tsx')
+        with open(tsx_file, 'w') as f:
+            f.write("export const Card = () => <div style={{ marginInlineStart: 16, paddingInlineEnd: '8px' }}>Test</div>;")
+        res = self.run_gate(self.temp_dir)
         self.assertEqual(res.returncode, 0)
         self.assertIn("BiDi Logical Check Passed", res.stdout)
 
 if __name__ == '__main__':
     unittest.main()
+
 

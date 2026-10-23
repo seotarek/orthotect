@@ -9,6 +9,8 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -27,7 +29,7 @@ jobs:
           npm ci
           pip install -r requirements.txt
 
-      - name: Run 218 Unit, Browser & Negative Gate Tests
+      - name: Run Unit, Browser & Negative Gate Tests (225+ Tests)
         run: |
           npm test
 
@@ -48,6 +50,11 @@ jobs:
           node bin/orthotect.js init /tmp/ci_test_project
           cp examples/golden-showcase/index.html /tmp/ci_test_project/
           node bin/orthotect.js verify /tmp/ci_test_project
+
+      - name: Test Style Recipe Page Scaffolding
+        run: |
+          node bin/orthotect.js design page contemporary-product-saas --out /tmp/ci_scaffold.html
+          node bin/orthotect.js verify /tmp/ci_scaffold.html
 
       - name: Test W3C DTCG Token Compiler
         run: |

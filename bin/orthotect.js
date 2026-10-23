@@ -56,6 +56,130 @@ function copyDirRecursive(src, dest, force = false) {
   return copied;
 }
 
+function generatePageBoilerplate(recipe) {
+  const title = (recipe.name || 'Orthotect Page').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const thesis = (recipe.designThesis || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const recipeId = (recipe.id || 'custom-recipe').replace(/[^a-zA-Z0-9_-]/g, '');
+
+  return `<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title} — Orthotect Certified Architecture</title>
+  <style>
+    :root {
+      --ot-bg-canvas: #0b0f19;
+      --ot-bg-surface: #111827;
+      --ot-bg-subtle: #1f2937;
+      --ot-border-subtle: rgba(255, 255, 255, 0.12);
+      --ot-fg-default: #f9fafb;
+      --ot-fg-muted: #9ca3af;
+      --ot-color-primary: #2563eb;
+      --ot-color-primary-fg: #ffffff;
+      --ot-radius-md: 8px;
+      --ot-space-sm: 8px;
+      --ot-space-md: 16px;
+      --ot-space-lg: 24px;
+      --ot-space-xl: 32px;
+      --ot-font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin-block: 0;
+      margin-inline: 0;
+      padding-block: 0;
+      padding-inline: 0;
+    }
+
+    body {
+      background-color: var(--ot-bg-canvas);
+      color: var(--ot-fg-default);
+      font-family: var(--ot-font-sans);
+      line-height: 1.6;
+      padding-block: var(--ot-space-xl);
+      padding-inline: var(--ot-space-lg);
+    }
+
+    .container {
+      max-inline-size: 1100px;
+      margin-inline: auto;
+    }
+
+    header {
+      margin-block-end: var(--ot-space-xl);
+      border-block-end: 1px solid var(--ot-border-subtle);
+      padding-block-end: var(--ot-space-lg);
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-block-end: var(--ot-space-sm);
+    }
+
+    .thesis {
+      color: var(--ot-fg-muted);
+      font-size: 1.125rem;
+      max-inline-size: 65ch;
+    }
+
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--ot-space-lg);
+      margin-block-start: var(--ot-space-lg);
+    }
+
+    .card {
+      background-color: var(--ot-bg-surface);
+      border: 1px solid var(--ot-border-subtle);
+      border-radius: var(--ot-radius-md);
+      padding-block: var(--ot-space-lg);
+      padding-inline: var(--ot-space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--ot-space-md);
+    }
+
+    .btn-primary {
+      background-color: var(--ot-color-primary);
+      color: var(--ot-color-primary-fg);
+      border: none;
+      border-radius: var(--ot-radius-md);
+      padding-block: 10px;
+      padding-inline: 18px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      inline-size: fit-content;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>${title}</h1>
+      <p class="thesis">${thesis}</p>
+    </header>
+    <main>
+      <section class="bento-grid">
+        <article class="card">
+          <h2>Architecture Overview</h2>
+          <p>Scaffolded using Orthotect Style Recipe <code>${recipeId}</code>. Fully compliant with CSS Logical Properties and W3C DTCG tokens.</p>
+          <button class="btn-primary" data-fsm="button" data-state="idle">Execute Action</button>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
+`;
+}
+
 switch (command) {
   case 'doctor': {
     printBanner();
@@ -64,8 +188,9 @@ switch (command) {
 
     // Check Node version
     const nodeVer = process.version;
-    const nodeMajor = parseInt(nodeVer.replace(/^v/, '').split('.')[0], 10);
-    if (nodeMajor >= 20) {
+    const [nodeMajor, nodeMinor] = nodeVer.replace(/^v/, '').split('.').map(n => parseInt(n, 10) || 0);
+    const isNodeValid = (nodeMajor > 20) || (nodeMajor === 20 && nodeMinor >= 19);
+    if (isNodeValid) {
       console.log(`  ✅ Node.js Runtime: ${nodeVer} (>= v20.19.0 requirement satisfied)`);
     } else {
       console.log(`  ❌ Node.js Runtime: ${nodeVer} (requires >= v20.19.0)`);
@@ -231,7 +356,18 @@ switch (command) {
       const result = spawnSync('python3', [compilerScript, tokensDir, outFile], { stdio: 'inherit', cwd: rootDir });
       if (result.status !== 0) process.exit(result.status || 1);
     } else if (action === 'page' || action === 'recipe') {
-      const recipeId = args[2] || 'contemporary-product-saas';
+      let recipeId = 'contemporary-product-saas';
+      let outFile = null;
+
+      for (let i = 2; i < args.length; i++) {
+        if (args[i] === '--out' && args[i + 1]) {
+          outFile = path.resolve(process.cwd(), args[i + 1]);
+          i++;
+        } else if (!args[i].startsWith('--')) {
+          recipeId = args[i];
+        }
+      }
+
       console.log(`Scaffolding page using style recipe: ${recipeId}`);
       const recipeFile = path.join(rootDir, 'knowledge', 'styles', `${recipeId}.json`);
       if (fs.existsSync(recipeFile)) {
@@ -239,8 +375,19 @@ switch (command) {
         console.log(`Thesis: ${recipe.designThesis}`);
         console.log(`Recommended density: ${recipe.layoutRhythm?.density || 'default'}`);
         console.log(`Target WCAG contrast: ${recipe.accessibilityProfile?.targetWcagRatio || 4.5}:1`);
+
+        const html = generatePageBoilerplate(recipe);
+        if (args.includes('--stdout')) {
+          console.log("\n" + html);
+        } else if (outFile) {
+          fs.writeFileSync(outFile, html, 'utf-8');
+          console.log(`  ✅ Successfully scaffolded certified page: ${path.relative(process.cwd(), outFile)}`);
+        } else {
+          console.log(`\n  ℹ️ Certified HTML boilerplate ready for '${recipeId}' (specify destination with --out <file.html> or view with --stdout).`);
+        }
       } else {
         console.error(`Recipe '${recipeId}' not found in knowledge/styles/`);
+        process.exit(1);
       }
     } else {
       console.log("Usage: orthotect design <system|page|init> [options]");

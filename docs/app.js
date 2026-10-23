@@ -4,6 +4,17 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+  // HTML Sanitization utility to eliminate DOM XSS
+  function escapeHtml(str) {
+    if (typeof str !== "string") str = String(str || "");
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   // =========================================================================
   // 1. STATE & ROUTING ENGINE
   // =========================================================================
@@ -1453,7 +1464,7 @@ ${dod}
       container.innerHTML = `
         <div style="grid-column: 1 / -1; padding: 3rem 1rem; text-align: center; background: var(--ortho-surface-1); border: 1px dashed var(--ortho-border-medium); border-radius: 12px;">
           <div style="font-size: 1.5rem; margin-block-end: 0.5rem;">🔍 No templates found</div>
-          <p style="color: var(--ortho-text-secondary); max-width: 480px; margin-inline: auto;">No production templates match "${gallerySearchQuery}". Try clearing search filters or selecting another cluster tab.</p>
+          <p style="color: var(--ortho-text-secondary); max-width: 480px; margin-inline: auto;">No production templates match "${escapeHtml(gallerySearchQuery)}". Try clearing search filters or selecting another cluster tab.</p>
           <button type="button" class="btn-ctrl" onclick="document.getElementById('gallerySearchInput').value=''; window.resetGallerySearch();" style="margin-block-start: 1rem;">Reset Filters</button>
         </div>
       `;
@@ -1748,16 +1759,16 @@ ${dod}
         if (parseError) {
           allPassed = false;
           failedCount++;
-          logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>Finite State Machine Integrity:</strong> Invalid FSM JSON syntax: ${parseError}`);
+          logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>Finite State Machine Integrity:</strong> Invalid FSM JSON syntax: ${escapeHtml(parseError)}`);
         } else if (fsmJson && fsmJson.states && fsmJson.initialState) {
           const stateKeys = Object.keys(fsmJson.states);
           if (stateKeys.includes(fsmJson.initialState)) {
             passedCount++;
-            logLine(`<span style='color: #10b981;'>✅ PASS</span> <strong>Finite State Machine Integrity:</strong> ${stateKeys.length} states, initialState "${fsmJson.initialState}" declared.`);
+            logLine(`<span style='color: #10b981;'>✅ PASS</span> <strong>Finite State Machine Integrity:</strong> ${stateKeys.length} states, initialState "${escapeHtml(fsmJson.initialState)}" declared.`);
           } else {
             allPassed = false;
             failedCount++;
-            logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>FSM Integrity:</strong> initialState "${fsmJson.initialState}" not declared in states.`);
+            logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>FSM Integrity:</strong> initialState "${escapeHtml(fsmJson.initialState)}" not declared in states.`);
           }
         } else {
           allPassed = false;

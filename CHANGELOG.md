@@ -22,7 +22,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Quality Gates & Browser Verification**:
   - Maintained 100% green status across all 5 deterministic quality gates on `docs/` and `examples/golden-showcase` (sub-second parallel execution).
   - Passed Playwright headless Chromium rendered DOM contrast test: 20/20 computed element pairs passing WCAG 2.2 in both Light and Dark themes.
-  - Full test suite passing (218/218 tests).
+  - Full test suite passing (225+ tests).
+
+### Security
+- **DOM XSS Sanitization**: Sanitized gallery empty-state search query interpolation and playground FSM simulator inputs via strict HTML entity escaping (`docs/app.js`). Added automated browser regression test `test_gallery_search_xss_sanitization` in `tests/test_docs_browser.py`.
+- **CI Supply-Chain Hardening**: Configured explicit minimum permissions (`permissions: contents: read`) in `.github/workflows/ci.yml`.
+
+### Fixed
+- **BiDi AST Gate Multi-File Support**: Extended `gates/gate_bidi_logical.py` to inspect `.jsx`, `.tsx`, `.js`, and `.ts` files, enforcing directional neutrality across styled template literals and React camelCase inline style properties (`marginLeft`, `paddingRight`, etc.).
+- **Anti-Slop Multi-File Support**: Extended `gates/gate_no_slop.py` to scan `.js`, `.ts`, `.jsx`, and `.tsx` files, banning raw emoji icons in JSX button elements and untokenized hex colors in inline style blocks.
+- **CLI Doctor Semver Validation**: Fixed Node.js version parsing in `orthotect doctor` to check both major and minor numbers (`major > 20 || (major === 20 && minor >= 19)`), properly enforcing `>=20.19.0`.
+- **CLI Design Page Scaffolding**: Upgraded `orthotect design page` from printing recipe metadata to generating complete, certified HTML boilerplate compliant with W3C DTCG tokens, CSS logical properties, and FSM interactive button contracts (supports `--out <file>` and `--stdout`).
+- **Architecture Documentation Alignment**: Synchronized `CONTRIBUTING.md` prerequisites and test counts with `package.json`, and added "Dual-Layer Verification Architecture & Scope Delineation" in `README.md`.
 
 ## [1.6.0] - 2026-10-23
 
