@@ -1616,7 +1616,7 @@ ${dod}
   border: none;
 }
 <button class="submit-btn">
-  Launch Platform ✨ <!-- VIOLATION: Uncalibrated emoji substitutes -->
+  Launch Platform \\u2728 <!-- VIOLATION: Uncalibrated emoji substitutes -->
 </button>`
     },
     dom_fail: {

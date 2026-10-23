@@ -12,7 +12,7 @@ import re
 
 SLOP_PATTERNS = [
     (r'linear-gradient\s*\([^)]*(#6366f1|#a855f7|indigo|purple)[^)]*\)', 'Generic AI Purple/Indigo Gradient'),
-    (r'<([A-Za-z0-9_:-]*button)\b[^>]*>[\s\S]*?[🚀🔥✨💡🎉📈📊🧠🤖][\s\S]*?</\1\s*>', 'Raw Emoji in Button Icon instead of SVG vector'),
+    (r'<([A-Za-z0-9_:-]*button)\b[^>]*>(?:(?!</?\1\b)[\s\S])*?[🚀🔥✨💡🎉📈📊🧠🤖](?:(?!</?\1\b)[\s\S])*?</\1\s*>', 'Raw Emoji in Button Icon instead of SVG vector'),
     (r'<h[1-6][^>]*>[^<]*[🚀🔥✨💡🎉📈📊🧠🤖]', 'Raw Emoji in Heading element'),
     (r'style="[^"]*(#[0-9a-fA-F]{3,6}|rgb\([^)]+\))[^"]*"', 'Inline style bypassing DTCG tokens'),
     (r'style\s*=\s*\{\{\s*[^}]*(?:color|background|backgroundColor)\s*:\s*[\'"](#[0-9a-fA-F]{3,6}|rgba?\([^)]+\))[\'"]', 'JSX Inline style bypassing DTCG tokens'),

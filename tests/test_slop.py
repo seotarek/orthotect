@@ -94,5 +94,14 @@ class TestAntiSlopGate(unittest.TestCase):
         self.assertEqual(res.returncode, 0)
         self.assertIn("No AI Slop detected", res.stdout)
 
+    def test_clean_button_preceding_text_emoji_does_not_fail(self):
+        html_file = os.path.join(self.temp_dir, 'clean-buttons.html')
+        with open(html_file, 'w') as f:
+            f.write('<button class="copy">Copy</button><p>Celebration 🎉 in paragraph</p><button class="save">Save</button>')
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0, "Clean buttons with intermediate paragraph emoji must NOT be flagged as button emoji")
+        self.assertIn("No AI Slop detected", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
+
