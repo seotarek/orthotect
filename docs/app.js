@@ -226,10 +226,10 @@ document.addEventListener("DOMContentLoaded", () => {
       mNavGallery: "Examples",
       mNavGates: "Quality Gates",
       mNavInstall: "Install & Usage",
-      heroBadge: "v1.7.0 • Deterministic Quality Standard for Autonomous Coding Agents",
+      heroBadge: "Deterministic Quality Standard for Autonomous Coding Agents",
       heroTitle: "Deterministic Interface Engineering & <span class=\"hero-gradient-text\">Runtime Quality Gates</span>",
       heroSub: "Stop trusting probabilistic UI code. Orthotect enforces mathematical WCAG 2.2 token contrast, strict CSS logical properties, formal state machines, and media box bounding in parallel deterministic gates.",
-      ctaPlayground: "Open Interactive Playground",
+      ctaPlayground: "<span>Open Interactive Playground</span><span class=\"btn-arrow-circle\" aria-hidden=\"true\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"5\" y1=\"12\" x2=\"19\" y2=\"12\"></line><polyline points=\"12 5 19 12 12 19\"></polyline></svg></span>",
       ctaCatalog: "Browse Skill Catalog",
       ctaBuilder: "Build Custom Skill",
       proofGates: "Deterministic Gates",
@@ -284,10 +284,10 @@ document.addEventListener("DOMContentLoaded", () => {
       mNavGallery: "الأمثلة الجاهزة",
       mNavGates: "بوابات الجودة",
       mNavInstall: "التثبيت والاستخدام",
-      heroBadge: "v1.7.0 • معيار الجودة الحتمية للوكلاء البرمجيين المستقلين",
+      heroBadge: "معيار الجودة الحتمية للوكلاء البرمجيين المستقلين",
       heroTitle: "هندسة الواجهات الحتمية و<span class=\"hero-gradient-text\">بوابات الجودة أثناء التشغيل</span>",
       heroSub: "توقف عن قبول كود الواجهات العشوائي. يفرض أورثوتكت تباين WCAG 2.2 للتوكنز، وصرامة خواص CSS المنطقية، ونزاهة آلات الحالة FSM، وتحديد أبعاد الوسائط في بوابات حتمية متوازية.",
-      ctaPlayground: "فتح المختبر التفاعلي",
+      ctaPlayground: "<span>فتح المختبر التفاعلي</span><span class=\"btn-arrow-circle\" aria-hidden=\"true\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"5\" y1=\"12\" x2=\"19\" y2=\"12\"></line><polyline points=\"12 5 19 12 12 19\"></polyline></svg></span>",
       ctaCatalog: "تصفح كتالوج المهارات",
       ctaBuilder: "بناء مهارة مخصصة",
       proofGates: "بوابات فحص حتمية",
@@ -1469,19 +1469,23 @@ ${dod}
                loading="lazy"
                width="400"
                height="200">
-          <span class="gallery-cluster-badge">
-            ${item.cluster_name ? item.cluster_name : 'Cluster ' + (item.cluster_num || '1')}
-          </span>
-          ${item.ui_style ? `
-            <span class="gallery-style-badge" style="margin-inline-start: 0.35rem; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 4px; background: rgba(56, 189, 248, 0.15); color: var(--ortho-accent-cyan); border: 1px solid var(--ortho-border-subtle);">
-              ${item.ui_style}
+          <div class="gallery-thumb-overlay">
+            <span class="gallery-cluster-badge">
+              ${item.cluster_name ? item.cluster_name : 'Cluster ' + (item.cluster_num || '1')}
             </span>
-          ` : ''}
-          ${item.theme ? `
-            <span class="gallery-theme-badge" style="margin-inline-start: 0.25rem; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.35rem; border-radius: 3px; background: ${item.theme === 'dark' ? '#090d16' : '#ffffff'}; color: ${item.theme === 'dark' ? '#38bdf8' : '#0284c7'}; border: 1px solid var(--ortho-border-subtle);">
-              ${item.theme.toUpperCase()}
-            </span>
-          ` : ''}
+            <div class="gallery-thumb-tags">
+              ${item.theme ? `
+                <span class="gallery-theme-badge theme-${item.theme}">
+                  ${item.theme.toUpperCase()}
+                </span>
+              ` : ''}
+              ${item.ui_style ? `
+                <span class="gallery-style-badge" title="${item.ui_style}">
+                  ${item.ui_style}
+                </span>
+              ` : ''}
+            </div>
+          </div>
         </div>
         <div class="gallery-card-body">
           <h3 class="gallery-card-title">${item.title}</h3>
@@ -1495,7 +1499,9 @@ ${dod}
             ${item.template_url ? `
               <a href="${item.template_url}" target="_blank" rel="noopener" class="btn-ctrl-accent gallery-open-btn">
                 <span>Open Live</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                <span class="btn-arrow-circle">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </span>
               </a>
             ` : ''}
             <a href="#playground" class="btn-ctrl gallery-interactive-btn">Interactive View</a>

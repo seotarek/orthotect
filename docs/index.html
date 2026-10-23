@@ -157,10 +157,16 @@
         <!-- Hero -->
         <div class="hero-section">
           <div class="container">
-            <div class="hero-pill">
-              <span class="status-dot"></span>
-              <span id="heroBadge">v1.7.0 • Deterministic Quality Standard for Autonomous Coding Agents</span>
-            </div>
+            <a href="#gates" class="hero-pill" aria-label="Orthotect v1.7.0 Standard Specification">
+              <span class="pill-live-status">
+                <span class="status-dot-pulse"></span>
+                <span class="status-dot"></span>
+              </span>
+              <span class="pill-version-tag">v1.7.0</span>
+              <span class="pill-divider" aria-hidden="true"></span>
+              <span id="heroBadge" class="pill-text">Deterministic Quality Standard for Autonomous Coding Agents</span>
+              <span class="pill-arrow" aria-hidden="true">↗</span>
+            </a>
 
             <h1 class="hero-title" id="heroTitle">
               Deterministic Interface Engineering &amp; <span class="hero-gradient-text">Runtime Quality Gates</span>
@@ -173,7 +179,12 @@
             <div class="hero-cta-group">
               <a href="#playground" class="btn-primary-action" id="ctaPlayground">
                 <span>Open Interactive Playground</span>
-                <span class="btn-arrow" aria-hidden="true">→</span>
+                <span class="btn-arrow-circle" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </span>
               </a>
               <a href="#catalog" class="btn-secondary-action" id="ctaCatalog">Browse Skill Catalog</a>
               <a href="#builder" class="btn-tertiary-action" id="ctaBuilder">Build Custom Skill</a>
@@ -182,22 +193,27 @@
             <!-- Proof Bar -->
             <div class="proof-grid" role="region" aria-label="Performance Benchmarks">
               <div class="proof-card">
+                <div class="proof-accent-bar" aria-hidden="true"></div>
                 <div class="proof-val">5 / 5</div>
                 <div class="proof-lbl" id="proofGates">Deterministic Gates</div>
               </div>
               <div class="proof-card">
+                <div class="proof-accent-bar" aria-hidden="true"></div>
                 <div class="proof-val">218 / 218</div>
                 <div class="proof-lbl" id="proofTests">Automated Unit &amp; E2E Tests</div>
               </div>
               <div class="proof-card">
+                <div class="proof-accent-bar" aria-hidden="true"></div>
                 <div class="proof-val">&lt; 600ms</div>
                 <div class="proof-lbl" id="proofLatency">Parallel Gate Latency</div>
               </div>
               <div class="proof-card">
+                <div class="proof-accent-bar" aria-hidden="true"></div>
                 <div class="proof-val">0</div>
                 <div class="proof-lbl" id="proofDeps">Browser UI Dependencies</div>
               </div>
               <div class="proof-card">
+                <div class="proof-accent-bar" aria-hidden="true"></div>
                 <div class="proof-val">100%</div>
                 <div class="proof-lbl" id="proofBidi">CSS Logical Properties</div>
               </div>
