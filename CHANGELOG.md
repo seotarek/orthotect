@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.7.1] - 2026-10-23
 
+### Added
+- **Context Architecture & Token Optimizer Subsystem (`core/context_optimizer.py` & `skills/orthotect-context/`)**:
+  - Implemented zero-dependency context engine featuring calibrated BPE token estimation, AST-density profiling, and semantic symbol extraction.
+  - Added semantic chunking (`semantic_chunk`) decomposing source files along function, class, and FSM boundaries without severing closure scopes.
+  - Added progressive architectural skeleton generation (`generate_context_skeleton`) yielding >90% context compression for agent navigation.
+  - Authored official autonomous agent skill `orthotect-context` (16 total modular skills certified).
+  - Integrated `orthotect context <inspect|chunk|skeleton>` into production CLI and diagnostic doctor.
+  - Added unit test suite `tests/test_context_optimizer.py` and CLI E2E tests in `tests/test_cli_expanded.py` (247 total passing tests).
+
 ### Fixed
 - **BiDi AST Gate Regex Literal Lexical Parsing**: Disambiguated JavaScript regular expression literals (e.g., `const pattern = /https?:\/\//;`) from line comments in `strip_js_comments_string_aware()` and `extract_tagged_template_literals()` within `gates/gate_bidi_logical.py`. Escaped slashes (`\/`) inside regex literals no longer trigger false comment stripping, preventing physical CSS properties in subsequent code from escaping verification. Added regression tests in `tests/test_bidi.py` (25/25 BiDi tests passing).
 - **FSM Scaffolded Page Synthetic Event & State Lock Verification**: Hardened `bin/orthotect.js` and `tests/test_scaffold_browser.py` by adding an explicit action execution counter (`window.__orthotectActionExecCount`). The Playwright browser test now verifies double-click lockout via synthetic DOM event dispatch (`dispatchEvent(new MouseEvent('click'))`) and direct controller calls (`transition('CLICK')`) during the `loading` state, asserting that action execution count strictly remains 1.

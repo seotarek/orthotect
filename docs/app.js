@@ -261,7 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
       step4Desc: "Validated zero-CLS code committed directly to main, deployable without human rework.",
       catalogPill: "Repository Synchronized Skills",
       catalogTitle: "Orthotect Skill Catalog",
-      catalogSub: "Explore the 15 modular skills installed directly in skills/. Each skill provides explicit system instructions, constraints, and gate validation for autonomous coding agents.",
+      catalogSub: "Explore the 16 modular skills installed directly in skills/. Each skill provides explicit system instructions, constraints, and gate validation for autonomous coding agents.",
       playgroundPill: "Live Interface Sandbox",
       playgroundTitle: "Interactive Skill Playground",
       playgroundSub: "Interact with 7 pre-validated enterprise components built using Orthotect skills. Toggle theme, text direction, and spacing density in real time to observe deterministic behavior.",
@@ -582,6 +582,20 @@ document.addEventListener("DOMContentLoaded", () => {
       gates: "gate_no_slop.py",
       githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-motion/SKILL.md",
       prompt: "Implement spring physics motion with reduced-motion support per skills/orthotect-motion/SKILL.md."
+    },
+    {
+      id: "orthotect-context",
+      name: "orthotect-context",
+      category: "architecture",
+      title: "Token-Optimizer & Context Architecture Guard",
+      purpose: "Maximizes AI coding agent context efficiency via zero-scan starts, 3-tier progressive file disclosure, and semantic boundary chunking.",
+      problem: "Agents read whole multi-thousand line files for minor edits, triggering premature context compaction and hallucinations.",
+      when: "Activate on large codebases, multi-step agent workflows, server administration, or whenever token conservation is critical.",
+      inputs: "Target source files, directory trees, token budget constraints.",
+      outputs: "Surgical line ranges, boundary-safe semantic chunks, and ultra-compact architectural symbol skeletons.",
+      gates: "gate_no_slop.py, test_context_optimizer.py",
+      githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-context/SKILL.md",
+      prompt: "Optimize agent context window using progressive disclosure and semantic chunking per skills/orthotect-context/SKILL.md."
     }
   ];
 

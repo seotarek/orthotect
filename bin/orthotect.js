@@ -346,6 +346,15 @@ switch (command) {
       }
     }
 
+    // Check context & token optimizer engine
+    const ctxScript = path.join(rootDir, 'core', 'context_optimizer.py');
+    if (fs.existsSync(ctxScript)) {
+      console.log(`  ✅ Context & Token Engine: Operational (3-tier disclosure & semantic chunking)`);
+    } else {
+      console.log(`  ❌ Context engine missing: ${ctxScript}`);
+      hasErrors = true;
+    }
+
     console.log(`\nDoctor Status: ${hasErrors ? '❌ ISSUES DETECTED' : '✅ HEALTHY - All systems operational'}`);
     if (hasErrors) process.exit(1);
     break;
@@ -503,6 +512,62 @@ switch (command) {
     break;
   }
 
+  case 'context': {
+    const sub = args[1];
+    const target = args[2];
+    const pyScript = path.join(rootDir, 'core', 'context_optimizer.py');
+
+    if (!fs.existsSync(pyScript)) {
+      console.error(`❌ Context optimizer engine not found: ${pyScript}`);
+      process.exit(1);
+    }
+
+    if (sub === 'inspect') {
+      if (!target) {
+        console.error("Usage: orthotect context inspect <file_or_dir> [--json]");
+        process.exit(1);
+      }
+      const passArgs = [pyScript, 'inspect', path.resolve(process.cwd(), target)];
+      if (args.includes('--json')) passArgs.push('--json');
+      const proc = spawnSync('python3', passArgs, { stdio: 'inherit' });
+      process.exit(proc.status || 0);
+    }
+
+    if (sub === 'chunk') {
+      if (!target) {
+        console.error("Usage: orthotect context chunk <file> [--max-tokens <N>] [--json]");
+        process.exit(1);
+      }
+      const passArgs = [pyScript, 'chunk', path.resolve(process.cwd(), target)];
+      const maxIdx = args.indexOf('--max-tokens');
+      if (maxIdx !== -1 && args[maxIdx + 1]) {
+        passArgs.push('--max-tokens', args[maxIdx + 1]);
+      }
+      if (args.includes('--json')) passArgs.push('--json');
+      const proc = spawnSync('python3', passArgs, { stdio: 'inherit' });
+      process.exit(proc.status || 0);
+    }
+
+    if (sub === 'skeleton') {
+      const dirTarget = target || '.';
+      const passArgs = [pyScript, 'skeleton', path.resolve(process.cwd(), dirTarget)];
+      const depthIdx = args.indexOf('--depth');
+      if (depthIdx !== -1 && args[depthIdx + 1]) {
+        passArgs.push('--depth', args[depthIdx + 1]);
+      }
+      if (args.includes('--json')) passArgs.push('--json');
+      const proc = spawnSync('python3', passArgs, { stdio: 'inherit' });
+      process.exit(proc.status || 0);
+    }
+
+    printBanner();
+    console.log("Orthotect Context & Token Optimizer Subsystem:");
+    console.log("  inspect <path> [--json]                Profile token density, character counts & reading advice");
+    console.log("  chunk <file> [--max-tokens N] [--json] Semantically partition file into boundary-safe chunks");
+    console.log("  skeleton [dir] [--depth N] [--json]    Generate ultra-compact (>85% compressed) symbol map");
+    break;
+  }
+
   case 'skills':
   case 'list': {
     const sub = args[1];
@@ -559,7 +624,7 @@ switch (command) {
     }
 
     printBanner();
-    console.log("Available Orthotect Autonomous Agent Skills (15 Modular Disciplines):");
+    console.log("Available Orthotect Autonomous Agent Skills (16 Modular Disciplines):");
     console.log("  • orthotect-doctrine       : The 7 Non-Negotiable Laws of Interface Engineering");
     console.log("  • orthotect-uiux           : Master UI/UX Design Intelligence & Orchestrator");
     console.log("  • orthotect-design-systems : DTCG Token Hierarchy & Multi-Brand Themes");
@@ -575,6 +640,7 @@ switch (command) {
     console.log("  • orthotect-tokens         : DTCG W3C 3-Tier Design Tokens & Theme Compiler");
     console.log("  • orthotect-gates          : Deterministic Quality Gates Runner");
     console.log("  • orthotect-visual-qa      : Automated Browser Visual Regression & Contrast Gate");
+    console.log("  • orthotect-context        : Token-Optimizer & Context Architecture Guard");
     break;
   }
 
@@ -586,6 +652,7 @@ switch (command) {
     console.log("  verify | audit [path] [--json|--md]    Run all deterministic quality gates on target directory");
     console.log("  init [path] [--force]                  Scaffold tokens, FSM specs, and AGENTS.md in target directory");
     console.log("  compile [tokens_path] [--out <file>]   Compile W3C DTCG tokens into production CSS variables");
+    console.log("  context <inspect|chunk|skeleton>       Profile token density, chunk code, and generate symbol skeletons");
     console.log("  skills [list|search|show|validate]     Inspect and validate autonomous agent skills");
     console.log("  knowledge [query] [-c cat] [--json]    Search the UI/UX knowledge base and style recipes");
     console.log("  design <system|page|init>              Design system tools and style recipe page scaffolding");

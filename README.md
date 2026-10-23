@@ -44,6 +44,7 @@ orthotect/
 ├── core/
 │   ├── compiler.py          # W3C DTCG Token Compiler (:root light and [data-theme="dark"])
 │   ├── knowledge_search.py  # Zero-dependency UI/UX knowledge base search engine
+│   ├── context_optimizer.py # Token-optimizer, density profiler & semantic chunker
 │   ├── tokens/              # W3C DTCG 3-Tier Design Tokens (Primitives, Semantics, Motion, Ergonomics)
 │   └── fsm/                 # State Machine Specifications (Buttons, Data Tables, Modal Dialogs)
 ├── knowledge/               # UI/UX Design Intelligence & Validated Style Recipes
@@ -53,7 +54,7 @@ orthotect/
 ├── docs/                    # 7-View Skill Studio Platform & Interactive Showcase (GitHub Pages)
 │   ├── index.html           # 7-view bilingual (EN/AR) interactive workbench
 │   ├── styles.css           # 100% CSS Logical Properties & DTCG token variables
-│   └── app.js               # Client-side router, 15-skill catalog, playground, builder, and gate simulator
+│   └── app.js               # Client-side router, 16-skill catalog, playground, builder, and gate simulator
 ├── gates/                   # Objective Deterministic Checkers (Python & Node.js)
 │   ├── gate_contrast_wcag.py     # Mathematical Relative Luminance (WCAG 2.2 AAA/AA)
 │   ├── gate_bidi_logical.py      # Strict Enforcement of CSS Logical Properties
@@ -61,7 +62,7 @@ orthotect/
 │   ├── gate_no_slop.py           # Lexical & Pattern Slop Inspector
 │   ├── gate_cwv_budget.mjs       # WHATWG-Compliant DOM & Layout-Shift Budget
 │   └── run_all_gates.py          # Parallel Master Gate Orchestrator (ThreadPoolExecutor)
-├── skills/                  # 15 Agent Skills (Progressive Disclosure)
+├── skills/                  # 16 Agent Skills (Progressive Disclosure)
 │   ├── orthotect-doctrine        # The 7 Non-Negotiable Laws
 │   ├── orthotect-uiux            # Master UI/UX Design Intelligence & Orchestrator
 │   ├── orthotect-design-systems  # DTCG Token Hierarchy & Multi-Brand Themes
@@ -76,8 +77,9 @@ orthotect/
 │   ├── orthotect-data-viz        # Accessible Telemetry & Tabular Numbers
 │   ├── orthotect-tokens          # Token Management & Theme Compilation
 │   ├── orthotect-gates           # Gate Execution Workflows
-│   └── orthotect-visual-qa       # Automated Browser Visual Regression Gate
-├── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (237 Tests)
+│   ├── orthotect-visual-qa       # Automated Browser Visual Regression Gate
+│   └── orthotect-context         # Token-Optimizer & Context Architecture Guard
+├── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (247 Tests)
 │   ├── test_contrast.py          # Relative luminance & contrast threshold unit tests
 │   ├── test_bidi.py              # BiDi logical scanner positive/negative tests
 │   ├── test_fsm.py               # FSM graph reachability and deadlock tests
@@ -87,13 +89,14 @@ orthotect/
 │   ├── test_compiler.py          # W3C DTCG CSS custom property compiler tests
 │   ├── test_skills_sync.py       # Skills directory / docs/app.js catalog sync tests
 │   ├── test_knowledge_search.py  # Knowledge base search, filtering & schema validation tests
+│   ├── test_context_optimizer.py # Token estimation, density profiling & skeleton tests
 │   ├── test_cli_expanded.py      # Doctor, skills show/validate, and design CLI tests
 │   ├── test_docs_browser.py      # Playwright 7-view Skill Studio browser integration & negative benchmark tests
 │   ├── test_modal_browser.py     # Playwright headless Chrome focus trap & FSM tests
 │   ├── test_scaffold_browser.py  # Playwright scaffolded page FSM lifecycle & race lock browser tests
 │   └── test_cli_e2e.py           # E2E CLI verification, boundary & negative rejection tests
 ├── .github/workflows/       # Automated CI & GitHub Pages Deployment Pipelines
-│   ├── ci.yml                    # 237 Unit, Browser & Negative Gate Tests & Full Gate Verification
+│   ├── ci.yml                    # 247 Unit, Browser & Negative Gate Tests & Full Gate Verification
 │   └── pages.yml                 # Automated GitHub Pages Deployment
 ├── agents/
 │   └── orthotect-auditor.md      # Adversarial Quality Auditor Role

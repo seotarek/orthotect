@@ -16,21 +16,22 @@ class TestCLIExpanded(unittest.TestCase):
         self.assertIn("HEALTHY", res.stdout)
         self.assertIn("Node.js Runtime", res.stdout)
         self.assertIn("Python Runtime", res.stdout)
-        self.assertIn("15 skills installed", res.stdout)
+        self.assertIn("16 skills installed", res.stdout)
         self.assertIn("UI/UX Knowledge Base", res.stdout)
+        self.assertIn("Context & Token Engine: Operational", res.stdout)
 
     def test_cli_skills_list_command(self):
-        """Verify 'orthotect skills' lists all 15 skills."""
+        """Verify 'orthotect skills' lists all 16 skills."""
         res = subprocess.run(['node', self.cli_path, 'skills'],
                              capture_output=True, text=True)
         self.assertEqual(res.returncode, 0)
-        self.assertIn("15 Modular Disciplines", res.stdout)
+        self.assertIn("16 Modular Disciplines", res.stdout)
         expected_skills = [
             "orthotect-doctrine", "orthotect-bidi", "orthotect-dashboard",
             "orthotect-fsm", "orthotect-gates", "orthotect-tokens",
             "orthotect-visual-qa", "orthotect-uiux", "orthotect-design-systems",
             "orthotect-components", "orthotect-accessibility", "orthotect-responsive",
-            "orthotect-motion", "orthotect-forms", "orthotect-data-viz"
+            "orthotect-motion", "orthotect-forms", "orthotect-data-viz", "orthotect-context"
         ]
         for s in expected_skills:
             self.assertIn(s, res.stdout, f"Skill {s} missing from CLI output")
@@ -112,6 +113,27 @@ class TestCLIExpanded(unittest.TestCase):
         self.assertEqual(res.returncode, 0)
         self.assertIn("<!DOCTYPE html>", res.stdout)
         self.assertIn("Contemporary Product SaaS", res.stdout)
+
+    def test_cli_context_inspect_command(self):
+        """Verify 'orthotect context inspect <path> --json' profiles token density."""
+        pkg_path = os.path.join(self.root_dir, 'package.json')
+        res = subprocess.run(['node', self.cli_path, 'context', 'inspect', pkg_path, '--json'],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0)
+        data = json.loads(res.stdout)
+        self.assertEqual(data['file'], 'package.json')
+        self.assertGreater(data['estimated_tokens'], 0)
+        self.assertIn("recommendation", data)
+
+    def test_cli_context_skeleton_command(self):
+        """Verify 'orthotect context skeleton <dir> --json' produces compressed symbol tree."""
+        core_dir = os.path.join(self.root_dir, 'gates')
+        res = subprocess.run(['node', self.cli_path, 'context', 'skeleton', core_dir, '--json'],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0)
+        data = json.loads(res.stdout)
+        self.assertGreaterEqual(data['total_files'], 3)
+        self.assertGreater(data['compression_ratio'], 0.5)
 
 if __name__ == '__main__':
     unittest.main()
