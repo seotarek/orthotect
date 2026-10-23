@@ -180,15 +180,53 @@ def search_knowledge(query=None, category=None, tag=None, stack=None, limit=10, 
     results.sort(key=lambda x: (-x["score"], x["title"]))
     return results[:limit]
 
+def _validate_schema_builtin(data, schema):
+    """
+    Lightweight, dependency-free schema validator for Orthotect records & recipes.
+    Validates required fields, types, and enums against JSON Schema definitions.
+    """
+    errors = []
+    for req in schema.get("required", []):
+        if req not in data:
+            errors.append(f"Missing required property: '{req}'")
+        else:
+            prop_def = schema.get("properties", {}).get(req, {})
+            val = data[req]
+            expected_type = prop_def.get("type")
+            if expected_type == "string" and not isinstance(val, str):
+                errors.append(f"Property '{req}' must be a string, got {type(val).__name__}")
+            elif expected_type == "number" and not isinstance(val, (int, float)):
+                errors.append(f"Property '{req}' must be a number, got {type(val).__name__}")
+            elif expected_type == "integer" and not isinstance(val, int):
+                errors.append(f"Property '{req}' must be an integer, got {type(val).__name__}")
+            elif expected_type == "boolean" and not isinstance(val, bool):
+                errors.append(f"Property '{req}' must be a boolean, got {type(val).__name__}")
+            elif expected_type == "array" and not isinstance(val, list):
+                errors.append(f"Property '{req}' must be an array, got {type(val).__name__}")
+            elif expected_type == "object" and not isinstance(val, dict):
+                errors.append(f"Property '{req}' must be an object, got {type(val).__name__}")
+
+            if "enum" in prop_def and val not in prop_def["enum"]:
+                errors.append(f"Property '{req}' value '{val}' not in allowed enum: {prop_def['enum']}")
+
+            if expected_type == "object" and isinstance(val, dict):
+                for sub_req in prop_def.get("required", []):
+                    if sub_req not in val:
+                        errors.append(f"Missing required sub-property '{req}.{sub_req}'")
+    return errors
+
 def validate_knowledge_base(knowledge_dir=None, schemas_dir=None):
     """
     Validates all files against their respective JSON schemas.
-    Returns (bool success, list errors).
+    Uses jsonschema if installed; falls back to pure standard-library validation otherwise.
+    Returns (bool success, list messages).
     """
+    has_jsonschema = False
     try:
         import jsonschema
+        has_jsonschema = True
     except ImportError:
-        return False, ["jsonschema package not installed. Run: pip install jsonschema"]
+        has_jsonschema = False
 
     kb_path = Path(knowledge_dir) if knowledge_dir else DEFAULT_KNOWLEDGE_DIR
     sc_path = Path(schemas_dir) if schemas_dir else DEFAULT_SCHEMAS_DIR
@@ -217,18 +255,22 @@ def validate_knowledge_base(knowledge_dir=None, schemas_dir=None):
             try:
                 with open(file_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                
-                if "designThesis" in data:
-                    jsonschema.validate(instance=data, schema=recipe_schema)
+
+                target_schema = recipe_schema if "designThesis" in data else record_schema
+                if has_jsonschema:
+                    jsonschema.validate(instance=data, schema=target_schema)
                 else:
-                    jsonschema.validate(instance=data, schema=record_schema)
+                    item_errors = _validate_schema_builtin(data, target_schema)
+                    if item_errors:
+                        errors.extend([f"{file_path.name}: {err}" for err in item_errors])
                 validated_count += 1
             except Exception as e:
                 errors.append(f"{file_path.name}: {str(e)}")
 
     if errors:
         return False, errors
-    return True, [f"Successfully validated {validated_count} knowledge records & style recipes."]
+    engine_mode = "jsonschema" if has_jsonschema else "standard-library"
+    return True, [f"Successfully validated {validated_count} knowledge records & style recipes ({engine_mode})."]
 
 def main():
     parser = argparse.ArgumentParser(
