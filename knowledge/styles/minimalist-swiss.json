@@ -1,0 +1,78 @@
+{
+  "$schema": "../schemas/style-recipe.schema.json",
+  "id": "minimalist-swiss",
+  "name": "Minimalist Swiss International Typographic Architecture",
+  "version": "1.0.0",
+  "designThesis": "Objective clarity rooted in the 1950s Swiss International Typographic Style. Enforces mathematical grid systems, asymmetrical balance, grotesque typography, and stark monochrome contrast with zero unnecessary ornamentation.",
+  "bestFitContexts": [
+    "Architecture and design monograph sites",
+    "Editorial research archives and documentation portals",
+    "Enterprise executive reporting dashboards",
+    "Fine art and typography foundry catalogs"
+  ],
+  "poorFitContexts": [
+    "Playful children's educational apps",
+    "3D WebGL gaming portals",
+    "Vibrant consumer social feeds"
+  ],
+  "colorStrategy": {
+    "canvasTone": "Stark monochrome canvas (#ffffff in light; #121212 / #000000 in dark)",
+    "accentUsage": "Single high-contrast functional accent (e.g., Swiss Vermilion #E63946 or International Klein Blue #002FA7) reserved strictly for key actions",
+    "contrastTarget": "Minimum 7.0:1 AAA across all text elements"
+  },
+  "typographyStrategy": {
+    "fontPairing": "Inter, Helvetica Neue, or Space Grotesk paired with clean system sans",
+    "hierarchyEmphasis": "High-contrast scale with heavy bold display weights (700-900) against regular body (400)",
+    "scaleFactor": "1.333 (Perfect Fourth) modular scale"
+  },
+  "layoutRhythm": {
+    "density": "comfortable",
+    "gridStructure": "Strict 12-column asymmetric grid with visible or mathematically aligned cell divisions",
+    "whitespaceDiscipline": "Generous negative space (32px, 48px, 64px spatial increments)"
+  },
+  "surfaceTreatment": {
+    "radius": "0px or minimal 2px razor-sharp corners",
+    "borderStyle": "1px to 2px solid hairline borders with zero blur",
+    "depthElevation": "Flat 2D surfaces with zero drop-shadows; elevation expressed through border hierarchy"
+  },
+  "componentGuidelines": {
+    "primaryActionStyle": "Sharp rectangular buttons with solid high-contrast fill and instant hover inversion",
+    "cardStructure": "Grid-aligned content containers with clear structural divider lines and no nested card clutter",
+    "tablePresentation": "Clean border-bottom data rows with monospace tabular figures"
+  },
+  "accessibilityProfile": {
+    "targetWcagRatio": 7.0,
+    "keyboardHandling": "High-visibility 3px solid focus ring with 2px offset",
+    "reducedMotionRules": "Instant transitions (0ms) respecting prefers-reduced-motion"
+  },
+  "antiPatterns": [
+    "Drop shadows or blurred lighting effects",
+    "Rounded pill buttons with large border-radii",
+    "Low-contrast gray text on off-white surfaces",
+    "Arbitrary multi-colored gradient backgrounds"
+  ],
+  "verificationProtocol": {
+    "requiredGates": [
+      "gate_contrast_wcag.py",
+      "gate_bidi_logical.py",
+      "gate_fsm_integrity.py",
+      "gate_no_slop.py"
+    ],
+    "browserChecks": [
+      "Verify strict 0px border radius and sharp borders at all breakpoints",
+      "Verify high-contrast 7:1 text against stark monochrome canvas",
+      "Verify LTR to RTL bidirectional symmetry"
+    ]
+  },
+  "verificationStatus": "HEURISTIC",
+  "evidence": {
+    "schemaValid": true,
+    "gatesPassed": [
+      "gate_bidi_logical.py",
+      "gate_contrast_wcag.py"
+    ],
+    "browserVerified": false,
+    "verifiedAt": "2026-10-23T08:00:00Z",
+    "revision": "v1.7.0"
+  }
+}

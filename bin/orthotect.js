@@ -19,7 +19,7 @@ const targetArg = args[1] && !args[1].startsWith('--') ? args[1] : null;
 const forceFlag = args.includes('--force');
 
 const pkgPath = path.join(rootDir, 'package.json');
-const pkgVersion = fs.existsSync(pkgPath) ? JSON.parse(fs.readFileSync(pkgPath, 'utf-8')).version : '1.6.0';
+const pkgVersion = fs.existsSync(pkgPath) ? JSON.parse(fs.readFileSync(pkgPath, 'utf-8')).version : '1.7.0';
 
 if (args.includes('--version') || args.includes('-v') || command === 'version') {
   console.log(pkgVersion);

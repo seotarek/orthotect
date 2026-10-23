@@ -1,5 +1,5 @@
 /**
- * ORTHOTECT v1.6.0 — Skill Studio & Interactive Demonstration Platform
+ * ORTHOTECT v1.7.0 — Skill Studio & Interactive Demonstration Platform
  * 100% Client-Side | Zero Bloat | True Bidirectional Runtime
  */
 
@@ -211,7 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================================================================
   const bidiDict = {
     en: {
-      brandDesc: "v1.6.0",
+      brandDesc: "v1.7.0",
       navHome: "Home",
       navCatalog: "Skill Catalog",
       navPlayground: "Playground",
@@ -226,7 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mNavGallery: "Examples",
       mNavGates: "Quality Gates",
       mNavInstall: "Install & Usage",
-      heroBadge: "v1.6.0 • Deterministic Quality Standard for Autonomous Coding Agents",
+      heroBadge: "v1.7.0 • Deterministic Quality Standard for Autonomous Coding Agents",
       heroTitle: "Deterministic Interface Engineering & <span class=\"hero-gradient-text\">Runtime Quality Gates</span>",
       heroSub: "Stop trusting probabilistic UI code. Orthotect enforces mathematical WCAG 2.2 token contrast, strict CSS logical properties, formal state machines, and media box bounding in parallel deterministic gates.",
       ctaPlayground: "Open Interactive Playground",
@@ -266,10 +266,10 @@ document.addEventListener("DOMContentLoaded", () => {
       installPill: "Developer Tooling & CLI",
       installTitle: "Installation & CLI Usage",
       installSub: "Orthotect provides zero-config command line tools to scaffold, compile, and verify projects deterministically in local environments and GitHub Actions CI.",
-      footerCopy: "Orthotect v1.6.0 © 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok."
+      footerCopy: "Orthotect v1.7.0 © 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok."
     },
     ar: {
-      brandDesc: "v1.6.0",
+      brandDesc: "v1.7.0",
       navHome: "الرئيسية",
       navCatalog: "كتالوج المهارات",
       navPlayground: "المختبر التفاعلي",
@@ -284,7 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mNavGallery: "الأمثلة الجاهزة",
       mNavGates: "بوابات الجودة",
       mNavInstall: "التثبيت والاستخدام",
-      heroBadge: "v1.6.0 • معيار الجودة الحتمية للوكلاء البرمجيين المستقلين",
+      heroBadge: "v1.7.0 • معيار الجودة الحتمية للوكلاء البرمجيين المستقلين",
       heroTitle: "هندسة الواجهات الحتمية و<span class=\"hero-gradient-text\">بوابات الجودة أثناء التشغيل</span>",
       heroSub: "توقف عن قبول كود الواجهات العشوائي. يفرض أورثوتكت تباين WCAG 2.2 للتوكنز، وصرامة خواص CSS المنطقية، ونزاهة آلات الحالة FSM، وتحديد أبعاد الوسائط في بوابات حتمية متوازية.",
       ctaPlayground: "فتح المختبر التفاعلي",
@@ -324,7 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
       installPill: "أدوات المطور وسطر الأوامر",
       installTitle: "التثبيت وأوامر الاستخدام",
       installSub: "يوفر أورثوتكت أدوات سطر أوامر خفيفة لتهيئة المشاريع وترجمة التوكنز وفحص الكود حتميًا في البيئة المحلية وسير العمل CI.",
-      footerCopy: "أورثوتكت v1.6.0 © 2026. معتمد لوكلاء البرمجة الذاتية: Antigravity وClaude Code وCursor وCodex وGrok."
+      footerCopy: "أورثوتكت v1.7.0 © 2026. معتمد لوكلاء البرمجة الذاتية: Antigravity وClaude Code وCursor وCodex وGrok."
     }
   };
 
@@ -1435,6 +1435,9 @@ ${dod}
       return (
         item.title.toLowerCase().includes(q) ||
         item.desc.toLowerCase().includes(q) ||
+        (item.ui_style && item.ui_style.toLowerCase().includes(q)) ||
+        (item.font_name && item.font_name.toLowerCase().includes(q)) ||
+        (item.theme && item.theme.toLowerCase().includes(q)) ||
         (item.skill && item.skill.toLowerCase().includes(q)) ||
         (item.tokens && item.tokens.toLowerCase().includes(q)) ||
         (item.cluster_name && item.cluster_name.toLowerCase().includes(q))
@@ -1469,12 +1472,23 @@ ${dod}
           <span class="gallery-cluster-badge">
             ${item.cluster_name ? item.cluster_name : 'Cluster ' + (item.cluster_num || '1')}
           </span>
+          ${item.ui_style ? `
+            <span class="gallery-style-badge" style="margin-inline-start: 0.35rem; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 4px; background: rgba(56, 189, 248, 0.15); color: var(--ortho-accent-cyan); border: 1px solid var(--ortho-border-subtle);">
+              ${item.ui_style}
+            </span>
+          ` : ''}
+          ${item.theme ? `
+            <span class="gallery-theme-badge" style="margin-inline-start: 0.25rem; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.35rem; border-radius: 3px; background: ${item.theme === 'dark' ? '#090d16' : '#ffffff'}; color: ${item.theme === 'dark' ? '#38bdf8' : '#0284c7'}; border: 1px solid var(--ortho-border-subtle);">
+              ${item.theme.toUpperCase()}
+            </span>
+          ` : ''}
         </div>
         <div class="gallery-card-body">
           <h3 class="gallery-card-title">${item.title}</h3>
           <p class="gallery-card-desc">${item.desc}</p>
           <div class="skill-meta-box">
             <div class="skill-meta-item"><strong>Target Skill:</strong> <code>${item.skill}</code></div>
+            ${item.font_name ? `<div class="skill-meta-item"><strong>Typography:</strong> ${item.font_name}</div>` : ''}
             <div class="skill-meta-item"><strong>Tokens:</strong> ${item.tokens}</div>
           </div>
           <div class="gallery-card-actions">

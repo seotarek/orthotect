@@ -4,6 +4,26 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-10-23
+
+### Added
+- **Sovereign UI/UX Design Intelligence Synthesis**:
+  - Ingested and mapped 57 distinct UI styles, 96 harmonized color palettes, 57 typographic font pairings, 25 chart & telemetry specs, and 13 multi-framework engineering guidelines into native Orthotect schemas.
+  - Added 6 new original, production-tested style recipes to `knowledge/styles/`: `minimalist-swiss.json`, `cyberpunk-terminal.json`, `glassmorphism-aurora.json`, `neubrutalism-clean.json`, `claymorphism-soft.json`, and `oled-dark-mode.json` (12 total style recipes certified).
+  - All 26 knowledge records verified under strict dual-mode schema validation (`jsonschema` + stdlib fallback).
+- **Template Aesthetic Diversification (50 Bespoke Profiles)**:
+  - Eliminated visual monotony across all 50 SEO production templates in `docs/templates/`: every single template now possesses its own unique aesthetic identity.
+  - Symmetrically balanced across 25 Light themes and 25 Dark themes with Google Font typography pairings, bespoke color palettes, tailored border geometries (0px brutalist to 18px claymorphic), and box-shadow layers.
+  - Mathematically verified 100% WCAG 2.2 AA (>= 4.5:1) and AAA (>= 7.0:1) contrast ratios across all 50 profiles.
+  - Dynamic Google Fonts and scoped `--tmpl-*` CSS variable injection with full CSS logical property compliance.
+- **Enhanced Gallery & Discovery Engine (`docs/`)**:
+  - Updated `docs/gallery-data.json` and `docs/gallery-data.js` to register UI styles, font pairings, and color themes for all 50 templates.
+  - Updated `docs/app.js` with visual style pill badges, theme indicators, and live search filtering across UI styles and typography.
+- **Quality Gates & Browser Verification**:
+  - Maintained 100% green status across all 5 deterministic quality gates on `docs/` and `examples/golden-showcase` (sub-second parallel execution).
+  - Passed Playwright headless Chromium rendered DOM contrast test: 20/20 computed element pairs passing WCAG 2.2 in both Light and Dark themes.
+  - Full test suite passing (218/218 tests).
+
 ## [1.6.0] - 2026-10-23
 
 ### Added

@@ -1,0 +1,77 @@
+{
+  "$schema": "../schemas/style-recipe.schema.json",
+  "id": "claymorphism-soft",
+  "name": "Accessible Soft 3D & Tactile Claymorphism",
+  "version": "1.0.0",
+  "designThesis": "Tactile, friendly, rounded 3D interface architecture engineered with double inset/outset shadows and soft pastel surfaces, calibrated specifically to overcome historical neumorphic contrast deficiencies by enforcing high-contrast text and explicit component boundaries.",
+  "bestFitContexts": [
+    "Wellness, mental health, and meditation applications",
+    "Friendly educational platforms and interactive learning suites",
+    "Consumer finance budgeting apps and savings trackers",
+    "Creative onboarding flows and interactive product wizards"
+  ],
+  "poorFitContexts": [
+    "Dense multi-column database query interfaces",
+    "Institutional legal compliance and forensic audit logs",
+    "Industrial hardware procurement spec sheets"
+  ],
+  "colorStrategy": {
+    "canvasTone": "Soft warm lavender or mint off-white (#F5F3FF / #F0FDF4)",
+    "accentUsage": "Pastel lavender, soft sky blue, and warm peach surfaces paired with high-contrast slate text",
+    "contrastTarget": "Strict 4.5:1 AA minimum for all text against soft surfaces"
+  },
+  "typographyStrategy": {
+    "fontPairing": "Fredoka or Varela Round paired with Nunito Sans",
+    "hierarchyEmphasis": "Rounded, approachable headings with generous line-height and soft weight curves",
+    "scaleFactor": "1.250 (Major Third) modular scale"
+  },
+  "layoutRhythm": {
+    "density": "comfortable",
+    "gridStructure": "Organic grid containers with generous interior padding and smooth transitions",
+    "whitespaceDiscipline": "Expansive 24px and 36px spatial rhythm"
+  },
+  "surfaceTreatment": {
+    "radius": "18px to 24px generously rounded organic corners",
+    "borderStyle": "2px solid rgba(255, 255, 255, 0.6) with subtle contrasting boundary line",
+    "depthElevation": "Double shadow volume: inset -3px -3px 8px rgba(0,0,0,0.06), 6px 6px 16px rgba(0,0,0,0.08)"
+  },
+  "componentGuidelines": {
+    "primaryActionStyle": "Chunky clay pill button with soft spring-physics bounce on press",
+    "cardStructure": "Embossed tactile cards with clear boundary contrast and spacious padding",
+    "tablePresentation": "Rounded container table with soft pill row highlights"
+  },
+  "accessibilityProfile": {
+    "targetWcagRatio": 4.5,
+    "keyboardHandling": "Prominent focus ring with high-contrast color contrasting against pastel surfaces",
+    "reducedMotionRules": "Disable bounce physics and scale animations on user preference"
+  },
+  "antiPatterns": [
+    "Low-contrast white text on light pastel buttons",
+    "Disappearing form input borders lacking explicit UI boundary contrast",
+    "Excessive shadow blur that impairs reading clarity",
+    "Uncalibrated inset shadows causing hollow or sunken text appearance"
+  ],
+  "verificationProtocol": {
+    "requiredGates": [
+      "gate_contrast_wcag.py",
+      "gate_bidi_logical.py",
+      "gate_fsm_integrity.py"
+    ],
+    "browserChecks": [
+      "Verify rounded corner rendering across mobile and desktop browsers",
+      "Verify double shadow contrast on both light and dark backgrounds",
+      "Verify accessible focus indicator rings"
+    ]
+  },
+  "verificationStatus": "HEURISTIC",
+  "evidence": {
+    "schemaValid": true,
+    "gatesPassed": [
+      "gate_bidi_logical.py",
+      "gate_contrast_wcag.py"
+    ],
+    "browserVerified": false,
+    "verifiedAt": "2026-10-23T08:00:00Z",
+    "revision": "v1.7.0"
+  }
+}

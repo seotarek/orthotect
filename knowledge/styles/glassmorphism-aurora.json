@@ -1,0 +1,77 @@
+{
+  "$schema": "../schemas/style-recipe.schema.json",
+  "id": "glassmorphism-aurora",
+  "name": "Luminous Aurora & Multi-Layered Frosted Glass",
+  "version": "1.0.0",
+  "designThesis": "Sophisticated optical depth model utilizing multi-layer backdrop blurs, luminous ambient aurora gradient backplanes, and translucent border highlights, verified mathematically to ensure underlying backdrops never compromise foreground text contrast.",
+  "bestFitContexts": [
+    "Modern AI creative studios and generation suites",
+    "Premium audio streaming and spatial media consoles",
+    "High-end lifestyle and fintech wealth management apps",
+    "SaaS modal navigation overlays and floating inspector panels"
+  ],
+  "poorFitContexts": [
+    "Low-power or resource-constrained embedded browser devices",
+    "Plain text legal registries and accessibility-critical government services",
+    "Ultra-dense financial data entry spreadsheets"
+  ],
+  "colorStrategy": {
+    "canvasTone": "Deep atmospheric navy or warm translucent slate with chromatic underglows",
+    "accentUsage": "Vibrant chromatic accents (Electric Violet #8B5CF6, Bright Cyan #06B6D4) blended into blurred background surfaces",
+    "contrastTarget": "Strict minimum 4.5:1 AA with composited background luminance calculation"
+  },
+  "typographyStrategy": {
+    "fontPairing": "Plus Jakarta Sans or Outfit paired with clean modern sans",
+    "hierarchyEmphasis": "Clean geometric headings with medium-weight card titles and high-legibility body copy",
+    "scaleFactor": "1.250 (Major Third) balanced scale"
+  },
+  "layoutRhythm": {
+    "density": "comfortable",
+    "gridStructure": "Floating bento grid layout with generous 24px container gaps",
+    "whitespaceDiscipline": "Spacious card margins and breathable padding"
+  },
+  "surfaceTreatment": {
+    "radius": "16px to 20px smoothly rounded corners",
+    "borderStyle": "1px hairline border with translucent white/cyan gradient (rgba(255, 255, 255, 0.15))",
+    "depthElevation": "Multi-layered z-index composition with backdrop-filter: blur(16px) and subtle specular highlight"
+  },
+  "componentGuidelines": {
+    "primaryActionStyle": "Luminous pill button with subtle internal highlight and smooth scale hover physics",
+    "cardStructure": "Frosted glass containers with diffuse backdrop blur and dark-surface fallbacks",
+    "tablePresentation": "Translucent table headers with frosted sticky positioning over scrolling rows"
+  },
+  "accessibilityProfile": {
+    "targetWcagRatio": 4.5,
+    "keyboardHandling": "Distinct solid focus ring (3px) preventing blur interference with focus indicator",
+    "reducedMotionRules": "Fallback to solid opaque backgrounds when transparency or blur is disabled"
+  },
+  "antiPatterns": [
+    "Placing low-contrast text over uncomposited, fluctuating aurora gradients",
+    "Over-stacking backdrop filters causing GPU frame drops on mobile devices",
+    "Omitting solid background fallbacks for browsers without backdrop-filter support",
+    "Text shadows that blur into the background"
+  ],
+  "verificationProtocol": {
+    "requiredGates": [
+      "gate_contrast_wcag.py",
+      "gate_bidi_logical.py",
+      "gate_cwv_budget.mjs"
+    ],
+    "browserChecks": [
+      "Verify backdrop-filter blur performance on mobile viewports",
+      "Verify text contrast against composite aurora layers",
+      "Verify modal overlay backdrop dismissal"
+    ]
+  },
+  "verificationStatus": "HEURISTIC",
+  "evidence": {
+    "schemaValid": true,
+    "gatesPassed": [
+      "gate_bidi_logical.py",
+      "gate_contrast_wcag.py"
+    ],
+    "browserVerified": false,
+    "verifiedAt": "2026-10-23T08:00:00Z",
+    "revision": "v1.7.0"
+  }
+}

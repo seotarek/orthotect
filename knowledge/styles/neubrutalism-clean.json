@@ -1,0 +1,78 @@
+{
+  "$schema": "../schemas/style-recipe.schema.json",
+  "id": "neubrutalism-clean",
+  "name": "Contemporary High-Integrity Neubrutalism",
+  "version": "1.0.0",
+  "designThesis": "Playful yet disciplined contemporary neubrutalism combining bold solid black borders, hard offset drop shadows, vibrant high-contrast color blocks, and retro-modern typography, engineered with strict CSS logical properties and zero layout shift.",
+  "bestFitContexts": [
+    "Developer tools, documentation, and open-source landing pages",
+    "Modern creative agency and portfolio presentations",
+    "Creator economy, newsletter, and digital product marketplaces",
+    "Startup marketing pages seeking distinctive visual character"
+  ],
+  "poorFitContexts": [
+    "Corporate legal document repositories",
+    "Clinical hospital patient records and medical charting",
+    "Formal financial auditing systems"
+  ],
+  "colorStrategy": {
+    "canvasTone": "Warm tinted cream (#FFFDF9) in light; Dark Charcoal (#18181B) in dark",
+    "accentUsage": "Vibrant primary blocks (Electric Yellow #FACC15, Neon Lime #84CC16, Punchy Pink #EC4899) framed by solid black borders",
+    "contrastTarget": "Minimum 7.0:1 AAA contrast for all text and UI boundaries"
+  },
+  "typographyStrategy": {
+    "fontPairing": "Space Grotesk or Syne for bold headlines, DM Sans or Inter for body text",
+    "hierarchyEmphasis": "Heavy bold display weights (800+) with tight tracking and high impact",
+    "scaleFactor": "1.333 (Perfect Fourth) expressive scale"
+  },
+  "layoutRhythm": {
+    "density": "comfortable",
+    "gridStructure": "Asymmetric bento grid with visible thick structural borders",
+    "whitespaceDiscipline": "Bold 24px and 32px block gaps with intentional physical weight"
+  },
+  "surfaceTreatment": {
+    "radius": "4px to 6px subtle rounding (maintains crisp structural edge)",
+    "borderStyle": "2px to 3px solid #000000 (or #FFFFFF in dark mode)",
+    "depthElevation": "Hard offset box-shadows (e.g., 4px 4px 0px #000000) with zero blur"
+  },
+  "componentGuidelines": {
+    "primaryActionStyle": "High-contrast block button with 3px solid border and 4px offset shadow translating to 0px on press",
+    "cardStructure": "Solid cards with thick borders, bright accent badge pills, and crisp dividers",
+    "tablePresentation": "Thick-bordered grid cells with contrasting alternating header backgrounds"
+  },
+  "accessibilityProfile": {
+    "targetWcagRatio": 7.0,
+    "keyboardHandling": "Ultra-visible high-contrast focus outline with 3px black/white offset",
+    "reducedMotionRules": "Press translation physics replaced with instantaneous color shift"
+  },
+  "antiPatterns": [
+    "Soft fuzzy drop shadows mixed with brutalist borders",
+    "Low-contrast pastel borders that fail non-text contrast guidelines",
+    "Over-rotated tilted elements causing layout shift or reading fatigue",
+    "Inconsistent border widths varying between 1px and 5px arbitrarily"
+  ],
+  "verificationProtocol": {
+    "requiredGates": [
+      "gate_contrast_wcag.py",
+      "gate_bidi_logical.py",
+      "gate_fsm_integrity.py",
+      "gate_no_slop.py"
+    ],
+    "browserChecks": [
+      "Verify hard offset box-shadow translation on interactive buttons",
+      "Verify thick border contrast and layout reflow",
+      "Verify RTL symmetry on directional button arrows"
+    ]
+  },
+  "verificationStatus": "HEURISTIC",
+  "evidence": {
+    "schemaValid": true,
+    "gatesPassed": [
+      "gate_bidi_logical.py",
+      "gate_contrast_wcag.py"
+    ],
+    "browserVerified": false,
+    "verifiedAt": "2026-10-23T08:00:00Z",
+    "revision": "v1.7.0"
+  }
+}

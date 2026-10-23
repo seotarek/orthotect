@@ -2,7 +2,7 @@
 
 ### The Deterministic Interface Engineering & Runtime Gate Architecture for AI Coding Agents
 
-[![Version](https://img.shields.io/badge/version-1.6.0-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.6.0)
+[![Version](https://img.shields.io/badge/version-1.7.0-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.7.0)
 [![Live Showcase](https://img.shields.io/badge/Live_Showcase-GitHub_Pages-0ea5e9?style=for-the-badge)](https://seotarek.github.io/orthotect/)
 [![CI Status](https://github.com/seotarek/orthotect/actions/workflows/ci.yml/badge.svg)](https://github.com/seotarek/orthotect/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)](LICENSE)
@@ -96,7 +96,7 @@ orthotect/
 │   └── pages.yml                 # Automated GitHub Pages Deployment
 ├── agents/
 │   └── orthotect-auditor.md      # Adversarial Quality Auditor Role
-├── CHANGELOG.md             # Full version history (v1.0.0 → v1.6.0)
+├── CHANGELOG.md             # Full version history (v1.0.0 → v1.7.0)
 ├── CONTRIBUTING.md      # Enterprise engineering guidelines
 ├── COMPETITORS.md       # Exhaustive architectural competitor teardown
 ├── MANIFESTO.md         # The 7 Laws of Interface Engineering

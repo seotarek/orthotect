@@ -1,0 +1,78 @@
+{
+  "$schema": "../schemas/style-recipe.schema.json",
+  "id": "cyberpunk-terminal",
+  "name": "High-Contrast Cyberpunk & Mission Control Terminal",
+  "version": "1.0.0",
+  "designThesis": "Futuristic mission-control interface fusing retro-futuristic CRT telemetry with modern institutional command centers. Features deep obsidian backgrounds, phosphor neon accents, monospace telemetry streams, and hardware status indicators.",
+  "bestFitContexts": [
+    "Algorithmic crypto and financial trading terminals",
+    "Cybersecurity SOC event and threat detection feeds",
+    "IoT fleet telemetry and robotics control consoles",
+    "Developer CLI and infrastructure logging dashboards"
+  ],
+  "poorFitContexts": [
+    "Wellness, meditation, and calm lifestyle apps",
+    "Legal probate documents and civic government forms",
+    "Children's literature and educational software"
+  ],
+  "colorStrategy": {
+    "canvasTone": "Deep obsidian and void black (#05050A / #090D14)",
+    "accentUsage": "Phosphor Cyan (#00FFFF), Neon Emerald (#10B981), and Terminal Amber (#F59E0B) for live telemetry indicators",
+    "contrastTarget": "Minimum 7.0:1 AAA on dark backgrounds"
+  },
+  "typographyStrategy": {
+    "fontPairing": "JetBrains Mono or Space Mono paired with IBM Plex Sans for UI labels",
+    "hierarchyEmphasis": "Uppercase sub-headers, dense monospace tabular metrics, and tracking-wide badge labels",
+    "scaleFactor": "1.200 (Minor Third) compact telemetry scale"
+  },
+  "layoutRhythm": {
+    "density": "compact",
+    "gridStructure": "Multi-pane split-screen console with fixed-height telemetry rows and sticky ledger headers",
+    "whitespaceDiscipline": "High-density 4px and 8px compact spacing grid"
+  },
+  "surfaceTreatment": {
+    "radius": "2px to 4px chamfered or angular corners",
+    "borderStyle": "1px subtle luminous border (rgba(0, 255, 255, 0.2)) with scanline raster lines",
+    "depthElevation": "Layered terminal panels with dark vignette and subtle neon border accents"
+  },
+  "componentGuidelines": {
+    "primaryActionStyle": "Monospace command button with active state border glow and keyboard shortcut badge",
+    "cardStructure": "Modular console tiles with status LED pills and real-time sparkline telemetry",
+    "tablePresentation": "Dense monospace tabular figures with live value ticker animations and execution slippage flags"
+  },
+  "accessibilityProfile": {
+    "targetWcagRatio": 7.0,
+    "keyboardHandling": "Comprehensive terminal-style keyboard navigation with Cmd+K command palette and Vim keybindings",
+    "reducedMotionRules": "Disable pulsing glows and live ticker transitions for reduced motion preference"
+  },
+  "antiPatterns": [
+    "Excessive CRT chromatic aberration that obscures text legibility",
+    "Flashing indicators faster than 2Hz violating seizure safety guidelines",
+    "Unbounded layout shift when streaming live tick data",
+    "Low-contrast red-on-black error alerts"
+  ],
+  "verificationProtocol": {
+    "requiredGates": [
+      "gate_contrast_wcag.py",
+      "gate_bidi_logical.py",
+      "gate_fsm_integrity.py",
+      "gate_cwv_budget.mjs"
+    ],
+    "browserChecks": [
+      "Verify high-density telemetry streaming with zero layout shift",
+      "Verify neon contrast ratio against dark obsidian canvas",
+      "Verify keyboard shortcuts and command palette focus trap"
+    ]
+  },
+  "verificationStatus": "HEURISTIC",
+  "evidence": {
+    "schemaValid": true,
+    "gatesPassed": [
+      "gate_bidi_logical.py",
+      "gate_contrast_wcag.py"
+    ],
+    "browserVerified": false,
+    "verifiedAt": "2026-10-23T08:00:00Z",
+    "revision": "v1.7.0"
+  }
+}

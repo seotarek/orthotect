@@ -1,0 +1,78 @@
+{
+  "$schema": "../schemas/style-recipe.schema.json",
+  "id": "oled-dark-mode",
+  "name": "OLED Midnight Pure Dark & Battery-Optimized Architecture",
+  "version": "1.0.0",
+  "designThesis": "High-efficiency pure dark theme engineered for true-black OLED displays (#000000). Maximizes power efficiency, reduces nocturnal visual fatigue, and provides crisp WCAG AAA contrast through hierarchical surface elevation tokens and vibrant status accents.",
+  "bestFitContexts": [
+    "Mobile developer and coding applications",
+    "Night-time reading and streaming media platforms",
+    "Critical infrastructure monitoring and NOC dashboards",
+    "Aviation cockpit and maritime navigation consoles"
+  ],
+  "poorFitContexts": [
+    "Direct sunlight outdoor kiosk displays",
+    "Print-oriented monograph exports",
+    "Traditional corporate paper-flow interfaces"
+  ],
+  "colorStrategy": {
+    "canvasTone": "True pitch black (#000000) for canvas; elevated dark grays (#121212, #18181B, #27272A) for surfaces",
+    "accentUsage": "Vibrant Neon Emerald (#10B981), Electric Sky (#0EA5E9), and Solar Amber (#F59E0B) for instant visual feedback",
+    "contrastTarget": "Minimum 7.0:1 AAA contrast for primary and secondary text"
+  },
+  "typographyStrategy": {
+    "fontPairing": "Geist Sans, SF Pro, or Inter paired with JetBrains Mono for code",
+    "hierarchyEmphasis": "High-legibility typography with slightly lighter font weights (400 regular, 500 medium) to prevent text blooming on pure black",
+    "scaleFactor": "1.250 (Major Third) modular scale"
+  },
+  "layoutRhythm": {
+    "density": "default",
+    "gridStructure": "Clean responsive grid with subtle 1px border separation",
+    "whitespaceDiscipline": "Calibrated 16px and 24px token spacing"
+  },
+  "surfaceTreatment": {
+    "radius": "8px to 12px rounded corners",
+    "borderStyle": "1px hairline border (rgba(255, 255, 255, 0.1)) providing explicit container edges",
+    "depthElevation": "Luminance-based elevation: higher z-index surfaces receive lighter background fills rather than dark drop shadows"
+  },
+  "componentGuidelines": {
+    "primaryActionStyle": "Vibrant solid accent button with true-black text (#000000) ensuring 12:1+ contrast",
+    "cardStructure": "Elevated charcoal surfaces (#121212) with distinct 1px border boundaries",
+    "tablePresentation": "Zebra-striped dark rows with high-visibility cell focus outlines"
+  },
+  "accessibilityProfile": {
+    "targetWcagRatio": 7.0,
+    "keyboardHandling": "Bright white or neon focus indicator with 2px offset",
+    "reducedMotionRules": "Disable glow animations and smooth transitions on reduced-motion preference"
+  },
+  "antiPatterns": [
+    "Pure white (#FFFFFF) high-weight text causing nocturnal halation and visual glare",
+    "Dark drop shadows on pure black backgrounds (which are completely invisible)",
+    "Colored saturated backgrounds that eliminate OLED power savings",
+    "Low-contrast dark-gray-on-black UI controls"
+  ],
+  "verificationProtocol": {
+    "requiredGates": [
+      "gate_contrast_wcag.py",
+      "gate_bidi_logical.py",
+      "gate_fsm_integrity.py",
+      "gate_cwv_budget.mjs"
+    ],
+    "browserChecks": [
+      "Verify true black #000000 background emission",
+      "Verify text contrast against elevated surface hierarchy",
+      "Verify high-contrast focus rings on pure black"
+    ]
+  },
+  "verificationStatus": "HEURISTIC",
+  "evidence": {
+    "schemaValid": true,
+    "gatesPassed": [
+      "gate_bidi_logical.py",
+      "gate_contrast_wcag.py"
+    ],
+    "browserVerified": false,
+    "verifiedAt": "2026-10-23T08:00:00Z",
+    "revision": "v1.7.0"
+  }
+}
