@@ -94,6 +94,8 @@ def find_target_tokens(target_path):
 
 def load_contrast_matrix(target_path=None):
     root_pkg = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    package_matrix = os.path.abspath(os.path.join(root_pkg, 'core', 'tokens', 'contrast-matrix.json'))
+
     candidates = []
     if target_path:
         target_abs = os.path.abspath(target_path)
@@ -103,16 +105,25 @@ def load_contrast_matrix(target_path=None):
             os.path.join(target_abs, 'tokens'),
             os.path.join(target_abs, '.orthotect', 'tokens')
         ])
-    candidates.append(os.path.join(root_pkg, 'core', 'tokens'))
 
     for c in candidates:
         m_file = os.path.join(c, 'contrast-matrix.json') if not c.endswith('.json') else c
-        if os.path.exists(m_file):
+        m_abs = os.path.abspath(m_file)
+        if os.path.exists(m_abs) and m_abs != package_matrix:
             try:
-                with open(m_file, 'r', encoding='utf-8') as f:
+                with open(m_abs, 'r', encoding='utf-8') as f:
                     return json.load(f)
-            except Exception:
-                pass
+            except Exception as err:
+                raise ValueError(f"Corrupted or invalid contrast matrix at '{m_abs}': {err}")
+
+    # Fall back to canonical package matrix
+    if os.path.exists(package_matrix):
+        try:
+            with open(package_matrix, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception as err:
+            raise ValueError(f"Corrupted canonical contrast matrix at '{package_matrix}': {err}")
+
     return None
 
 def evaluate_semantic_pairs(theme_name, theme_data, prims, matrix_data=None):

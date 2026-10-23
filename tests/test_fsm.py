@@ -327,6 +327,44 @@ class TestFsmValidator(unittest.TestCase):
         viols3 = check_fsm_file(fpath3)
         self.assertEqual(len(viols3), 0)
 
+    def test_unconventional_state_names_strictly_governed_by_contract(self):
+        """Unconventional state names (e.g. transacting_escrow, computing_delta) are strictly governed by contract."""
+        fsm_unconventional_missing_lock = {
+            "name": "FintechEscrowFSM",
+            "initialState": "idle",
+            "states": {
+                "idle": { "on": { "EXECUTE": "transacting_escrow" } },
+                "transacting_escrow": {
+                    "isAsync": True,
+                    "allowClick": True,  # Violation!
+                    "on": { "SUCCESS": "idle", "FAIL": "idle" }
+                }
+            }
+        }
+        fpath = os.path.join(self.temp_dir.name, "escrow_bad_lock.json")
+        with open(fpath, "w") as f:
+            json.dump(fsm_unconventional_missing_lock, f)
+        viols = check_fsm_file(fpath)
+        self.assertTrue(any("must lock pointer/keyboard actions" in v for v in viols))
+
+        fsm_unconventional_valid = {
+            "name": "FintechEscrowFSM",
+            "initialState": "idle",
+            "states": {
+                "idle": { "on": { "EXECUTE": "transacting_escrow" } },
+                "transacting_escrow": {
+                    "isAsync": True,
+                    "allowClick": False,
+                    "on": { "SUCCESS": "idle", "FAIL": "idle" }
+                }
+            }
+        }
+        fpath2 = os.path.join(self.temp_dir.name, "escrow_valid.json")
+        with open(fpath2, "w") as f:
+            json.dump(fsm_unconventional_valid, f)
+        viols2 = check_fsm_file(fpath2)
+        self.assertEqual(len(viols2), 0)
+
     def test_undeclared_async_state_produces_strict_contract_diagnostic(self):
         """Strict contract test: An async-named state omitting explicit declarations must receive actionable contract diagnostic."""
         fsm_undeclared = {

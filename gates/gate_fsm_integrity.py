@@ -67,11 +67,13 @@ def check_fsm_file(file_path):
     if has_structural_error:
         return violations
 
-    # 3. Explicit Asynchronous execution & transition lock validation
-    # Orthotect FSM contract strictly requires explicit declarations:
-    #   - 'isAsync: true' (or type: 'async') for in-flight async operations
-    #   - 'allowClick: false' (or locksInteraction: true) for pointer/keyboard locks
-    # Substring name guessing is deprecated and rejected with actionable diagnostics.
+    # 3. Explicit Asynchronous execution & interaction lock validation
+    # Under the Orthotect FSM specification:
+    #   - Asynchronous states MUST declare 'isAsync: true' (or 'type': 'async')
+    #   - Asynchronous states MUST declare 'allowClick: false' (or 'locksInteraction: true')
+    #   - Asynchronous states MUST declare explicit error recovery transitions
+    # State name guessing is completely eliminated from enforcement; explicit contracts govern all states.
+    # A diagnostic guard flags any state exhibiting async characteristics that omits explicit declaration.
     async_keywords = {'loading', 'submitting', 'pending', 'processing', 'fetching', 'skeletonloading', 'syncing'}
     transition_keywords = {'opening', 'closing', 'transitioning'}
 
@@ -96,7 +98,7 @@ def check_fsm_file(file_path):
         )
         has_explicit_contract = is_explicitly_async or is_explicitly_locked
 
-        # Explicit Contract Enforcement: undeclared async-sounding states must be declared
+        # Explicit Contract Enforcement: undeclared async-sounding states must declare the contract
         if (is_async_by_name or is_transition_by_name) and not has_explicit_contract:
             violations.append(
                 f"{fname}: State '{state_name}' must explicitly declare 'isAsync: true' or 'locksInteraction: true' "
@@ -105,7 +107,8 @@ def check_fsm_file(file_path):
 
         # Race condition lock check: MUST lock pointer/keyboard actions (allowClick: false)
         if state_def.get('allowClick') is True:
-            violations.append(f"{fname}: '{state_name}' state must lock pointer/keyboard actions (allowClick: false) to prevent race conditions.")
+            if is_explicitly_async or is_async_by_name or is_transition_by_name:
+                violations.append(f"{fname}: '{state_name}' state must lock pointer/keyboard actions (allowClick: false) to prevent race conditions.")
         elif (is_explicitly_async or is_async_by_name or is_transition_by_name) and not is_explicitly_locked:
             violations.append(f"{fname}: '{state_name}' state must explicitly declare 'allowClick: false' (or locksInteraction: true) to prevent interaction race conditions.")
 

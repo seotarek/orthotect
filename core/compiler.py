@@ -86,19 +86,28 @@ def resolve_ref(val, primitives, visited=None):
     return resolved
 
 def load_contrast_matrix(tokens_dir=None):
-    candidates = []
-    if tokens_dir:
-        candidates.append(os.path.join(tokens_dir, 'contrast-matrix.json'))
-    candidates.append(os.path.join(os.path.dirname(__file__), 'tokens', 'contrast-matrix.json'))
-    candidates.append(os.path.join(os.path.dirname(__file__), '..', 'core', 'tokens', 'contrast-matrix.json'))
+    package_matrix = os.path.abspath(os.path.join(os.path.dirname(__file__), 'tokens', 'contrast-matrix.json'))
+    if not os.path.exists(package_matrix):
+        package_matrix = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'core', 'tokens', 'contrast-matrix.json'))
 
-    for c in candidates:
-        if os.path.exists(c):
+    # If target tokens directory provides a local matrix, it takes precedence
+    if tokens_dir:
+        local_matrix = os.path.abspath(os.path.join(tokens_dir, 'contrast-matrix.json'))
+        if os.path.exists(local_matrix) and local_matrix != package_matrix:
             try:
-                with open(c, 'r', encoding='utf-8') as f:
+                with open(local_matrix, 'r', encoding='utf-8') as f:
                     return json.load(f)
-            except Exception:
-                pass
+            except Exception as err:
+                raise ValueError(f"Corrupted or invalid contrast matrix at '{local_matrix}': {err}")
+
+    # Fall back to canonical package matrix
+    if os.path.exists(package_matrix):
+        try:
+            with open(package_matrix, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception as err:
+            raise ValueError(f"Corrupted canonical contrast matrix at '{package_matrix}': {err}")
+
     return None
 
 # Explicit WCAG 2.2 Threshold Tiers Fallback

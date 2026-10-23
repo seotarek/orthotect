@@ -26,10 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `design` system compilation and recipe scaffolding commands.
   - Added `audit` alias with `--json` and `--md` report formats.
   - Added `-v` and `--version` flags.
-- **Automated Test Suite Expansion (214 Tests)**:
+- **Automated Test Suite Expansion (218 Tests)**:
   - Added comprehensive negative tests for JSON schema validation, AST BiDi fallback, FSM locks, and search benchmarks.
-  - Completed six-area engineering closure: root-level schema validation constraints, explicit FSM async contracts, pure-Python syntactic CSS tokenizer (`CssSyntaxTokenizer`), 32-query multilingual search benchmark (MRR 0.9323), independent provenance verification evidence model, and canonical contrast matrix (`contrast-matrix.json`) with W3C alpha compositing.
-  - All 214 automated unit, AST, browser Playwright, and gate tests pass with 100% success rate.
+  - Completed six-area engineering closure and four-deficiency hardening: eliminated CSS fallback cursor stall on `/` (urls/line-height/calc), enforced strict ISO-8601 calendar and SHA/tag validation on verification evidence provenance, hardened FSM explicit contracts across unconventional state names, eliminated silent fallback on corrupted local contrast matrices, and implemented recursive multi-layer ancestor backdrop alpha compositing in browser verification.
+  - All 218 automated unit, AST, browser Playwright, and gate tests pass with 100% success rate.
 
 ### Fixed & Hardened
 - **Light Mode Visual Contrast & Scoped Terminal (`docs/styles.css`, `docs/index.html`)**:

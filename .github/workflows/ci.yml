@@ -27,7 +27,7 @@ jobs:
           npm ci
           pip install -r requirements.txt
 
-      - name: Run 214 Unit, Browser & Negative Gate Tests
+      - name: Run 218 Unit, Browser & Negative Gate Tests
         run: |
           npm test
 

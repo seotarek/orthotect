@@ -88,17 +88,24 @@ async function evaluateTheme(page, theme) {
       const el = document.querySelector(selector);
       if (!el) return null;
       const elStyle = window.getComputedStyle(el);
+      const fg = elStyle.color;
 
-      let fg = elStyle.color;
-      let bg;
+      // Recursive ancestor traversal to collect all backdrop layers from element up to documentElement
+      const bgLayers = [];
       if (useButtonBg) {
-        bg = elStyle.backgroundColor;
-      } else {
-        const bgEl = document.querySelector(bgSelector) || document.body;
-        bg = window.getComputedStyle(bgEl).backgroundColor;
+        bgLayers.push(elStyle.backgroundColor);
+      }
+      let curr = useButtonBg ? el.parentElement : (document.querySelector(bgSelector) || el);
+      while (curr && curr.nodeType === 1) {
+        const bg = window.getComputedStyle(curr).backgroundColor;
+        if (bg && bg !== "transparent" && bg !== "rgba(0, 0, 0, 0)") {
+          bgLayers.push(bg);
+        }
+        curr = curr.parentElement;
       }
       const canvasBg = window.getComputedStyle(document.body).backgroundColor;
-      return { fg, bg, canvasBg };
+      const directBg = useButtonBg ? elStyle.backgroundColor : window.getComputedStyle(document.querySelector(bgSelector) || el).backgroundColor;
+      return { fg, bgLayers, canvasBg, directBg };
     }, t);
 
     if (!data) {
@@ -107,19 +114,24 @@ async function evaluateTheme(page, theme) {
     }
 
     const fgRgba = parseRgba(data.fg);
-    const bgRgba = parseRgba(data.bg);
     const canvasRgba = parseRgba(data.canvasBg) || [255, 255, 255, 1.0];
 
-    if (!fgRgba || !bgRgba) {
-      results.push({ name: t.name, status: "ERROR", error: `Unparseable colors: ${data.fg} / ${data.bg}` });
+    if (!fgRgba) {
+      results.push({ name: t.name, status: "ERROR", error: `Unparseable foreground: ${data.fg}` });
       continue;
     }
 
-    // Alpha compositing for background against canvas if translucent
-    const baseCanvasRgb = [canvasRgba[0], canvasRgba[1], canvasRgba[2]];
-    const effectiveBgRgb = bgRgba[3] < 1.0 ? compositeColor(bgRgba, baseCanvasRgb) : [bgRgba[0], bgRgba[1], bgRgba[2]];
+    // Mathematical W3C multi-layer compositing: start from canvas base and composite down the tree
+    let effectiveBgRgb = [canvasRgba[0], canvasRgba[1], canvasRgba[2]];
+    const orderedLayers = data.bgLayers.slice().reverse();
+    for (const layerStr of orderedLayers) {
+      const layerRgba = parseRgba(layerStr);
+      if (layerRgba) {
+        effectiveBgRgb = compositeColor(layerRgba, effectiveBgRgb);
+      }
+    }
 
-    // Alpha compositing for foreground against effective background if translucent
+    // Alpha compositing for foreground against effective composite background if translucent
     const effectiveFgRgb = fgRgba[3] < 1.0 ? compositeColor(fgRgba, effectiveBgRgb) : [fgRgba[0], fgRgba[1], fgRgba[2]];
 
     const ratio = contrastRatio(effectiveFgRgb, effectiveBgRgb);
@@ -130,7 +142,7 @@ async function evaluateTheme(page, theme) {
       threshold: t.threshold,
       passed,
       fg: data.fg,
-      bg: data.bg
+      bg: data.directBg
     });
   }
 

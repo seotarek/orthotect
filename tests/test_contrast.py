@@ -206,6 +206,27 @@ class TestContrastGateE2E(unittest.TestCase):
         for p in tertiary_pairs:
             self.assertEqual(p['tier'], 'normal_text')
 
+    def test_corrupted_local_matrix_raises_fatal_error_without_fallback(self):
+        """Negative test: Corrupted or unparseable local contrast-matrix.json must raise ValueError, not silently fall back."""
+        import tempfile
+        import core.compiler as compiler_mod
+        import gates.gate_contrast_wcag as gate_mod
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            bad_matrix_path = os.path.join(tmp_dir, "contrast-matrix.json")
+            with open(bad_matrix_path, "w") as f:
+                f.write("{ invalid json syntax !!!")
+
+            # Compiler must raise ValueError
+            with self.assertRaises(ValueError) as cm:
+                compiler_mod.load_contrast_matrix(tokens_dir=tmp_dir)
+            self.assertIn("Corrupted or invalid contrast matrix", str(cm.exception))
+
+            # Gate must raise ValueError
+            with self.assertRaises(ValueError) as gm:
+                gate_mod.load_contrast_matrix(target_path=tmp_dir)
+            self.assertIn("Corrupted or invalid contrast matrix", str(gm.exception))
+
 if __name__ == '__main__':
     unittest.main()
 

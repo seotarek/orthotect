@@ -6,7 +6,7 @@ import tempfile
 import shutil
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'gates')))
-from gate_bidi_logical import scan_file
+from gate_bidi_logical import scan_file, scan_css_content_fallback
 
 class TestBidiScanner(unittest.TestCase):
     def setUp(self):
@@ -197,6 +197,27 @@ class TestBidiScanner(unittest.TestCase):
         self.assertEqual(len(viols), 1)
         self.assertEqual(viols[0].name, "padding-left")
         self.assertEqual(viols[0].suggestion, "padding-inline-start")
+
+    def test_fallback_slash_handling_and_no_infinite_loop(self):
+        """Verify fallback tokenizer parses '/' (font line-height, urls, calc) without cursor stall."""
+        css_with_slashes = """
+        .icon {
+            background-image: url(/images/icon.svg);
+            background-size: 100% / 50%;
+        }
+        .typography {
+            font: 14px/1.5 system-ui, sans-serif;
+            line-height: calc(100% / 2);
+            aspect-ratio: 16 / 9;
+        }
+        .banned-with-slash {
+            margin-left: calc(10px / 2);
+        }
+        """
+        viols = scan_css_content_fallback(css_with_slashes)
+        self.assertEqual(len(viols), 1)
+        self.assertEqual(viols[0].name, "margin-left")
+        self.assertEqual(viols[0].suggestion, "margin-inline-start")
 
     def test_html_inline_and_block_styles_scan(self):
         """Verify HTML files with both <style> blocks and inline style attributes are detected correctly."""

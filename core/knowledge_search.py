@@ -16,6 +16,7 @@ import sys
 import re
 import math
 import argparse
+from datetime import datetime
 from pathlib import Path
 
 # Resolve base paths
@@ -113,19 +114,78 @@ CANONICAL_GATES = {
     "gate_cwv_budget.mjs"
 }
 
+ISO_TIMESTAMP_REGEX = re.compile(r'^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$')
+REVISION_HEX_REGEX = re.compile(r'^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{7,12}$')
+REVISION_TAG_REGEX = re.compile(r'^v?\d+\.\d+\.\d+(?:-[\w.]+)?$')
+REVISION_RUNID_REGEX = re.compile(r'^\d{6,14}$')
+VERIFIER_ID_REGEX = re.compile(r'^[a-zA-Z0-9_\-\.\/]{3,64}$')
+DISALLOWED_GENERIC_VALUES = {'any-string', 'not-a-real-timestamp', 'not-a-real-revision', 'unknown', 'placeholder', 'dummy', 'null', 'undefined'}
+
+def validate_iso_timestamp(ts):
+    """Validates that a string is a well-formed ISO-8601 calendar timestamp."""
+    if not isinstance(ts, str) or not ts.strip():
+        return False
+    ts_clean = ts.strip()
+    if ts_clean.lower() in DISALLOWED_GENERIC_VALUES:
+        return False
+    if not ISO_TIMESTAMP_REGEX.match(ts_clean):
+        return False
+    norm = ts_clean.replace("Z", "+00:00")
+    try:
+        datetime.fromisoformat(norm)
+        return True
+    except Exception:
+        return False
+
+def validate_revision(rev):
+    """Validates that a revision is a valid git commit SHA, release tag, or CI run ID."""
+    if not isinstance(rev, str) or not rev.strip():
+        return False
+    rev_clean = rev.strip()
+    if rev_clean.lower() in DISALLOWED_GENERIC_VALUES:
+        return False
+    return bool(REVISION_HEX_REGEX.match(rev_clean) or REVISION_TAG_REGEX.match(rev_clean) or REVISION_RUNID_REGEX.match(rev_clean))
+
+def validate_verifier(verifier):
+    """Validates that a verifier identifier is structured and non-generic."""
+    if not isinstance(verifier, str) or not verifier.strip():
+        return False
+    v_clean = verifier.strip()
+    if v_clean.lower() in DISALLOWED_GENERIC_VALUES:
+        return False
+    return bool(VERIFIER_ID_REGEX.match(v_clean))
+
+def validate_browser_evidence(b_ev):
+    """Validates all required fields in browser execution evidence."""
+    if not isinstance(b_ev, dict):
+        return False
+    test_suite = b_ev.get("testSuite")
+    if not isinstance(test_suite, str) or not test_suite.strip() or test_suite.lower() in DISALLOWED_GENERIC_VALUES:
+        return False
+    themes = b_ev.get("testedThemes")
+    if not isinstance(themes, list) or len(themes) == 0:
+        return False
+    valid_theme_names = {"light", "dark", "high-contrast", "system"}
+    if not all(isinstance(t, str) and t.lower() in valid_theme_names for t in themes):
+        return False
+    ts = b_ev.get("verifiedAt") or b_ev.get("timestamp")
+    if ts and not validate_iso_timestamp(ts):
+        return False
+    return True
+
 def derive_verification_status(data, evidence=None):
     """
-    Derives verification status strictly based on verifiable execution evidence.
+    Derives verification status strictly based on authentic, format-validated execution evidence.
     Evidence requirements for VERIFIED_DETERMINISTIC:
       - gatesPassed: non-empty list of canonical Orthotect quality gates
-      - verifier: non-empty string identifier (e.g. 'orthotect-gate-runner' or 'ci-pipeline')
-      - verifiedAt: ISO-8601 timestamp string
-      - revision: non-empty string (commit SHA or release tag)
+      - verifier: valid structured identifier (e.g. 'orthotect-gate-runner' or 'ci-pipeline')
+      - verifiedAt / timestamp: valid calendar ISO-8601 timestamp string
+      - revision / commitSha / runId: valid 40-char SHA, 7-12 short SHA, semantic tag, or CI run ID
     Evidence requirements for VERIFIED_BROWSER:
       - browserVerified: True
-      - browserEvidence: non-empty dict containing testSuite, testedThemes, and verifiedAt
-      - verifier: non-empty string
-      - revision: non-empty string
+      - browserEvidence: dict containing testSuite, non-empty testedThemes list, and valid timestamp
+      - verifier: valid structured identifier
+      - revision: valid git revision or run ID
     Advisory guidance:
       - HEURISTIC for design opinions / heuristic guidelines without gate execution
     Absence of full independent provenance:
@@ -135,29 +195,28 @@ def derive_verification_status(data, evidence=None):
     if not isinstance(ev, dict):
         ev = {}
 
-    has_verifier = bool(ev.get("verifier") and isinstance(ev.get("verifier"), str) and ev.get("verifier").strip())
-    has_timestamp = bool(ev.get("verifiedAt") or ev.get("timestamp"))
-    has_revision = bool(ev.get("revision") or ev.get("commitSha") or ev.get("runId"))
+    v_val = ev.get("verifier")
+    ts_val = ev.get("verifiedAt") or ev.get("timestamp")
+    rev_val = ev.get("revision") or ev.get("commitSha") or ev.get("runId")
+
+    has_valid_verifier = validate_verifier(v_val)
+    has_valid_timestamp = validate_iso_timestamp(ts_val)
+    has_valid_revision = validate_revision(rev_val)
+    has_full_provenance = has_valid_verifier and has_valid_timestamp and has_valid_revision
 
     # Browser verification requires real execution proof + provenance
     if ev.get("browserVerified") is True:
         b_ev = ev.get("browserEvidence")
-        if (
-            isinstance(b_ev, dict) and
-            b_ev.get("testSuite") and
-            has_verifier and
-            has_timestamp and
-            has_revision
-        ):
+        if validate_browser_evidence(b_ev) and has_full_provenance:
             return "VERIFIED_BROWSER"
-        # Incomplete browser evidence fails to NOT_EVALUATED
+        # Incomplete or invalid browser evidence strictly fails to NOT_EVALUATED
         return "NOT_EVALUATED"
 
     # Deterministic verification requires recognized gate suite + provenance
     gates = ev.get("gatesPassed", [])
     if isinstance(gates, list) and len(gates) >= 1:
         valid_gates = [g for g in gates if g in CANONICAL_GATES]
-        if valid_gates and has_verifier and has_timestamp and has_revision:
+        if valid_gates and has_full_provenance:
             return "VERIFIED_DETERMINISTIC"
         # Claiming gates without valid verifier/timestamp/revision fails to NOT_EVALUATED
         return "NOT_EVALUATED"
@@ -165,7 +224,7 @@ def derive_verification_status(data, evidence=None):
     if ev.get("heuristic") is True or data.get("verificationStatus") == "HEURISTIC":
         return "HEURISTIC"
 
-    # In absence of complete recorded evidence, default to NOT_EVALUATED
+    # In absence of complete recorded evidence, default strictly to NOT_EVALUATED
     return "NOT_EVALUATED"
 
 

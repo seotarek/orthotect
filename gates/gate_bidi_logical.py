@@ -156,6 +156,11 @@ class CssSyntaxTokenizer:
                         i += 1
                         col += 1
                 continue
+            elif ch == '/':
+                tokens.append(('/', '/', line, col))
+                i += 1
+                col += 1
+                continue
 
             # 2. String literal: single quote '...'
             if ch == "'":
@@ -240,6 +245,15 @@ class CssSyntaxTokenizer:
             if word:
                 w_str = ''.join(word)
                 tokens.append(('WORD', w_str, start_l, start_c))
+            else:
+                # Guaranteed safety advancement: ensures the scanner strictly advances on any unrecognized char
+                tokens.append(('CHAR', ch, line, col))
+                if ch == '\n':
+                    line += 1
+                    col = 1
+                else:
+                    col += 1
+                i += 1
 
         # Declaration extraction with block and paren tracking
         t_idx = 0

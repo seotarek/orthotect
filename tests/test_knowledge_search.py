@@ -287,12 +287,53 @@ class TestKnowledgeSearch(unittest.TestCase):
             "id": "test",
             "evidence": {
                 "gatesPassed": ["fake_nonexistent_gate.py"],
-                "verifier": "test",
+                "verifier": "orthotect-gate-runner",
                 "verifiedAt": "2026-10-23T07:00:00Z",
                 "revision": "v1.6.0"
             }
         }
         self.assertEqual(derive_verification_status(unrecognized_gate_record), "NOT_EVALUATED")
+
+    def test_status_derivation_rejects_spoofed_or_malformed_provenance(self):
+        """Negative test: Spoofed values ('any-string', invalid timestamp, invalid revision) must be rejected."""
+        from core.knowledge_search import derive_verification_status
+        spoofed_payload = {
+            "id": "test",
+            "evidence": {
+                "gatesPassed": ["gate_contrast_wcag.py"],
+                "verifier": "any-string",
+                "verifiedAt": "not-a-real-timestamp",
+                "revision": "not-a-real-revision"
+            }
+        }
+        self.assertEqual(derive_verification_status(spoofed_payload), "NOT_EVALUATED")
+
+        invalid_calendar_timestamp = {
+            "id": "test",
+            "evidence": {
+                "gatesPassed": ["gate_contrast_wcag.py"],
+                "verifier": "ci-pipeline",
+                "verifiedAt": "2026-99-99T99:99:99Z",
+                "revision": "40c22fc1bf7b700ba84fb777322fecb1020d6631"
+            }
+        }
+        self.assertEqual(derive_verification_status(invalid_calendar_timestamp), "NOT_EVALUATED")
+
+        invalid_browser_themes = {
+            "id": "test",
+            "evidence": {
+                "browserVerified": True,
+                "browserEvidence": {
+                    "testSuite": "tests/verify_browser_contrast.mjs",
+                    "testedThemes": ["alien-theme"],
+                    "verifiedAt": "2026-10-23T07:00:00Z"
+                },
+                "verifier": "playwright-browser-runner",
+                "verifiedAt": "2026-10-23T07:00:00Z",
+                "revision": "40c22fc1bf7b700ba84fb777322fecb1020d6631"
+            }
+        }
+        self.assertEqual(derive_verification_status(invalid_browser_themes), "NOT_EVALUATED")
 
     def test_status_derivation_with_browser_is_verified_browser(self):
         """Record with browser verified DOM evidence and provenance derives VERIFIED_BROWSER."""
