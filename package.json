@@ -1,10 +1,13 @@
 {
-  "name": "orthotect",
+  "name": "@seotarek/orthotect",
   "version": "1.7.0",
   "description": "The Deterministic Interface Engineering & Runtime Gate Architecture for AI Coding Agents.",
   "main": "bin/orthotect.js",
   "bin": {
     "orthotect": "bin/orthotect.js"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "type": "module",
   "scripts": {
