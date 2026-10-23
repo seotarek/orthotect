@@ -406,12 +406,35 @@ def scan_html_content(html_text):
 
     return violations
 
+def is_regex_start(text, i):
+    """
+    Determines whether a '/' character at index i begins a JavaScript regular expression literal.
+    In JavaScript, '/' is a regex literal (rather than division) when it follows punctuation,
+    operators, or expression keywords, and is not immediately followed by '/' or '*'.
+    """
+    j = i - 1
+    while j >= 0 and text[j] in ' \t\r\n':
+        j -= 1
+    if j < 0:
+        return True
+    prev_ch = text[j]
+    if prev_ch in '=(,{[;:!&|?~^+-*<>%':
+        return True
+    k = j
+    while k >= 0 and (text[k].isalnum() or text[k] in '_$'):
+        k -= 1
+    word = text[k + 1:j + 1]
+    if word in ('return', 'case', 'typeof', 'delete', 'void', 'throw', 'yield', 'await', 'default'):
+        return True
+    return False
+
 def strip_js_comments_string_aware(text):
     """
     Strips single-line (//) and multi-line (/* */) JavaScript comments
-    while strictly preserving single-quoted, double-quoted, and template-literal strings,
-    including arbitrarily nested template literal interpolations (${...}).
-    Prevents '//' inside strings (e.g. 'https://...') from truncating the rest of the line.
+    while strictly preserving single-quoted, double-quoted, template-literal strings,
+    and regular expression literals (e.g. /https?:\\/\\//), including arbitrarily nested
+    template literal interpolations (${...}).
+    Prevents '//' inside strings or regexes from truncating the rest of the line.
     Preserves all newline characters to maintain exact source line coordinates.
     """
     result = []
@@ -489,6 +512,34 @@ def strip_js_comments_string_aware(text):
                         i += 1
                     else:
                         result.append(' ')
+                        i += 1
+                continue
+
+            elif ch == '/' and i + 1 < n and text[i + 1] not in ('/', '*') and is_regex_start(text, i):
+                result.append(ch)
+                i += 1
+                in_char_class = False
+                while i < n:
+                    c = text[i]
+                    result.append(c)
+                    if c == '\\' and i + 1 < n:
+                        result.append(text[i + 1])
+                        i += 2
+                    elif c == '[' and not in_char_class:
+                        in_char_class = True
+                        i += 1
+                    elif c == ']' and in_char_class:
+                        in_char_class = False
+                        i += 1
+                    elif c == '/' and not in_char_class:
+                        i += 1
+                        while i < n and text[i].isalpha():
+                            result.append(text[i])
+                            i += 1
+                        break
+                    elif c == '\n':
+                        break
+                    else:
                         i += 1
                 continue
 
@@ -581,6 +632,28 @@ def extract_tagged_template_literals(text):
                                     i += 1
                             if i < n:
                                 i += 1
+                        elif ec == '/' and i + 1 < n and text[i + 1] not in ('/', '*') and is_regex_start(text, i):
+                            i += 1
+                            in_cc = False
+                            while i < n:
+                                c = text[i]
+                                if c == '\\' and i + 1 < n:
+                                    i += 2
+                                elif c == '[' and not in_cc:
+                                    in_cc = True
+                                    i += 1
+                                elif c == ']' and in_cc:
+                                    in_cc = False
+                                    i += 1
+                                elif c == '/' and not in_cc:
+                                    i += 1
+                                    while i < n and text[i].isalpha():
+                                        i += 1
+                                    break
+                                elif c == '\n':
+                                    break
+                                else:
+                                    i += 1
                         elif ec == "`":
                             i += 1
                             nest_stack = 1

@@ -390,6 +390,15 @@ class TestBidiGateE2E(unittest.TestCase):
         self.assertNotEqual(res.returncode, 0)
         self.assertIn("margin-left", res.stdout)
 
+    def test_bidi_regex_literal_with_escaped_slashes_does_not_mask_violation(self):
+        """Regression test: Regex literals with escaped slashes (e.g. /https?:\\/\\//) must not be treated as line comments."""
+        js_file = os.path.join(self.temp_dir, 'regex_test.jsx')
+        with open(js_file, 'w') as f:
+            f.write("const urlPattern = /https?:\\/\\//; const Card = () => <div style={{ marginLeft: 12 }} />;")
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0, "Gate must NOT mask code following regex literals with slashes")
+        self.assertIn("marginLeft", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
 

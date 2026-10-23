@@ -198,6 +198,8 @@ function generatePageBoilerplate(recipe) {
       };
 
       let currentState = fsmConfig.initialState;
+      window.__orthotectActionExecCount = 0;
+      window.__orthotectErrorSimulated = false;
 
       function transition(event) {
         const stateNode = fsmConfig.states[currentState];
@@ -227,14 +229,19 @@ function generatePageBoilerplate(recipe) {
             fsmButton.textContent = 'Processing...';
             if (statusAnnouncer) statusAnnouncer.textContent = 'Processing request...';
 
-            const shouldSimulateError = (
-              (window.location && new URLSearchParams(window.location.search).get('simulate') === 'error') ||
-              fsmButton.getAttribute('data-simulate') === 'error'
-            );
+            let shouldSimulateError = false;
+            const simParam = window.location ? new URLSearchParams(window.location.search).get('simulate') : null;
+            const simAttr = fsmButton.getAttribute('data-simulate');
+            const hasErrorSim = (simParam === 'error' || simParam === 'error_once' || simAttr === 'error' || simAttr === 'error-once');
+
+            if (hasErrorSim && !window.__orthotectErrorSimulated) {
+              shouldSimulateError = true;
+              window.__orthotectErrorSimulated = true;
+            }
 
             setTimeout(() => {
               transition(shouldSimulateError ? 'ERROR' : 'SUCCESS');
-            }, 500);
+            }, 400);
             break;
 
           case 'success':
@@ -245,7 +252,7 @@ function generatePageBoilerplate(recipe) {
 
             setTimeout(() => {
               transition('RESET');
-            }, 800);
+            }, 600);
             break;
 
           case 'error':
@@ -259,13 +266,19 @@ function generatePageBoilerplate(recipe) {
 
       fsmButton.addEventListener('click', () => {
         if (currentState === 'loading') return;
-        if (currentState === 'idle') transition('CLICK');
-        else if (currentState === 'error') transition('RETRY');
+        if (currentState === 'idle') {
+          window.__orthotectActionExecCount++;
+          transition('CLICK');
+        } else if (currentState === 'error') {
+          window.__orthotectActionExecCount++;
+          transition('RETRY');
+        }
       });
 
       window.__orthotectFsm = {
         getState: () => currentState,
         transition: (event) => transition(event),
+        getActionExecCount: () => window.__orthotectActionExecCount,
         config: fsmConfig
       };
     })();

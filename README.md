@@ -2,7 +2,7 @@
 
 ### The Deterministic Interface Engineering & Runtime Gate Architecture for AI Coding Agents
 
-[![Version](https://img.shields.io/badge/version-1.7.0-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.7.0)
+[![Version](https://img.shields.io/badge/version-1.7.1-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.7.1)
 [![Live Showcase](https://img.shields.io/badge/Live_Showcase-GitHub_Pages-0ea5e9?style=for-the-badge)](https://seotarek.github.io/orthotect/)
 [![CI Status](https://github.com/seotarek/orthotect/actions/workflows/ci.yml/badge.svg)](https://github.com/seotarek/orthotect/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)](LICENSE)
@@ -77,7 +77,7 @@ orthotect/
 │   ├── orthotect-tokens          # Token Management & Theme Compilation
 │   ├── orthotect-gates           # Gate Execution Workflows
 │   └── orthotect-visual-qa       # Automated Browser Visual Regression Gate
-├── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (234 Tests)
+├── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (236 Tests)
 │   ├── test_contrast.py          # Relative luminance & contrast threshold unit tests
 │   ├── test_bidi.py              # BiDi logical scanner positive/negative tests
 │   ├── test_fsm.py               # FSM graph reachability and deadlock tests
@@ -93,11 +93,11 @@ orthotect/
 │   ├── test_scaffold_browser.py  # Playwright scaffolded page FSM lifecycle & race lock browser tests
 │   └── test_cli_e2e.py           # E2E CLI verification, boundary & negative rejection tests
 ├── .github/workflows/       # Automated CI & GitHub Pages Deployment Pipelines
-│   ├── ci.yml                    # 234 Unit, Browser & Negative Gate Tests & Full Gate Verification
+│   ├── ci.yml                    # 236 Unit, Browser & Negative Gate Tests & Full Gate Verification
 │   └── pages.yml                 # Automated GitHub Pages Deployment
 ├── agents/
 │   └── orthotect-auditor.md      # Adversarial Quality Auditor Role
-├── CHANGELOG.md             # Full version history (v1.0.0 → v1.7.0)
+├── CHANGELOG.md             # Full version history (v1.0.0 → v1.7.1)
 ├── CONTRIBUTING.md      # Enterprise engineering guidelines
 ├── COMPETITORS.md       # Exhaustive architectural competitor teardown
 ├── MANIFESTO.md         # The 7 Laws of Interface Engineering

@@ -4,6 +4,16 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.1] - 2026-10-23
+
+### Fixed
+- **BiDi AST Gate Regex Literal Lexical Parsing**: Disambiguated JavaScript regular expression literals (e.g., `const pattern = /https?:\/\//;`) from line comments in `strip_js_comments_string_aware()` and `extract_tagged_template_literals()` within `gates/gate_bidi_logical.py`. Escaped slashes (`\/`) inside regex literals no longer trigger false comment stripping, preventing physical CSS properties in subsequent code from escaping verification. Added regression tests in `tests/test_bidi.py` (25/25 BiDi tests passing).
+- **FSM Scaffolded Page Synthetic Event & State Lock Verification**: Hardened `bin/orthotect.js` and `tests/test_scaffold_browser.py` by adding an explicit action execution counter (`window.__orthotectActionExecCount`). The Playwright browser test now verifies double-click lockout via synthetic DOM event dispatch (`dispatchEvent(new MouseEvent('click'))`) and direct controller calls (`transition('CLICK')`) during the `loading` state, asserting that action execution count strictly remains 1.
+- **FSM Scaffolded Page Full Error Recovery Cycle**: Added single-failure error simulation (`simulate=error_once`) in `bin/orthotect.js`. Hardened `tests/test_scaffold_browser.py` to verify the complete error recovery lifecycle in headless Chromium: transitioning from `loading` -> `error`, clicking "Retry Action" to transition back to `loading`, and successfully reaching `success` ("Action Verified") before returning to `idle`.
+
+### CI
+- **Publish Workflow Hardening**: Updated `.github/workflows/publish-package.yml` to run test suites (`npm test`) and deterministic quality gates (`python3 gates/run_all_gates.py docs && python3 gates/run_all_gates.py examples/golden-showcase`) prior to publishing. Restricted workflow trigger execution to the `main` branch and release tags (`v*`).
+
 ## [1.7.0] - 2026-10-23
 
 ### Added

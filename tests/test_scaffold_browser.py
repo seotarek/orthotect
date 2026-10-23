@@ -89,15 +89,20 @@ class TestScaffoldBrowserExecution(unittest.TestCase):
           if (loadingDisabled !== true) throw new Error(`Expected button to be disabled in loading state`);
           if (loadingText !== 'Processing...') throw new Error(`Expected text 'Processing...', got '${{loadingText}}'`);
 
-          // 3. Race condition verification: attempt double-click while in loading state
+          // 3. Race condition verification: dispatch synthetic click event AND call transition('CLICK')
           await page.evaluate(() => {{
             const btn = document.querySelector('[data-fsm="button"]');
-            btn.click();
+            btn.dispatchEvent(new MouseEvent('click', {{ bubbles: true, cancelable: true }}));
+            window.__orthotectFsm.transition('CLICK');
           }});
 
           const stateAfterLockAttempt = await page.$eval('[data-fsm="button"]', el => el.getAttribute('data-state'));
+          const execCountAfterLock = await page.evaluate(() => window.__orthotectFsm.getActionExecCount());
           if (stateAfterLockAttempt !== 'loading') {{
             throw new Error(`Race condition guard failed: state mutated to '${{stateAfterLockAttempt}}' during double-click`);
+          }}
+          if (execCountAfterLock !== 1) {{
+            throw new Error(`Race condition guard failed: action executed ${{execCountAfterLock}} times instead of 1`);
           }}
 
           // 4. Wait for automatic SUCCESS transition
@@ -187,13 +192,36 @@ class TestScaffoldBrowserExecution(unittest.TestCase):
           const retriedState = await page.$eval('[data-fsm="button"]', el => el.getAttribute('data-state'));
           if (retriedState !== 'loading') throw new Error(`Expected state 'loading' after RETRY, got '${{retriedState}}'`);
 
+          // Wait for SUCCESS recovery transition
+          await page.waitForFunction(() => {{
+            const btn = document.querySelector('[data-fsm="button"]');
+            return btn && btn.getAttribute('data-state') === 'success';
+          }}, {{ timeout: 3000 }});
+
+          const recoveredText = await page.$eval('[data-fsm="button"]', el => el.textContent.trim());
+          const recoveredDisabled = await page.$eval('[data-fsm="button"]', el => el.disabled);
+          if (recoveredText !== 'Action Verified') throw new Error(`Expected text 'Action Verified' after recovery, got '${{recoveredText}}'`);
+          if (recoveredDisabled !== false) throw new Error(`Expected button to be enabled in recovered state`);
+
+          // Wait for final RESET transition back to idle
+          await page.waitForFunction(() => {{
+            const btn = document.querySelector('[data-fsm="button"]');
+            return btn && btn.getAttribute('data-state') === 'idle';
+          }}, {{ timeout: 3000 }});
+
+          const finalState = await page.$eval('[data-fsm="button"]', el => el.getAttribute('data-state'));
+          const finalText = await page.$eval('[data-fsm="button"]', el => el.textContent.trim());
+          if (finalState !== 'idle' || finalText !== 'Execute Action') {{
+            throw new Error(`Expected final state 'idle' and 'Execute Action', got '${{finalState}}' / '${{finalText}}'`);
+          }}
+
           await browser.close();
 
           if (errors.length > 0) {{
             throw new Error('Uncaught browser exceptions: ' + errors.join('; '));
           }}
 
-          console.log('SCAFFOLD_FSM_ERROR_RECOVERY_VERIFIED');
+          console.log('SCAFFOLD_FSM_FULL_ERROR_RECOVERY_VERIFIED');
         }}).catch(err => {{
           console.error(err);
           process.exit(1);
@@ -201,8 +229,8 @@ class TestScaffoldBrowserExecution(unittest.TestCase):
         """
         res = subprocess.run(['node', '--input-type=module', '-e', node_script],
                              capture_output=True, text=True)
-        self.assertEqual(res.returncode, 0, f"Scaffolded FSM error recovery failed: {res.stderr}\n{res.stdout}")
-        self.assertIn("SCAFFOLD_FSM_ERROR_RECOVERY_VERIFIED", res.stdout)
+        self.assertEqual(res.returncode, 0, f"Scaffolded FSM full error recovery failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SCAFFOLD_FSM_FULL_ERROR_RECOVERY_VERIFIED", res.stdout)
 
 if __name__ == '__main__':
     unittest.main()
