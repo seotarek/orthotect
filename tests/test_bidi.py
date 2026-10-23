@@ -325,6 +325,20 @@ class TestBidiGateE2E(unittest.TestCase):
         self.assertEqual(res.returncode, 0)
         self.assertIn("BiDi Logical Check Passed", res.stdout)
 
+    def test_bidi_js_string_with_url_does_not_mask_violation(self):
+        """Regression test: Strings containing '//' (like URLs) must not cause the rest of the line to be masked as a comment."""
+        js_file = os.path.join(self.temp_dir, 'url_test.jsx')
+        with open(js_file, 'w') as f:
+            f.write("""
+            export const Nav = () => {
+                const apiUrl = "https://api.example.com/v1/auth";
+                return <div style={{ marginLeft: 24 }}>Nav</div>; // actual comment
+            };
+            """)
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("marginLeft", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
 

@@ -99,6 +99,8 @@ class TestCLIExpanded(unittest.TestCase):
             self.assertIn("Contemporary Product SaaS", content)
             self.assertIn("margin-block", content)
             self.assertIn("data-fsm", content)
+            self.assertIn("initOrthotectFsm", content)
+            self.assertIn("fsm-status-announcer", content)
         finally:
             if os.path.exists(out_path):
                 os.remove(out_path)

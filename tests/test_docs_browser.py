@@ -1565,6 +1565,64 @@ class TestDocsBrowserPlatform(unittest.TestCase):
         self.assertEqual(res.returncode, 0, f"XSS test failed: {res.stderr}\n{res.stdout}")
         self.assertIn("SUCCESS_XSS_SANITIZED", res.stdout)
 
+    def test_fsm_terminal_xss_sanitization(self):
+        """Verify that malicious XSS payloads in FSM JSON and code editor cannot inject DOM nodes or execute scripts."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          await page.goto('file://{self.docs_html}#gates');
+          await page.waitForTimeout(100);
+
+          // Inject malicious XSS payloads into code editor targeting FSM integrity parsing
+          const maliciousCode = `
+          /* Malicious FSM definition */
+          {{"states": {{"<img id=\\"fsmXssState\\" src=\\"x\\" onerror=\\"window.__fsmXssTriggered=true\\">": {{}}}}, "initialState": "<svg id=\\"fsmXssInit\\" onload=\\"window.__fsmXssTriggered=true\\">"}}
+          `;
+          await page.fill('#codeEditor', maliciousCode);
+          await page.waitForTimeout(50);
+
+          // Click "Run Deterministic Gates"
+          await page.click('#runGateBtn');
+          await page.waitForTimeout(150);
+
+          // 1. Verify no element with id="fsmXssState" or "fsmXssInit" exists in the DOM
+          const stateNode = await page.$('#fsmXssState');
+          const initNode = await page.$('#fsmXssInit');
+          if (stateNode || initNode) {{
+            throw new Error('VULNERABILITY: Malicious DOM element was injected through FSM simulator!');
+          }}
+
+          // 2. Verify window.__fsmXssTriggered was not set
+          const xssTriggered = await page.evaluate(() => window.__fsmXssTriggered);
+          if (xssTriggered) {{
+            throw new Error('VULNERABILITY: XSS script execution succeeded in FSM simulator!');
+          }}
+
+          // 3. Verify terminal content has properly escaped HTML entities
+          const terminalHtml = await page.$eval('#gateTerminal', el => el.innerHTML);
+          if (terminalHtml.includes('<img id="fsmXssState"') || terminalHtml.includes('<svg id="fsmXssInit"')) {{
+            throw new Error('Unescaped HTML tags detected in gate terminal!');
+          }}
+          if (!terminalHtml.includes('&lt;img') && !terminalHtml.includes('&lt;svg')) {{
+            throw new Error('Expected escaped HTML entities in gate terminal output!');
+          }}
+
+          await browser.close();
+          console.log('SUCCESS_FSM_XSS_SANITIZED');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"FSM XSS test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_FSM_XSS_SANITIZED", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
 

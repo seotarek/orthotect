@@ -170,11 +170,95 @@ function generatePageBoilerplate(recipe) {
         <article class="card">
           <h2>Architecture Overview</h2>
           <p>Scaffolded using Orthotect Style Recipe <code>${recipeId}</code>. Fully compliant with CSS Logical Properties and W3C DTCG tokens.</p>
-          <button class="btn-primary" data-fsm="button" data-state="idle">Execute Action</button>
+          <button class="btn-primary" data-fsm="button" data-state="idle" aria-live="polite">Execute Action</button>
+          <div id="fsm-status-announcer" aria-live="polite" style="position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;">Action ready.</div>
         </article>
       </section>
     </main>
   </div>
+  <script>
+    /**
+     * Orthotect Finite State Machine (FSM) Runtime Controller
+     * Enforces explicit state graph reachability and double-submission race condition locks
+     * per core/fsm/button-states.json specifications.
+     */
+    (function initOrthotectFsm() {
+      const fsmButton = document.querySelector('[data-fsm="button"]');
+      const statusAnnouncer = document.getElementById('fsm-status-announcer');
+      if (!fsmButton) return;
+
+      const fsmConfig = {
+        initialState: 'idle',
+        states: {
+          idle: { on: { CLICK: 'loading' } },
+          loading: { on: { SUCCESS: 'success', ERROR: 'error' } },
+          success: { on: { RESET: 'idle' } },
+          error: { on: { RETRY: 'loading', RESET: 'idle' } }
+        }
+      };
+
+      let currentState = fsmConfig.initialState;
+
+      function transition(event) {
+        const stateNode = fsmConfig.states[currentState];
+        if (!stateNode || !stateNode.on || !stateNode.on[event]) {
+          console.warn('[Orthotect FSM] Invalid transition "' + event + '" from state "' + currentState + '". Event rejected by race-condition lock.');
+          return;
+        }
+
+        currentState = stateNode.on[event];
+        renderState(currentState);
+      }
+
+      function renderState(state) {
+        fsmButton.setAttribute('data-state', state);
+
+        switch (state) {
+          case 'idle':
+            fsmButton.disabled = false;
+            fsmButton.removeAttribute('aria-busy');
+            fsmButton.textContent = 'Execute Action';
+            if (statusAnnouncer) statusAnnouncer.textContent = 'Action ready.';
+            break;
+
+          case 'loading':
+            fsmButton.disabled = true;
+            fsmButton.setAttribute('aria-busy', 'true');
+            fsmButton.textContent = 'Processing...';
+            if (statusAnnouncer) statusAnnouncer.textContent = 'Processing request...';
+
+            setTimeout(() => {
+              transition('SUCCESS');
+            }, 1000);
+            break;
+
+          case 'success':
+            fsmButton.disabled = false;
+            fsmButton.removeAttribute('aria-busy');
+            fsmButton.textContent = 'Action Verified';
+            if (statusAnnouncer) statusAnnouncer.textContent = 'Action verified successfully.';
+
+            setTimeout(() => {
+              transition('RESET');
+            }, 2000);
+            break;
+
+          case 'error':
+            fsmButton.disabled = false;
+            fsmButton.removeAttribute('aria-busy');
+            fsmButton.textContent = 'Retry Action';
+            if (statusAnnouncer) statusAnnouncer.textContent = 'Action failed. Click to retry.';
+            break;
+        }
+      }
+
+      fsmButton.addEventListener('click', () => {
+        if (currentState === 'loading') return;
+        if (currentState === 'idle') transition('CLICK');
+        else if (currentState === 'error') transition('RETRY');
+      });
+    })();
+  </script>
 </body>
 </html>
 `;

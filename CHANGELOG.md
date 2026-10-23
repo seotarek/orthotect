@@ -25,14 +25,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Full test suite passing (225+ tests).
 
 ### Security
-- **DOM XSS Sanitization**: Sanitized gallery empty-state search query interpolation and playground FSM simulator inputs via strict HTML entity escaping (`docs/app.js`). Added automated browser regression test `test_gallery_search_xss_sanitization` in `tests/test_docs_browser.py`.
-- **CI Supply-Chain Hardening**: Configured explicit minimum permissions (`permissions: contents: read`) in `.github/workflows/ci.yml`.
+- **DOM XSS Sanitization & Browser Verification**: Sanitized gallery empty-state search query interpolation and playground FSM simulator inputs via strict HTML entity escaping (`docs/app.js`). Added automated Playwright headless Chromium regression tests `test_gallery_search_xss_sanitization` and `test_fsm_terminal_xss_sanitization` in `tests/test_docs_browser.py`.
+- **CI Supply-Chain Hardening**: Configured explicit minimum permissions (`permissions: contents: read`) in `.github/workflows/ci.yml` and pinned all GitHub Actions across `ci.yml` and `pages.yml` to immutable 40-character commit SHAs.
 
 ### Fixed
-- **BiDi AST Gate Multi-File Support**: Extended `gates/gate_bidi_logical.py` to inspect `.jsx`, `.tsx`, `.js`, and `.ts` files, enforcing directional neutrality across styled template literals and React camelCase inline style properties (`marginLeft`, `paddingRight`, etc.).
+- **BiDi AST Gate String-Aware Lexical Scanner**: Implemented state-machine comment stripper `strip_js_comments_string_aware()` in `gates/gate_bidi_logical.py` to preserve single-, double-, and template-literal strings containing `//` (such as URLs), preventing comment-masking false negatives. Added regression test `test_bidi_js_string_with_url_does_not_mask_violation`.
 - **Anti-Slop Multi-File Support**: Extended `gates/gate_no_slop.py` to scan `.js`, `.ts`, `.jsx`, and `.tsx` files, banning raw emoji icons in JSX button elements and untokenized hex colors in inline style blocks.
 - **CLI Doctor Semver Validation**: Fixed Node.js version parsing in `orthotect doctor` to check both major and minor numbers (`major > 20 || (major === 20 && minor >= 19)`), properly enforcing `>=20.19.0`.
-- **CLI Design Page Scaffolding**: Upgraded `orthotect design page` from printing recipe metadata to generating complete, certified HTML boilerplate compliant with W3C DTCG tokens, CSS logical properties, and FSM interactive button contracts (supports `--out <file>` and `--stdout`).
+- **CLI Design Page Executable FSM Runtime**: Upgraded `orthotect design page` to embed an active, zero-dependency client-side FSM controller into generated HTML boilerplate. Implements full state graph reachability (`idle` -> `loading` -> `success` -> `idle`), double-click race condition locks, and `aria-live` accessible status announcements (supports `--out <file>` and `--stdout`).
 - **Architecture Documentation Alignment**: Synchronized `CONTRIBUTING.md` prerequisites and test counts with `package.json`, and added "Dual-Layer Verification Architecture & Scope Delineation" in `README.md`.
 
 ## [1.6.0] - 2026-10-23

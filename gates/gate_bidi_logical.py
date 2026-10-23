@@ -406,18 +406,106 @@ def scan_html_content(html_text):
 
     return violations
 
+def strip_js_comments_string_aware(text):
+    """
+    Strips single-line (//) and multi-line (/* */) JavaScript comments
+    while strictly preserving single-quoted, double-quoted, and template-literal strings.
+    Prevents '//' inside strings (e.g. 'https://...') from truncating the rest of the line.
+    Preserves all newline characters to maintain exact source line coordinates.
+    """
+    result = []
+    i = 0
+    n = len(text)
+    state = 'NORMAL'
+
+    while i < n:
+        ch = text[i]
+
+        if state == 'NORMAL':
+            if ch == "'" and (i == 0 or text[i - 1] != '\\'):
+                state = 'SINGLE_QUOTE'
+                result.append(ch)
+                i += 1
+            elif ch == '"' and (i == 0 or text[i - 1] != '\\'):
+                state = 'DOUBLE_QUOTE'
+                result.append(ch)
+                i += 1
+            elif ch == '`' and (i == 0 or text[i - 1] != '\\'):
+                state = 'TEMPLATE_LITERAL'
+                result.append(ch)
+                i += 1
+            elif ch == '/' and i + 1 < n and text[i + 1] == '/':
+                state = 'LINE_COMMENT'
+                result.append('  ')
+                i += 2
+            elif ch == '/' and i + 1 < n and text[i + 1] == '*':
+                state = 'BLOCK_COMMENT'
+                result.append('  ')
+                i += 2
+            else:
+                result.append(ch)
+                i += 1
+
+        elif state == 'SINGLE_QUOTE':
+            result.append(ch)
+            if ch == '\\' and i + 1 < n:
+                result.append(text[i + 1])
+                i += 2
+            elif ch == "'":
+                state = 'NORMAL'
+                i += 1
+            else:
+                i += 1
+
+        elif state == 'DOUBLE_QUOTE':
+            result.append(ch)
+            if ch == '\\' and i + 1 < n:
+                result.append(text[i + 1])
+                i += 2
+            elif ch == '"':
+                state = 'NORMAL'
+                i += 1
+            else:
+                i += 1
+
+        elif state == 'TEMPLATE_LITERAL':
+            result.append(ch)
+            if ch == '\\' and i + 1 < n:
+                result.append(text[i + 1])
+                i += 2
+            elif ch == '`':
+                state = 'NORMAL'
+                i += 1
+            else:
+                i += 1
+
+        elif state == 'LINE_COMMENT':
+            if ch == '\n':
+                result.append('\n')
+                state = 'NORMAL'
+            else:
+                result.append(' ')
+            i += 1
+
+        elif state == 'BLOCK_COMMENT':
+            if ch == '*' and i + 1 < n and text[i + 1] == '/':
+                result.append('  ')
+                state = 'NORMAL'
+                i += 2
+            elif ch == '\n':
+                result.append('\n')
+                i += 1
+            else:
+                result.append(' ')
+                i += 1
+
+    return ''.join(result)
+
 def scan_js_content(js_text):
     violations = []
 
-    # 1. Mask comments so commented-out code is ignored
-    def mask_comments(text):
-        def replacer(match):
-            s = match.group(0)
-            return '\n' * s.count('\n')
-        pattern = re.compile(r'//.*?$|/\*.*?\*/', re.MULTILINE | re.DOTALL)
-        return pattern.sub(replacer, text)
-
-    masked_js = mask_comments(js_text)
+    # 1. Mask comments safely with string-aware state-machine scanner
+    masked_js = strip_js_comments_string_aware(js_text)
 
     # 2. Extract and scan tagged template literals (styled-components, emotion, etc.)
     tmpl_pattern = re.compile(r'(?:styled(?:\.[a-zA-Z0-9_]+|\([^)]+\))?|css)\s*`([\s\S]*?)`', re.DOTALL)
