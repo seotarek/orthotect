@@ -12,6 +12,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/data-table-loader.json",
     "badge": "WCAG 2.2 AAA",
     "icon": "chart",
+    "thumbnail": "assets/thumbnails/saas-metric-console.webp",
     "template_url": "templates/saas-metric-console.html"
   },
   {
@@ -26,6 +27,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/data-table-loader.json",
     "badge": "Sub-Second Telemetry",
     "icon": "server",
+    "thumbnail": "assets/thumbnails/cloud-infrastructure-monitor.webp",
     "template_url": "templates/cloud-infrastructure-monitor.html"
   },
   {
@@ -40,6 +42,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "Sub-Millisecond Depth",
     "icon": "trending-up",
+    "thumbnail": "assets/thumbnails/fintech-trading-terminal.webp",
     "template_url": "templates/fintech-trading-terminal.html"
   },
   {
@@ -54,6 +57,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/data-table-loader.json",
     "badge": "Industrial Grade",
     "icon": "cpu",
+    "thumbnail": "assets/thumbnails/iot-device-fleet-telemetry.webp",
     "template_url": "templates/iot-device-fleet-telemetry.html"
   },
   {
@@ -68,6 +72,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/data-table-loader.json",
     "badge": "Zero-Trust Verified",
     "icon": "shield",
+    "thumbnail": "assets/thumbnails/soc-cybersecurity-event-feed.webp",
     "template_url": "templates/soc-cybersecurity-event-feed.html"
   },
   {
@@ -82,6 +87,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/data-table-loader.json",
     "badge": "Hermetic Builds",
     "icon": "git-pull-request",
+    "thumbnail": "assets/thumbnails/developer-ci-cd-pipeline-matrix.webp",
     "template_url": "templates/developer-ci-cd-pipeline-matrix.html"
   },
   {
@@ -96,6 +102,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/data-table-loader.json",
     "badge": "Cold-Chain Certified",
     "icon": "truck",
+    "thumbnail": "assets/thumbnails/logistics-fleet-dispatch-tracker.webp",
     "template_url": "templates/logistics-fleet-dispatch-tracker.html"
   },
   {
@@ -110,6 +117,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/data-table-loader.json",
     "badge": "Grid-Sync Certified",
     "icon": "zap",
+    "thumbnail": "assets/thumbnails/energy-grid-sensor-telemetry.webp",
     "template_url": "templates/energy-grid-sensor-telemetry.html"
   },
   {
@@ -124,6 +132,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/data-table-loader.json",
     "badge": "Board-Certified",
     "icon": "pie-chart",
+    "thumbnail": "assets/thumbnails/kpi-executive-scorecard.webp",
     "template_url": "templates/kpi-executive-scorecard.html"
   },
   {
@@ -138,6 +147,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/data-table-loader.json",
     "badge": "Agentic Telemetry",
     "icon": "cpu",
+    "thumbnail": "assets/thumbnails/ai-model-inference-telemetry.webp",
     "template_url": "templates/ai-model-inference-telemetry.html"
   },
   {
@@ -152,6 +162,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/modal-dialog.json",
     "badge": "FSM Double-Locked",
     "icon": "user-check",
+    "thumbnail": "assets/thumbnails/multi-step-kyc-verification.webp",
     "template_url": "templates/multi-step-kyc-verification.html"
   },
   {
@@ -166,6 +177,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "Idempotent Transaction",
     "icon": "credit-card",
+    "thumbnail": "assets/thumbnails/enterprise-b2b-checkout-flow.webp",
     "template_url": "templates/enterprise-b2b-checkout-flow.html"
   },
   {
@@ -180,6 +192,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "Zero-Layout-Shift",
     "icon": "users",
+    "thumbnail": "assets/thumbnails/user-onboarding-wizard-fsm.webp",
     "template_url": "templates/user-onboarding-wizard-fsm.html"
   },
   {
@@ -194,6 +207,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "WCAG AAA Inputs",
     "icon": "dollar-sign",
+    "thumbnail": "assets/thumbnails/billing-subscription-manager.webp",
     "template_url": "templates/billing-subscription-manager.html"
   },
   {
@@ -208,6 +222,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/modal-dialog.json",
     "badge": "Cryptographic Masking",
     "icon": "key",
+    "thumbnail": "assets/thumbnails/api-key-permission-delegation.webp",
     "template_url": "templates/api-key-permission-delegation.html"
   },
   {
@@ -222,6 +237,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "FIDO2 Certified",
     "icon": "lock",
+    "thumbnail": "assets/thumbnails/account-security-two-factor-setup.webp",
     "template_url": "templates/account-security-two-factor-setup.html"
   },
   {
@@ -236,6 +252,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "Atomic Provisioning",
     "icon": "database",
+    "thumbnail": "assets/thumbnails/cloud-database-provisioning-form.webp",
     "template_url": "templates/cloud-database-provisioning-form.html"
   },
   {
@@ -250,6 +267,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/modal-dialog.json",
     "badge": "SLA Guaranteed",
     "icon": "alert-circle",
+    "thumbnail": "assets/thumbnails/support-ticket-escalation-wizard.webp",
     "template_url": "templates/support-ticket-escalation-wizard.html"
   },
   {
@@ -264,6 +282,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "Double-Charge Proof",
     "icon": "credit-card",
+    "thumbnail": "assets/thumbnails/credit-card-payment-lock.webp",
     "template_url": "templates/credit-card-payment-lock.html"
   },
   {
@@ -278,6 +297,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/modal-dialog.json",
     "badge": "SOC2 Verified",
     "icon": "file-text",
+    "thumbnail": "assets/thumbnails/audit-log-export-configuration.webp",
     "template_url": "templates/audit-log-export-configuration.html"
   },
   {
@@ -292,6 +312,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "Aerospace Grade",
     "icon": "package",
+    "thumbnail": "assets/thumbnails/hardware-spec-sheet-store.webp",
     "template_url": "templates/hardware-spec-sheet-store.html"
   },
   {
@@ -306,6 +327,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/modal-dialog.json",
     "badge": "Chronometer Certified",
     "icon": "watch",
+    "thumbnail": "assets/thumbnails/luxury-mechanical-goods-gallery.webp",
     "template_url": "templates/luxury-mechanical-goods-gallery.html"
   },
   {
@@ -320,6 +342,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "ISO 9001 Compliant",
     "icon": "tool",
+    "thumbnail": "assets/thumbnails/industrial-equipment-procurement.webp",
     "template_url": "templates/industrial-equipment-procurement.html"
   },
   {
@@ -334,6 +357,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/modal-dialog.json",
     "badge": "LEED Platinum Ready",
     "icon": "layers",
+    "thumbnail": "assets/thumbnails/architectural-materials-catalog.webp",
     "template_url": "templates/architectural-materials-catalog.html"
   },
   {
@@ -348,6 +372,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "Hi-Res Audio Gold",
     "icon": "headphones",
+    "thumbnail": "assets/thumbnails/dtc-electronics-product-detail.webp",
     "template_url": "templates/dtc-electronics-product-detail.html"
   },
   {
@@ -362,6 +387,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "Keyboard Navigable",
     "icon": "grid",
+    "thumbnail": "assets/thumbnails/b2b-wholesale-bulk-order-grid.webp",
     "template_url": "templates/b2b-wholesale-bulk-order-grid.html"
   },
   {
@@ -376,6 +402,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "Transparent Pricing",
     "icon": "credit-card",
+    "thumbnail": "assets/thumbnails/digital-software-tier-pricing.webp",
     "template_url": "templates/digital-software-tier-pricing.html"
   },
   {
@@ -390,6 +417,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/data-table-loader.json",
     "badge": "Zero Shift Filter",
     "icon": "sliders",
+    "thumbnail": "assets/thumbnails/dynamic-product-filtering-rail.webp",
     "template_url": "templates/dynamic-product-filtering-rail.html"
   },
   {
@@ -404,6 +432,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/modal-dialog.json",
     "badge": "Optimistic UI",
     "icon": "shopping-bag",
+    "thumbnail": "assets/thumbnails/cart-drawer-optimistic-update.webp",
     "template_url": "templates/cart-drawer-optimistic-update.html"
   },
   {
@@ -418,6 +447,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/modal-dialog.json",
     "badge": "Cryptographic Reviews",
     "icon": "star",
+    "thumbnail": "assets/thumbnails/customer-reviews-rating-matrix.webp",
     "template_url": "templates/customer-reviews-rating-matrix.html"
   },
   {
@@ -432,6 +462,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "WCAG 2.2 AAA",
     "icon": "check-square",
+    "thumbnail": "assets/thumbnails/civic-voter-registration-portal.webp",
     "template_url": "templates/civic-voter-registration-portal.html"
   },
   {
@@ -446,6 +477,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/modal-dialog.json",
     "badge": "HIPAA & WCAG AAA",
     "icon": "activity",
+    "thumbnail": "assets/thumbnails/clinical-patient-intake-records.webp",
     "template_url": "templates/clinical-patient-intake-records.html"
   },
   {
@@ -460,6 +492,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/data-table-loader.json",
     "badge": "Extreme Visibility",
     "icon": "alert-triangle",
+    "thumbnail": "assets/thumbnails/emergency-crisis-alert-broadcast.webp",
     "template_url": "templates/emergency-crisis-alert-broadcast.html"
   },
   {
@@ -474,6 +507,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/data-table-loader.json",
     "badge": "ADA & WCAG AAA",
     "icon": "map-pin",
+    "thumbnail": "assets/thumbnails/public-transit-accessible-schedule.webp",
     "template_url": "templates/public-transit-accessible-schedule.html"
   },
   {
@@ -488,6 +522,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/data-table-loader.json",
     "badge": "Screen-Reader Ready",
     "icon": "credit-card",
+    "thumbnail": "assets/thumbnails/universal-banking-statement-view.webp",
     "template_url": "templates/universal-banking-statement-view.html"
   },
   {
@@ -502,6 +537,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "Civic Reliability",
     "icon": "zap-off",
+    "thumbnail": "assets/thumbnails/utility-service-outage-reporter.webp",
     "template_url": "templates/utility-service-outage-reporter.html"
   },
   {
@@ -516,6 +552,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "Plain-Language Ready",
     "icon": "clipboard",
+    "thumbnail": "assets/thumbnails/government-benefits-eligibility.webp",
     "template_url": "templates/government-benefits-eligibility.html"
   },
   {
@@ -530,6 +567,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/modal-dialog.json",
     "badge": "Captions & Audio Verified",
     "icon": "video",
+    "thumbnail": "assets/thumbnails/accessible-telehealth-consultation.webp",
     "template_url": "templates/accessible-telehealth-consultation.html"
   },
   {
@@ -544,6 +582,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/data-table-loader.json",
     "badge": "UDL & Section 508",
     "icon": "book-open",
+    "thumbnail": "assets/thumbnails/educational-course-curriculum.webp",
     "template_url": "templates/educational-course-curriculum.html"
   },
   {
@@ -558,6 +597,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/modal-dialog.json",
     "badge": "Legal Ergonomics",
     "icon": "file-text",
+    "thumbnail": "assets/thumbnails/legal-statute-document-reader.webp",
     "template_url": "templates/legal-statute-document-reader.html"
   },
   {
@@ -572,6 +612,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "DevTools Grade",
     "icon": "terminal",
+    "thumbnail": "assets/thumbnails/developer-api-platform-hero.webp",
     "template_url": "templates/developer-api-platform-hero.html"
   },
   {
@@ -586,6 +627,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "Interactive ROI",
     "icon": "credit-card",
+    "thumbnail": "assets/thumbnails/modern-b2b-saas-pricing-matrix.webp",
     "template_url": "templates/modern-b2b-saas-pricing-matrix.html"
   },
   {
@@ -600,6 +642,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "Asymmetric Bento",
     "icon": "grid",
+    "thumbnail": "assets/thumbnails/feature-bento-grid-showcase.webp",
     "template_url": "templates/feature-bento-grid-showcase.html"
   },
   {
@@ -614,6 +657,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "SemVer 2.0",
     "icon": "git-commit",
+    "thumbnail": "assets/thumbnails/interactive-changelog-release-notes.webp",
     "template_url": "templates/interactive-changelog-release-notes.html"
   },
   {
@@ -628,6 +672,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/modal-dialog.json",
     "badge": "Tri-Pane Doc Hub",
     "icon": "book",
+    "thumbnail": "assets/thumbnails/developer-documentation-hub.webp",
     "template_url": "templates/developer-documentation-hub.html"
   },
   {
@@ -642,6 +687,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/modal-dialog.json",
     "badge": "99.99% Uptime",
     "icon": "check-circle",
+    "thumbnail": "assets/thumbnails/status-uptime-incident-page.webp",
     "template_url": "templates/status-uptime-incident-page.html"
   },
   {
@@ -656,6 +702,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "Ecosystem Directory",
     "icon": "share-2",
+    "thumbnail": "assets/thumbnails/integrations-marketplace-directory.webp",
     "template_url": "templates/integrations-marketplace-directory.html"
   },
   {
@@ -670,6 +717,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "Verified ROI",
     "icon": "award",
+    "thumbnail": "assets/thumbnails/customer-case-study-monograph.webp",
     "template_url": "templates/customer-case-study-monograph.html"
   },
   {
@@ -684,6 +732,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/button-states.json",
     "badge": "RFC Discussion",
     "icon": "message-square",
+    "thumbnail": "assets/thumbnails/community-forum-discussion-thread.webp",
     "template_url": "templates/community-forum-discussion-thread.html"
   },
   {
@@ -698,6 +747,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/modal-dialog.json",
     "badge": "15 Modular Skills",
     "icon": "cpu",
+    "thumbnail": "assets/thumbnails/ai-coding-agent-skill-directory.webp",
     "template_url": "templates/ai-coding-agent-skill-directory.html"
   }
 ];

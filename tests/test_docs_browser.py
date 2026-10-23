@@ -1423,7 +1423,15 @@ class TestDocsBrowserPlatform(unittest.TestCase):
             robots_content = f.read()
         self.assertIn("Sitemap: https://seotarek.github.io/orthotect/sitemap.xml", robots_content)
 
-        # Browser verification of gallery filtering and search
+        # Verify screenshot thumbnails exist for all 50 templates
+        thumbnails_dir = os.path.join(self.root_dir, 'docs', 'assets', 'thumbnails')
+        webp_files = [f for f in os.listdir(thumbnails_dir) if f.endswith('.webp')]
+        self.assertEqual(len(webp_files), 50, f"Expected exactly 50 WebP screenshots, found {len(webp_files)}")
+        for h in html_files:
+            expected_webp = h.replace('.html', '.webp')
+            self.assertIn(expected_webp, webp_files, f"Missing thumbnail for {h}")
+
+        # Browser verification of gallery filtering, thumbnails, and search
         node_script = f"""
         import('playwright-core').then(async ({{ chromium }}) => {{
           const browser = await chromium.launch({{
@@ -1434,10 +1442,23 @@ class TestDocsBrowserPlatform(unittest.TestCase):
           await page.goto('file://{self.docs_html}#gallery');
           await page.waitForTimeout(100);
 
-          // 1. Initial count must be 50
+          // 1. Initial count must be 50 cards and 50 screenshot images
           let cards = await page.$$('.gallery-card');
           if (cards.length !== 50) {{
             throw new Error(`Expected 50 gallery cards initially, got ${{cards.length}}`);
+          }}
+          let imgs = await page.$$('.gallery-card-img');
+          if (imgs.length !== 50) {{
+            throw new Error(`Expected 50 gallery thumbnail images, got ${{imgs.length}}`);
+          }}
+          const firstImgSrc = await imgs[0].getAttribute('src');
+          if (!firstImgSrc || !firstImgSrc.endsWith('.webp')) {{
+            throw new Error(`Expected first image to be a webp screenshot, got: ${{firstImgSrc}}`);
+          }}
+          const firstImgW = await imgs[0].getAttribute('width');
+          const firstImgH = await imgs[0].getAttribute('height');
+          if (firstImgW !== '400' || firstImgH !== '200') {{
+            throw new Error(`Expected width=400 height=200 for CLS prevention, got ${{firstImgW}}x${{firstImgH}}`);
           }}
 
           // 2. Filter by Dashboards (Cluster 1) -> 10

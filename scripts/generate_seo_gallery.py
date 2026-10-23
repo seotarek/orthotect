@@ -2645,6 +2645,7 @@ def generate_gallery_data(templates):
             "fsm": t["fsm"],
             "badge": t["badge"],
             "icon": t["icon"],
+            "thumbnail": f"assets/thumbnails/{t['id']}.webp",
             "template_url": f"templates/{t['id']}.html"
         })
     

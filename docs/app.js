@@ -1460,14 +1460,12 @@ ${dod}
     container.innerHTML = filtered.map(item => `
       <div class="gallery-card" data-cluster="${item.cluster || 'all'}">
         <div class="gallery-card-thumb">
-          <svg width="100%" height="90" viewBox="0 0 200 90" fill="none">
-            <rect width="200" height="90" rx="8" fill="var(--ortho-surface-1)" />
-            <line x1="20" y1="20" x2="180" y2="20" stroke="var(--ortho-border-medium)" stroke-width="2" />
-            <rect x="20" y="32" width="48" height="10" rx="4" fill="var(--ortho-accent-cyan)" />
-            <rect x="76" y="32" width="60" height="10" rx="4" fill="var(--ortho-border-subtle)" />
-            <rect x="20" y="52" width="160" height="12" rx="4" fill="var(--ortho-surface-2)" />
-            <circle cx="168" cy="37" r="4" fill="#4ade80" />
-          </svg>
+          <img src="${item.thumbnail || 'assets/thumbnails/' + item.id + '.webp'}"
+               alt="${item.title ? item.title.replace(/"/g, '&quot;') : 'Template preview'}"
+               class="gallery-card-img"
+               loading="lazy"
+               width="400"
+               height="200">
           <span class="gallery-cluster-badge">
             ${item.cluster_name ? item.cluster_name : 'Cluster ' + (item.cluster_num || '1')}
           </span>
