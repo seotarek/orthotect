@@ -156,6 +156,28 @@ class TestBidiScanner(unittest.TestCase):
             scan_file(fpath)
         self.assertIn("Unsupported styling format", str(ctx.exception))
 
+    def test_bidi_fallback_parser_without_tinycss2(self):
+        """Verify the pure standard-library fallback parser ignores comments/strings and flags physical CSS properties."""
+        from gates.gate_bidi_logical import scan_css_content_fallback
+        sample_css = """
+        /* margin-left: 20px in comment */
+        .card {
+            --sidebar-left: 300px;
+            content: "margin-right: 50px";
+            margin-left: 16px;
+            padding-right: 8px;
+            text-align: left;
+        }
+        """
+        viols = scan_css_content_fallback(sample_css)
+        self.assertEqual(len(viols), 3)
+        props = [v.name for v in viols]
+        self.assertIn("margin-left", props)
+        self.assertIn("padding-right", props)
+        self.assertIn("text-align", props)
+        # Verify custom property and comment were ignored
+        self.assertNotIn("--sidebar-left", props)
+
 class TestBidiGateE2E(unittest.TestCase):
     def setUp(self):
         self.root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))

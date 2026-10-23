@@ -8,7 +8,12 @@ in actual syntactic contexts while ignoring comments, strings, and custom proper
 import sys
 import os
 import re
-import tinycss2
+try:
+    import tinycss2
+    HAVE_TINYCSS2 = True
+except ImportError:
+    tinycss2 = None
+    HAVE_TINYCSS2 = False
 
 class BidiViolation(tuple):
     """Backwards-compatible 3-tuple (line, content, suggestion) with extended metadata."""
@@ -106,7 +111,48 @@ def walk_css_nodes(nodes, line_offset=0):
             ))
     return violations
 
+def scan_css_content_fallback(css_text, line_offset=0):
+    """
+    Dependency-free, syntax-aware fallback scanner for environments without tinycss2.
+    Strips comments and strings before matching CSS property declarations.
+    """
+    violations = []
+    # 1. Mask CSS comments while preserving newlines
+    masked = re.sub(r'/\*.*?\*/', lambda m: '\n' * m.group(0).count('\n'), css_text, flags=re.DOTALL)
+
+    # 2. Mask quoted strings so content: "left" is ignored
+    masked = re.sub(r'"(?:\\.|[^"\\])*"', '""', masked)
+    masked = re.sub(r"'(?:\\.|[^'\\])*'", "''", masked)
+
+    # 3. Find declarations (ignoring CSS custom properties --*)
+    decl_pattern = re.compile(r'(?<![\w-])(?!--)([a-zA-Z][\w-]*)\s*:\s*([^;}{]+)', re.MULTILINE)
+    for m in decl_pattern.finditer(masked):
+        name = m.group(1).lower().strip()
+        val = m.group(2).strip()
+        line = css_text[:m.start(1)].count('\n') + 1 + line_offset
+        col = m.start(1) - css_text[:m.start(1)].rfind('\n') if '\n' in css_text[:m.start(1)] else m.start(1) + 1
+
+        if name in BANNED_PROPERTIES:
+            violations.append(BidiViolation(line, col, name, val, BANNED_PROPERTIES[name]))
+        elif name in ('left', 'right') and val not in ALLOWED_OFFSETS:
+            suggestion = 'inset-inline-start' if name == 'left' else 'inset-inline-end'
+            violations.append(BidiViolation(line, col, name, val, suggestion))
+        elif name == 'text-align' and val in ('left', 'right'):
+            suggestion = 'text-align: start' if val == 'left' else 'text-align: end'
+            violations.append(BidiViolation(line, col, name, val, suggestion))
+        elif name == 'float' and val in ('left', 'right'):
+            suggestion = 'inline-start or Flexbox/Grid' if val == 'left' else 'inline-end or Flexbox/Grid'
+            violations.append(BidiViolation(line, col, name, val, suggestion))
+        elif name == 'clear' and val in ('left', 'right'):
+            suggestion = 'clear: inline-start' if val == 'left' else 'clear: inline-end'
+            violations.append(BidiViolation(line, col, name, val, suggestion))
+
+    return violations
+
 def scan_css_content(css_text, line_offset=0):
+    if not HAVE_TINYCSS2:
+        return scan_css_content_fallback(css_text, line_offset)
+
     rules = tinycss2.parse_stylesheet(css_text)
     violations = []
     for r in rules:
