@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OrthotectDesignReasoningModel",
+  "description": "Schema for Orthotect's 19-dimensional design reasoning model connecting product briefs to verified interface systems.",
+  "type": "object",
+  "required": [
+    "productContext",
+    "audienceConstraints",
+    "chosenArtDirection",
+    "visualHierarchy",
+    "compositionLayout",
+    "colorRoleArchitecture",
+    "typographySystem",
+    "spacingScale",
+    "componentLanguage",
+    "interactionStates",
+    "contentAssetTreatment",
+    "responsiveAdaptations",
+    "bidiBehavior",
+    "accessibilityConstraints",
+    "motionCharacter",
+    "designAntiPatterns",
+    "implementationStack",
+    "verificationRequirements",
+    "confidenceLimitations"
+  ],
+  "properties": {
+    "productContext": {
+      "type": "object",
+      "required": ["productType", "primaryUserTask", "dataDensity"],
+      "properties": {
+        "productType": { "type": "string", "enum": ["saas", "dashboard", "ecommerce", "editorial", "developer-tool", "form-workflow", "marketing"] },
+        "primaryUserTask": { "type": "string" },
+        "dataDensity": { "type": "string", "enum": ["compact", "default", "comfortable"] }
+      }
+    },
+    "audienceConstraints": {
+      "type": "object",
+      "required": ["domain", "expertiseLevel"],
+      "properties": {
+        "domain": { "type": "string" },
+        "expertiseLevel": { "type": "string", "enum": ["novice", "intermediate", "expert"] }
+      }
+    },
+    "chosenArtDirection": {
+      "type": "object",
+      "required": ["recipeId", "thesisStatement", "moodKeywords"],
+      "properties": {
+        "recipeId": { "type": "string" },
+        "thesisStatement": { "type": "string" },
+        "moodKeywords": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "visualHierarchy": {
+      "type": "object",
+      "required": ["primaryAnchor", "secondaryScanPaths"],
+      "properties": {
+        "primaryAnchor": { "type": "string" },
+        "secondaryScanPaths": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "compositionLayout": {
+      "type": "object",
+      "required": ["layoutPattern", "containerMaxWidth"],
+      "properties": {
+        "layoutPattern": { "type": "string" },
+        "containerMaxWidth": { "type": "string" }
+      }
+    },
+    "colorRoleArchitecture": {
+      "type": "object",
+      "required": ["canvasToken", "surfaceTokens", "textTokens", "actionTokens"],
+      "properties": {
+        "canvasToken": { "type": "string" },
+        "surfaceTokens": { "type": "array", "items": { "type": "string" } },
+        "textTokens": { "type": "array", "items": { "type": "string" } },
+        "actionTokens": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "typographySystem": {
+      "type": "object",
+      "required": ["displayFont", "bodyFont", "monoFont", "scaleRatio"],
+      "properties": {
+        "displayFont": { "type": "string" },
+        "bodyFont": { "type": "string" },
+        "monoFont": { "type": "string" },
+        "scaleRatio": { "type": "string" }
+      }
+    },
+    "spacingScale": {
+      "type": "object",
+      "required": ["baseUnit", "scaleTokens"],
+      "properties": {
+        "baseUnit": { "type": "string" },
+        "scaleTokens": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "componentLanguage": {
+      "type": "object",
+      "required": ["borderRadius", "borderStyle", "elevationStyle"],
+      "properties": {
+        "borderRadius": { "type": "string" },
+        "borderStyle": { "type": "string" },
+        "elevationStyle": { "type": "string" }
+      }
+    },
+    "interactionStates": {
+      "type": "object",
+      "required": ["focusRingStyle", "loadingFeedback"],
+      "properties": {
+        "focusRingStyle": { "type": "string" },
+        "loadingFeedback": { "type": "string" }
+      }
+    },
+    "contentAssetTreatment": {
+      "type": "object",
+      "required": ["iconStyle", "chartStyle"],
+      "properties": {
+        "iconStyle": { "type": "string" },
+        "chartStyle": { "type": "string" }
+      }
+    },
+    "responsiveAdaptations": {
+      "type": "object",
+      "required": ["targetViewports", "mobileTransformations"],
+      "properties": {
+        "targetViewports": { "type": "array", "items": { "type": "integer" } },
+        "mobileTransformations": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "bidiBehavior": {
+      "type": "object",
+      "required": ["logicalPropertyEnforcement", "directionalVectorPolicy"],
+      "properties": {
+        "logicalPropertyEnforcement": { "type": "boolean" },
+        "directionalVectorPolicy": { "type": "string" }
+      }
+    },
+    "accessibilityConstraints": {
+      "type": "object",
+      "required": ["targetWcagLevel", "contrastRatioMinimum", "focusTrapRequired"],
+      "properties": {
+        "targetWcagLevel": { "type": "string", "enum": ["AA", "AAA"] },
+        "contrastRatioMinimum": { "type": "number" },
+        "focusTrapRequired": { "type": "boolean" }
+      }
+    },
+    "motionCharacter": {
+      "type": "object",
+      "required": ["durationScale", "reducedMotionFallback"],
+      "properties": {
+        "durationScale": { "type": "string" },
+        "reducedMotionFallback": { "type": "string" }
+      }
+    },
+    "designAntiPatterns": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "implementationStack": {
+      "type": "object",
+      "required": ["framework", "stylingApproach"],
+      "properties": {
+        "framework": { "type": "string" },
+        "stylingApproach": { "type": "string" }
+      }
+    },
+    "verificationRequirements": {
+      "type": "object",
+      "required": ["gatesEnforced", "automatedCommands"],
+      "properties": {
+        "gatesEnforced": { "type": "array", "items": { "type": "string" } },
+        "automatedCommands": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "confidenceLimitations": {
+      "type": "object",
+      "required": ["provenAttributes", "heuristicAttributes"],
+      "properties": {
+        "provenAttributes": { "type": "array", "items": { "type": "string" } },
+        "heuristicAttributes": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

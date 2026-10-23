@@ -1,0 +1,40 @@
+{
+  "$schema": "../schemas/knowledge-record.schema.json",
+  "id": "dark-mode-mapping",
+  "title": "Dual-Theme Surface Layering & Reactive Contrast Synchronization",
+  "category": "palettes",
+  "summary": "Rules for seamless dual-theme (light/dark) switching, ensuring high contrast, terminal legibility, and zero visual jarring.",
+  "whenToUse": "When configuring multi-theme applications, dark/light toggle controls, and scoped terminal or code viewer surfaces.",
+  "whenNotToUse": "Do not apply dark mode styles to dedicated terminal components that must stay consistently high-contrast in both modes.",
+  "rules": [
+    "Dedicated terminal boxes and code viewports must maintain scoped dark surface tokens (e.g., #0d1117 with #f0f6fc text) regardless of page mode.",
+    "Theme switching must update both CSS custom properties and interactive asset variants (e.g., logo SVG) via reactive DOM attributes.",
+    "Subordinate controls (toolbars, density buttons, bidi switches) must reflect the active theme without requiring manual page reload.",
+    "Playground or preview viewports must offer independent or synchronized theme toggles with clear state indicators."
+  ],
+  "antiPatterns": [
+    "Allowing dark text on dark backgrounds when toggling from dark to light mode",
+    "White horizontal strips cutting through background grids in light mode",
+    "Missing brand logos or unreadable wordmarks in light mode",
+    "Flickering theme flashes (FOUC) during initial page load"
+  ],
+  "applicableStacks": [
+    "css",
+    "html",
+    "javascript",
+    "react",
+    "nextjs",
+    "vue"
+  ],
+  "accessibilityNotes": "Verified through automated Playwright browser tests checking computed getComputedStyle contrast in both light and dark modes.",
+  "provenance": "Developed during Orthotect UI/UX contrast resolution and browser regression verification.",
+  "verificationStatus": "VERIFIED_BROWSER",
+  "tags": [
+    "theming",
+    "dark-mode",
+    "light-mode",
+    "contrast",
+    "terminals",
+    "reactivity"
+  ]
+}

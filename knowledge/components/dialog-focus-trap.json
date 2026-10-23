@@ -1,0 +1,40 @@
+{
+  "$schema": "../schemas/knowledge-record.schema.json",
+  "id": "dialog-focus-trap",
+  "title": "Accessible Modal Dialog Focus Trapping & Restoration Protocol",
+  "category": "components",
+  "summary": "Mandatory focus trapping, background inertia (aria-hidden), Escape key dismissal, and focus restoration for modal dialogs.",
+  "whenToUse": "When creating confirmation dialogs, modal overlays, slide-out drawer sheets, or fullscreen wizard overlays.",
+  "whenNotToUse": "Do not trap focus for non-modal popovers or inline expandable panels.",
+  "rules": [
+    "On open: shift focus to first interactive element or dialog title with role='dialog' and aria-modal='true'.",
+    "While open: Tab and Shift+Tab key presses must cycle strictly within the dialog interactive elements.",
+    "Pressing Escape key must immediately dismiss the dialog and restore focus to the triggering element.",
+    "Underlying page content must be marked with aria-hidden='true' or inert attribute while dialog is active."
+  ],
+  "antiPatterns": [
+    "Keyboard focus leaking into background page content behind an open modal",
+    "Dismissing a dialog and dropping focus onto <body> or top of page",
+    "Dialogs lacking an explicit visible close button or aria-label",
+    "Background scroll unlocking when interacting inside long modal bodies"
+  ],
+  "applicableStacks": [
+    "html",
+    "javascript",
+    "react",
+    "vue",
+    "svelte",
+    "wcag"
+  ],
+  "accessibilityNotes": "Fulfills WCAG 2.1 Criterion 2.1.2 (No Keyboard Trap) and WAI-ARIA Modal Dialog APG pattern.",
+  "provenance": "Synthesized from W3C WAI-ARIA modal dialog recommendations and browser focus management standards.",
+  "verificationStatus": "VERIFIED_BROWSER",
+  "tags": [
+    "dialog",
+    "modal",
+    "focus-trap",
+    "keyboard",
+    "accessibility",
+    "wai-aria"
+  ]
+}

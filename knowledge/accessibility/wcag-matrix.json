@@ -1,0 +1,42 @@
+{
+  "$schema": "../schemas/knowledge-record.schema.json",
+  "id": "wcag-matrix",
+  "title": "WCAG 2.2 AA/AAA Deterministic Verification Matrix & Checklist",
+  "category": "accessibility",
+  "summary": "Comprehensive engineering rules for contrast, keyboard traps, touch target sizes, focus states, and ARIA semantic attributes.",
+  "whenToUse": "Mandatory checklist for every UI screen, component library, and automated CI pull-request gate verification.",
+  "whenNotToUse": "Never bypass accessibility checks; all production interface code must comply with WCAG 2.2 Level AA minimum.",
+  "rules": [
+    "1.4.3 Contrast (Minimum): Normal text must meet 4.5:1; large text (>=18pt or 14pt bold) must meet 3.0:1. AAA requires 7.0:1 / 4.5:1.",
+    "1.4.11 Non-text Contrast: UI components and graphical objects must meet 3.0:1 against adjacent colors.",
+    "2.1.1 Keyboard: All functionality must be operable via keyboard without mouse dependency.",
+    "2.4.7 Focus Visible & 2.4.13 Focus Appearance: Focus indicators must have at least 2px thickness and 3.0:1 contrast against background.",
+    "2.5.8 Target Size (Minimum): Interactive pointer targets must be at least 24×24px, with 44×44px recommended for touch devices."
+  ],
+  "antiPatterns": [
+    "Removing focus outlines (outline: none or outline: 0) without a custom high-contrast replacement",
+    "Interactive buttons or links without accessible name (empty text and no aria-label)",
+    "Using color alone to communicate state (e.g. red text without error icon or prefix)",
+    "Form inputs missing associated <label> elements or aria-labelledby attributes"
+  ],
+  "applicableStacks": [
+    "html",
+    "css",
+    "wai-aria",
+    "javascript",
+    "react",
+    "vue"
+  ],
+  "accessibilityNotes": "Directly enforced in CI by gate_contrast_wcag.py and automated browser axe/playwright test suites.",
+  "provenance": "W3C Web Content Accessibility Guidelines (WCAG) 2.2 official recommendation.",
+  "verificationStatus": "VERIFIED_DETERMINISTIC",
+  "tags": [
+    "accessibility",
+    "wcag",
+    "contrast",
+    "keyboard",
+    "focus",
+    "aria",
+    "target-size"
+  ]
+}

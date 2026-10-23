@@ -1,0 +1,40 @@
+{
+  "$schema": "../schemas/knowledge-record.schema.json",
+  "id": "type-scales",
+  "title": "Modular Typographic Scale Factors & Tabular Numeric Discipline",
+  "category": "typography",
+  "summary": "Mathematical typographic scale systems, responsive fluid clamping (clamp()), and tabular numeric alignment for interfaces.",
+  "whenToUse": "When setting up typographic tokens, heading hierarchies, data tables, telemetry counters, and long-form prose.",
+  "whenNotToUse": "Do not invent random font sizes per component; all sizes must bind to the typographic scale tokens.",
+  "rules": [
+    "Use standard modular scales: 1.125 (Major Second) for dense dashboards, 1.250 (Major Third) for SaaS, 1.333 (Perfect Fourth) for editorial.",
+    "All numeric data in tables, counters, and telemetry metrics must use font-variant-numeric: tabular-nums.",
+    "Line height must decrease as font size increases: 1.6 to 1.7 for body text (14-16px), 1.2 to 1.3 for section headings (24-32px), 1.1 for hero displays.",
+    "Max line length for prose reading must be clamped to 65-75ch using max-inline-size."
+  ],
+  "antiPatterns": [
+    "Proportional numbers in data tables that cause column jitter during real-time updates",
+    "Six-line headline wraps caused by excessively large unscaled typography on small laptops",
+    "Tight line-height (<1.4) on small body copy causing ascender/descender collisions",
+    "Using more than 3 distinct font families in a single application interface"
+  ],
+  "applicableStacks": [
+    "css",
+    "web-fonts",
+    "tailwind",
+    "design-tokens",
+    "react",
+    "vue"
+  ],
+  "accessibilityNotes": "Text must remain fully readable and reflow cleanly when zoomed up to 200% without horizontal scrollbars (WCAG 1.4.4).",
+  "provenance": "Orthotect typographic engineering canon and Bringhurst typographic harmony principles.",
+  "verificationStatus": "VERIFIED_DETERMINISTIC",
+  "tags": [
+    "typography",
+    "scale",
+    "tabular-nums",
+    "fluid-type",
+    "readability",
+    "responsive"
+  ]
+}

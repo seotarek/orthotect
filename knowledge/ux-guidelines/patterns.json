@@ -1,0 +1,39 @@
+{
+  "$schema": "../schemas/knowledge-record.schema.json",
+  "id": "patterns",
+  "title": "Cognitive Ergonomic Laws & Progressive Disclosure Discipline",
+  "category": "ux-guidelines",
+  "summary": "Core interface ergonomics applying Fitts's Law, Miller's 7±2 Rule, Hick's Law, and feedback latency thresholds to UI design.",
+  "whenToUse": "When organizing navigation systems, complex forms, dense settings pages, and interactive workflows.",
+  "whenNotToUse": "Do not hide critical immediate actions or primary navigation behind excessive nested accordion menus.",
+  "rules": [
+    "Apply Miller's Rule: Limit primary navigation to 7±2 top-level items; group dense actions into clear semantic clusters.",
+    "Apply Fitts's Law: Primary CTA target areas must be minimum 44×44px on touch interfaces and positioned for effortless acquisition.",
+    "Apply Hick's Law: Reduce decision fatigue in complex flows through progressive disclosure (staging advanced settings behind clear toggles).",
+    "Feedback timing: UI responses must acknowledge user action within 100ms; show skeleton/loader if operation exceeds 300ms."
+  ],
+  "antiPatterns": [
+    "Overwhelming users with 20+ unstructured form fields on a single unpaginated screen",
+    "Action buttons placed in obscure corners with tiny 16×16px click targets",
+    "Silent asynchronous failures where no toast or error banner notifies the user",
+    "Disabling form submit buttons without highlighting which required fields are invalid"
+  ],
+  "applicableStacks": [
+    "ux",
+    "product-design",
+    "frontend",
+    "forms",
+    "navigation"
+  ],
+  "accessibilityNotes": "Reduces cognitive load for all users, including individuals with attention and memory cognitive disabilities.",
+  "provenance": "Human-Computer Interaction (HCI) foundations and Nielsen Norman Group empirical research.",
+  "verificationStatus": "HEURISTIC",
+  "tags": [
+    "ux",
+    "ergonomics",
+    "fitts-law",
+    "millers-law",
+    "progressive-disclosure",
+    "cognitive"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "../schemas/knowledge-record.schema.json",
+  "id": "motion-tokens",
+  "title": "Spring Physics Motion Tokens & Reduced-Motion Accessibility Rules",
+  "category": "motion",
+  "summary": "Physically grounded transition tokens, spring physics curves, and mandatory @media (prefers-reduced-motion) overrides.",
+  "whenToUse": "When implementing UI transitions, modal entry/exit animations, accordion expansion, and hover feedback.",
+  "whenNotToUse": "Never animate structural layout properties (width, height, margin) that trigger CPU/GPU browser layout recalculations.",
+  "rules": [
+    "Animate only composite properties: transform and opacity for smooth 60fps/120fps hardware-accelerated motion.",
+    "Use calibrated spring physics tokens: --ot-motion-snappy (150ms cubic-bezier(0.16, 1, 0.3, 1)) and --ot-motion-expressive (300ms cubic-bezier(0.34, 1.56, 0.64, 1)).",
+    "Mandatory reduced motion: wrap animations in @media (prefers-reduced-motion: reduce) to collapse duration to 0ms or simple opacity fade.",
+    "Avoid continuous looping rotations or pulsing animations that distract or cause vestibular discomfort."
+  ],
+  "antiPatterns": [
+    "Lazy transition: all 0.2s ease that animates layout properties and degrades rendering performance",
+    "Ignoring prefers-reduced-motion settings, causing nausea for users with vestibular disorders",
+    "Excessively slow animations (>500ms) for everyday micro-interactions that make the app feel sluggish",
+    "Bouncing animations on data cards in professional telemetry or trading consoles"
+  ],
+  "applicableStacks": [
+    "css",
+    "animation",
+    "motion",
+    "transitions",
+    "tailwind",
+    "design-tokens"
+  ],
+  "accessibilityNotes": "Fulfills WCAG 2.2 Criterion 2.3.3 (Animation from Interactions) and prevents vestibular disturbance.",
+  "provenance": "Orthotect motion doctrine and Apple Human Interface Guidelines spatial physics principles.",
+  "verificationStatus": "VERIFIED_DETERMINISTIC",
+  "tags": [
+    "motion",
+    "spring-physics",
+    "transitions",
+    "reduced-motion",
+    "accessibility",
+    "performance"
+  ]
+}

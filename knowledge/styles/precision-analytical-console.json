@@ -1,0 +1,69 @@
+{
+  "$schema": "../schemas/style-recipe.schema.json",
+  "id": "precision-analytical-console",
+  "name": "Precision Analytical Console",
+  "version": "1.0.0",
+  "designThesis": "High-signal, cognitive-ergonomic telemetry and operations interface. Employs tabular numeric alignment, scannable data density, micro-sparklines, and zero decorative fluff to minimize cognitive load under time-critical operational conditions.",
+  "bestFitContexts": [
+    "Cloud infrastructure observability consoles",
+    "Security operations center (SOC) event monitors",
+    "Financial market trading workstations",
+    "Industrial telemetry and IoT telemetry monitors",
+    "Developer CI/CD runtime dashboards"
+  ],
+  "poorFitContexts": [
+    "Consumer e-commerce storefronts",
+    "Lifestyle blog landing pages",
+    "Marketing campaign micro-sites",
+    "Creative portfolio showcases"
+  ],
+  "colorStrategy": {
+    "canvasTone": "Deep technical slate-black (#090d16) in dark mode; clinical ice-neutral (#f1f5f9) in light mode",
+    "accentUsage": "Strict intent-based palette: emerald green for nominal/healthy, amber for warning/degraded, crimson for critical/failure, cyan for active selection",
+    "contrastTarget": "Minimum 7.0:1 AAA on metrics and code values; 5.0:1 on status badges"
+  },
+  "typographyStrategy": {
+    "fontPairing": "Technical monospaced data font (JetBrains Mono / Fira Code) with condensed grotesque sans (Geist / IBM Plex Sans)",
+    "hierarchyEmphasis": "Metrics emphasized by numeral weight and size, accompanied by muted micro-labels; tabular lining figures (font-variant-numeric: tabular-nums) mandatory",
+    "scaleFactor": "1.125 (Major Second) tight scale for maximum information compactness without visual clutter"
+  },
+  "layoutRhythm": {
+    "density": "compact",
+    "gridStructure": "16-column dense data grid with 8px gutters; collapsible telemetry rails and fixed-height scrollable log streams",
+    "whitespaceDiscipline": "Calibrated tight spacing (4px–8px padding inside data cells, 16px between macro widgets)"
+  },
+  "surfaceTreatment": {
+    "radius": "0px to 2px sharp precision edges; absolutely no pill-shaped buttons in data tables",
+    "borderStyle": "1px technical hairline grid borders using var(--ot-border-subtle)",
+    "depthElevation": "Flat planar surfaces with 1px border separation; zero drop shadows to maintain razor-sharp pixel boundary alignment"
+  },
+  "componentGuidelines": {
+    "primaryActionStyle": "Compact rectangular buttons with mono hotkey indicators (e.g., [⌘K], [R]) and tactile pressed state",
+    "cardStructure": "Self-contained metric cards with inline SVG sparklines, status pills, and delta indicators",
+    "tablePresentation": "Dense data grid with sticky headers, column sorting indicators, hover crosshairs, and monospaced alignment"
+  },
+  "accessibilityProfile": {
+    "targetWcagRatio": 7.0,
+    "keyboardHandling": "Full vim-style or arrow-key cell navigation; [Esc] to dismiss modals/drawers; screen reader aria-live regions for streaming alerts",
+    "reducedMotionRules": "Streaming chart updates render via requestAnimationFrame without spring transitions when reduced-motion is detected"
+  },
+  "antiPatterns": [
+    "Floating bubbly card layouts with 16px border-radius",
+    "Soft colorful drop shadows under metric numbers",
+    "Proportional non-tabular numbers that cause table layout jitter",
+    "Unlabeled icon-only status indicators without text or tooltip"
+  ],
+  "verificationProtocol": {
+    "requiredGates": [
+      "gate_contrast_wcag.py",
+      "gate_fsm_integrity.py",
+      "gate_bidi_logical.py",
+      "gate_cwv_budget.mjs"
+    ],
+    "browserChecks": [
+      "Verify tabular-nums alignment across streaming numeric updates",
+      "Verify zero layout shift during asynchronous data polling",
+      "Verify keyboard-only table row selection and filtering"
+    ]
+  }
+}

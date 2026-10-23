@@ -1,0 +1,69 @@
+{
+  "$schema": "../schemas/style-recipe.schema.json",
+  "id": "accessible-high-contrast",
+  "name": "Accessible High Contrast",
+  "version": "1.0.0",
+  "designThesis": "Uncompromising universal accessibility and perceptual clarity. Guarantees WCAG 2.2 AAA 7.0:1+ contrast across all states, tactile 3px keyboard focus indicators, dual visual cues (never color alone), and robust assistive tech compatibility.",
+  "bestFitContexts": [
+    "Public sector and government civic portals",
+    "Healthcare and clinical patient portals",
+    "Educational and assistive learning platforms",
+    "Emergency notification systems",
+    "Regulated utility and banking service platforms"
+  ],
+  "poorFitContexts": [
+    "Low-contrast atmospheric art exhibitions",
+    "Subtle monochromatic mood boards",
+    "Dark, low-light experimental gaming visuals",
+    "Sub-4.5:1 washed-out pastel aesthetic experiments"
+  ],
+  "colorStrategy": {
+    "canvasTone": "Absolute pure canvas (#ffffff in light, #000000 in dark) with high-contrast structural borders",
+    "accentUsage": "High-contrast primary action (#0052cc / #004494 in light, #38bdf8 / #7dd3fc in dark); every state verified > 7:1",
+    "contrastTarget": "Minimum 7.0:1 AAA across ALL text, badges, and icons without exception"
+  },
+  "typographyStrategy": {
+    "fontPairing": "Highly legible humanist sans with distinct letterforms (Atkinson Hyperlegible, Inter, Arial)",
+    "hierarchyEmphasis": "High optical weight distinction; minimum 16px body text; 1.6 line height; generous letter tracking",
+    "scaleFactor": "1.250 (Major Third) scale with responsive text resizing up to 200% without clipping"
+  },
+  "layoutRhythm": {
+    "density": "comfortable",
+    "gridStructure": "Clean, predictable single-column or 2-column linear layouts; unambiguous visual reading flow",
+    "whitespaceDiscipline": "Wide touch targets (minimum 48×48px); generous margins separating clickable interactive elements"
+  },
+  "surfaceTreatment": {
+    "radius": "2px to 4px slight rounding or crisp 0px corners for maximum border contrast",
+    "borderStyle": "2px solid high-contrast borders on all interactive inputs, cards, and buttons",
+    "depthElevation": "Flat high-contrast borders; zero diffuse drop shadows that blur edge definition"
+  },
+  "componentGuidelines": {
+    "primaryActionStyle": "High-contrast solid button with 2px solid border, distinct text underline or icon, and 3px offset focus ring",
+    "cardStructure": "High-contrast boxed containers with 2px borders, explicit headings, and clear separator rules",
+    "tablePresentation": "Fully bordered data grid with bold headers, row numbers, and accessible table caption"
+  },
+  "accessibilityProfile": {
+    "targetWcagRatio": 7.0,
+    "keyboardHandling": "Unmistakable 3px solid focus indicator with 2px outer outline; full keyboard accessibility across all components; skip links",
+    "reducedMotionRules": "All animations disabled by default; instantaneous transitions only"
+  },
+  "antiPatterns": [
+    "Light gray text (#888888 or #9ca3af) on white canvas",
+    "Relying on color alone to indicate error, warning, or success status",
+    "Focus rings set to outline: none or outline: 0 without replacement",
+    "Placeholder text inside inputs used as substitutes for permanent labels"
+  ],
+  "verificationProtocol": {
+    "requiredGates": [
+      "gate_contrast_wcag.py",
+      "gate_bidi_logical.py",
+      "gate_fsm_integrity.py",
+      "gate_no_slop.py"
+    ],
+    "browserChecks": [
+      "Verify full keyboard navigation flow without mouse interaction",
+      "Verify 200% browser zoom reflow without text overlapping or horizontal scrolling",
+      "Verify Windows High Contrast / Forced Colors mode support"
+    ]
+  }
+}

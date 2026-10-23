@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OrthotectStyleRecipe",
+  "description": "Schema for Orthotect's original, composable style recipes based on independent design reasoning.",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "version",
+    "designThesis",
+    "bestFitContexts",
+    "poorFitContexts",
+    "colorStrategy",
+    "typographyStrategy",
+    "layoutRhythm",
+    "surfaceTreatment",
+    "componentGuidelines",
+    "accessibilityProfile",
+    "antiPatterns",
+    "verificationProtocol"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "version": { "type": "string" },
+    "designThesis": { "type": "string" },
+    "bestFitContexts": { "type": "array", "items": { "type": "string" } },
+    "poorFitContexts": { "type": "array", "items": { "type": "string" } },
+    "colorStrategy": {
+      "type": "object",
+      "required": ["canvasTone", "accentUsage", "contrastTarget"],
+      "properties": {
+        "canvasTone": { "type": "string" },
+        "accentUsage": { "type": "string" },
+        "contrastTarget": { "type": "string" }
+      }
+    },
+    "typographyStrategy": {
+      "type": "object",
+      "required": ["fontPairing", "hierarchyEmphasis", "scaleFactor"],
+      "properties": {
+        "fontPairing": { "type": "string" },
+        "hierarchyEmphasis": { "type": "string" },
+        "scaleFactor": { "type": "string" }
+      }
+    },
+    "layoutRhythm": {
+      "type": "object",
+      "required": ["density", "gridStructure", "whitespaceDiscipline"],
+      "properties": {
+        "density": { "type": "string", "enum": ["compact", "default", "comfortable"] },
+        "gridStructure": { "type": "string" },
+        "whitespaceDiscipline": { "type": "string" }
+      }
+    },
+    "surfaceTreatment": {
+      "type": "object",
+      "required": ["radius", "borderStyle", "depthElevation"],
+      "properties": {
+        "radius": { "type": "string" },
+        "borderStyle": { "type": "string" },
+        "depthElevation": { "type": "string" }
+      }
+    },
+    "componentGuidelines": {
+      "type": "object",
+      "required": ["primaryActionStyle", "cardStructure", "tablePresentation"],
+      "properties": {
+        "primaryActionStyle": { "type": "string" },
+        "cardStructure": { "type": "string" },
+        "tablePresentation": { "type": "string" }
+      }
+    },
+    "accessibilityProfile": {
+      "type": "object",
+      "required": ["targetWcagRatio", "keyboardHandling", "reducedMotionRules"],
+      "properties": {
+        "targetWcagRatio": { "type": "number" },
+        "keyboardHandling": { "type": "string" },
+        "reducedMotionRules": { "type": "string" }
+      }
+    },
+    "antiPatterns": { "type": "array", "items": { "type": "string" } },
+    "verificationProtocol": {
+      "type": "object",
+      "required": ["requiredGates", "browserChecks"],
+      "properties": {
+        "requiredGates": { "type": "array", "items": { "type": "string" } },
+        "browserChecks": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

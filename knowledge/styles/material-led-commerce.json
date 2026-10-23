@@ -1,0 +1,70 @@
+{
+  "$schema": "../schemas/style-recipe.schema.json",
+  "id": "material-led-commerce",
+  "name": "Material-Led Commerce",
+  "version": "1.0.0",
+  "designThesis": "Tactile, product-celebrating digital merchandising architecture. Emphasizes authentic product geometry, crisp imagery bounding, transparent specification matrices, and friction-free transactional ergonomics.",
+  "bestFitContexts": [
+    "High-end hardware and electronics stores",
+    "Architectural materials catalog and ordering portals",
+    "Industrial equipment procurement platforms",
+    "Direct-to-consumer luxury goods marketplaces",
+    "B2B wholesale inventory portals"
+  ],
+  "poorFitContexts": [
+    "Text-only terminal applications",
+    "Developer CLI outputs",
+    "Server error logs",
+    "Purely numeric accounting ledgers"
+  ],
+  "colorStrategy": {
+    "canvasTone": "Neutral optical white (#ffffff) or warm stone (#f7f7f5) in light; velvety deep space (#0a0a0c) in dark",
+    "accentUsage": "Single checkout / primary CTA accent; secondary actions remain architectural neutral",
+    "contrastTarget": "Minimum 4.5:1 AA on product spec labels; 7.0:1 AAA on pricing and primary CTA"
+  },
+  "typographyStrategy": {
+    "fontPairing": "Clean Swiss neo-grotesque (Inter, Neue Haas Grotesk, Helvetica Now) with tabular numerals for prices",
+    "hierarchyEmphasis": "Clear typographic hierarchy separating product name, price, stock availability, and technical specs",
+    "scaleFactor": "1.200 (Minor Third) scale with crisp price display"
+  },
+  "layoutRhythm": {
+    "density": "default",
+    "gridStructure": "Dynamic 12-column product grid with sticky purchase summary rail and horizontal specification comparison tables",
+    "whitespaceDiscipline": "Generous product framing whitespace; product imagery bounded in fixed aspect ratios (1:1, 4:3, 16:9)"
+  },
+  "surfaceTreatment": {
+    "radius": "4px to 6px subtle modern curves",
+    "borderStyle": "1px clean boundary borders (var(--ot-border-subtle)); zero blurry drop shadows around imagery",
+    "depthElevation": "Flat product cards with crisp 1px border highlight on hover; floating sticky action bar on mobile"
+  },
+  "componentGuidelines": {
+    "primaryActionStyle": "Prominent Add to Cart / Order CTA with explicit loading and optimistic cart badge feedback",
+    "cardStructure": "Clean image-first card with aspect-ratio enclosure, badge overlay, title, price, and instant action",
+    "tablePresentation": "Structured technical specification matrix with alternating subtle rows and clear unit column"
+  },
+  "accessibilityProfile": {
+    "targetWcagRatio": 4.5,
+    "keyboardHandling": "Accessible image gallery with arrow key navigation; live announcer for cart addition; modal dialog for quick-view",
+    "reducedMotionRules": "Image carousel sliding transitions replaced with instant swap"
+  },
+  "antiPatterns": [
+    "Fake countdown urgency timers and spammy popups",
+    "Unbounded product images causing cumulative layout shift (CLS)",
+    "Hiding technical specs behind multiple nested accordion clicks",
+    "Emoji ratings instead of accessible SVG star reviews"
+  ],
+  "verificationProtocol": {
+    "requiredGates": [
+      "gate_contrast_wcag.py",
+      "gate_fsm_integrity.py",
+      "gate_bidi_logical.py",
+      "gate_cwv_budget.mjs",
+      "gate_no_slop.py"
+    ],
+    "browserChecks": [
+      "Verify CLS = 0 during image asset loading",
+      "Verify cart quantity FSM prevents double-submission race conditions",
+      "Verify mobile sticky checkout bar does not obscure primary content"
+    ]
+  }
+}

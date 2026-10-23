@@ -4,6 +4,40 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-10-23
+
+### Added
+- **UI/UX Design Intelligence Knowledge Base (`knowledge/`)**:
+  - Established the 19-dimensional Orthotect Design Reasoning Model connecting product briefs to verified interface systems.
+  - Authored formal JSON schemas: `style-recipe.schema.json`, `knowledge-record.schema.json`, and `design-reasoning.schema.json`.
+  - Authored 6 original, schema-validated Style Recipes (`knowledge/styles/`): `restrained-editorial-clarity`, `precision-analytical-console`, `contemporary-product-saas`, `high-density-operational`, `material-led-commerce`, and `accessible-high-contrast`.
+  - Authored 10 core Knowledge Records across 8 specialized categories (`palettes/`, `typography/`, `components/`, `patterns/`, `ux-guidelines/`, `accessibility/`, `motion/`, `bidi/`).
+- **Offline Knowledge Search Engine (`core/knowledge_search.py`)**:
+  - Developed a zero-dependency local search module with weighted BM25 relevance scoring (Title 5x, Tags 3x, Summary 2x, Rules 1x).
+  - Supported multi-dimensional filtering by keyword, `--category`, `--tag`, `--stack`, and output modes (`--json`).
+  - Integrated built-in JSON schema validation (`--validate`) certifying 100% compliance across all knowledge records.
+- **15 Modular Autonomous Agent Skills (`skills/`)**:
+  - Expanded skill suite to 15 modular skills: added `orthotect-uiux`, `orthotect-design-systems`, `orthotect-components`, `orthotect-accessibility`, `orthotect-responsive`, `orthotect-motion`, `orthotect-forms`, `orthotect-data-viz`, and `orthotect-visual-qa`.
+  - Enforced strict YAML frontmatter, descriptions under 1024 characters, explicit anti-patterns, and gate verification commands.
+- **Expanded Production CLI (`bin/orthotect.js`)**:
+  - Added `doctor` diagnostic command verifying Node >= 20.19, Python 3, gates, skills, and knowledge base validity.
+  - Added `skills` subcommands (`list`, `search`, `show`, `validate`).
+  - Added `knowledge` search and schema validation commands.
+  - Added `design` system compilation and recipe scaffolding commands.
+  - Added `audit` alias with `--json` and `--md` report formats.
+  - Added `-v` and `--version` flags.
+- **Automated Test Suite Expansion (167 Tests)**:
+  - Added `tests/test_knowledge_search.py` (8 tests) and `tests/test_cli_expanded.py` (8 tests).
+  - All 167 automated unit, AST, browser Playwright, and gate tests pass with 100% success rate.
+
+### Fixed & Hardened
+- **Light Mode Visual Contrast & Scoped Terminal (`docs/styles.css`, `docs/index.html`)**:
+  - Fixed dark text on dark background in `.cli-box` by scoping dedicated high-contrast terminal theme tokens (15.2:1 AAA text contrast, 9.0:1 active tab, 9.2:1 inactive tabs, 12.1:1 prompt `$`).
+  - Removed harsh white background band cutting through the cyan grid in `.cli-quickstart-section`.
+  - Added reactive theme synchronization to live playground viewport (`#pgViewport`) and toolbar controls (`#pgThemeBtn`, `#pgBidiBtn`, `#pgDensityBtn`).
+  - Added reactive brand SVG logo switching between Dark (`logo.svg`) and Light (`logo-light.svg`) mode.
+  - Added automated browser regression tests in `tests/test_docs_browser.py`.
+
 ## [1.5.2] - 2026-10-22
 
 ### Added

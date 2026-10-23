@@ -1220,6 +1220,187 @@ class TestDocsBrowserPlatform(unittest.TestCase):
         self.assertEqual(res.returncode, 0, f"Mobile drawer dialog & focus trap test failed: {res.stderr}\n{res.stdout}")
         self.assertIn("SUCCESS_MOBILE_DRAWER_FOCUS_TRAP", res.stdout)
 
+    def test_light_mode_color_contrast_and_playground_synchronization(self):
+        """Verify Light Mode logo switching, playground viewport synchronization, and toolbar toggling."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage({{ viewport: {{ width: 1440, height: 900 }} }});
+          await page.goto('file://{self.docs_html}');
+          await page.waitForTimeout(100);
+
+          // 1. Toggle to Light theme
+          const initialTheme = await page.$eval('html', el => el.getAttribute('data-theme'));
+          if (initialTheme !== 'light') {{
+            while (await page.$eval('html', el => el.getAttribute('data-theme')) !== 'light') {{
+              await page.click('#themeToggleBtn');
+              await page.waitForTimeout(50);
+            }}
+          }}
+
+          // Verify logo switched to logo-light.svg
+          const logoSrc = await page.$eval('.brand-logo-img', el => el.getAttribute('src'));
+          if (!logoSrc.includes('logo-light.svg')) {{
+            throw new Error(`Expected logo-light.svg in Light mode, got: ${{logoSrc}}`);
+          }}
+
+          // 2. Navigate to #playground
+          await page.evaluate(() => window.location.hash = '#playground');
+          await page.waitForTimeout(100);
+
+          // Verify playground viewport synchronized with light mode
+          const vpTheme = await page.$eval('#pgViewport', el => el.getAttribute('data-theme'));
+          if (vpTheme !== 'light') {{
+            throw new Error(`Expected #pgViewport to sync to 'light', got: ${{vpTheme}}`);
+          }}
+
+          // 3. Test #pgThemeBtn toggles viewport theme
+          await page.click('#pgThemeBtn');
+          await page.waitForTimeout(50);
+          const vpThemeAfterToggle = await page.$eval('#pgViewport', el => el.getAttribute('data-theme'));
+          if (vpThemeAfterToggle === 'light') {{
+            throw new Error('Clicking #pgThemeBtn failed to toggle playground viewport theme');
+          }}
+
+          // 4. Test #pgBidiBtn toggles viewport direction
+          await page.click('#pgBidiBtn');
+          await page.waitForTimeout(50);
+          const vpDir = await page.$eval('#pgViewport', el => el.getAttribute('dir'));
+          if (vpDir !== 'rtl') {{
+            throw new Error(`Expected dir="rtl" after #pgBidiBtn click, got: ${{vpDir}}`);
+          }}
+
+          // 5. Test #pgDensityBtn cycles density
+          await page.click('#pgDensityBtn');
+          await page.waitForTimeout(50);
+          const vpDensity = await page.$eval('#pgViewport', el => el.classList.contains('density-comfortable'));
+          if (!vpDensity) {{
+            throw new Error('Expected .density-comfortable on #pgViewport after #pgDensityBtn click');
+          }}
+
+          await browser.close();
+          console.log('SUCCESS_LIGHT_MODE_SYNC');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Light mode sync test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_LIGHT_MODE_SYNC", res.stdout)
+
+    def test_cli_terminal_quickstart_contrast_and_interactivity(self):
+        """Verify .cli-box high contrast tokens in Light mode, tab command switching, and copy action."""
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage({{ viewport: {{ width: 1440, height: 900 }} }});
+          await page.goto('file://{self.docs_html}');
+          await page.waitForTimeout(100);
+
+          // Set Light theme
+          while (await page.$eval('html', el => el.getAttribute('data-theme')) !== 'light') {{
+            await page.click('#themeToggleBtn');
+            await page.waitForTimeout(50);
+          }}
+
+          // 1. Verify contrast on CLI box in Light mode
+          const cliColors = await page.evaluate(() => {{
+            const box = document.querySelector('.cli-box');
+            const cmd = document.getElementById('cliCommandText');
+            const prompt = document.querySelector('.cli-prompt');
+            const activeTab = document.querySelector('.cli-tab.active');
+            const inactiveTab = document.querySelectorAll('.cli-tab')[1];
+            const copyBtn = document.getElementById('cliCopyBtn');
+
+            function getRgb(str) {{
+              const m = str.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/);
+              return m ? [parseInt(m[1]), parseInt(m[2]), parseInt(m[3])] : [0, 0, 0];
+            }}
+
+            function lum([r, g, b]) {{
+              const a = [r, g, b].map(v => {{
+                v /= 255;
+                return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+              }});
+              return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+            }}
+
+            function contrast(c1, c2) {{
+              const l1 = lum(getRgb(c1));
+              const l2 = lum(getRgb(c2));
+              return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+            }}
+
+            const boxBg = window.getComputedStyle(box).backgroundColor;
+            const cmdColor = window.getComputedStyle(cmd).color;
+            const promptColor = window.getComputedStyle(prompt).color;
+            const activeColor = window.getComputedStyle(activeTab).color;
+            const inactiveColor = window.getComputedStyle(inactiveTab).color;
+            const copyColor = window.getComputedStyle(copyBtn).color;
+
+            return {{
+              boxBg,
+              cmdContrast: contrast(boxBg, cmdColor),
+              promptContrast: contrast(boxBg, promptColor),
+              activeContrast: contrast(boxBg, activeColor),
+              inactiveContrast: contrast(boxBg, inactiveColor),
+              copyContrast: contrast(boxBg, copyColor)
+            }};
+          }});
+
+          if (cliColors.cmdContrast < 7.0) {{
+            throw new Error(`CLI command text contrast too low: ${{cliColors.cmdContrast.toFixed(2)}}:1 (min 7.0:1)`);
+          }}
+          if (cliColors.inactiveContrast < 4.5) {{
+            throw new Error(`CLI inactive tab contrast too low: ${{cliColors.inactiveContrast.toFixed(2)}}:1 (min 4.5:1)`);
+          }}
+          if (cliColors.promptContrast < 7.0) {{
+            throw new Error(`CLI prompt contrast too low: ${{cliColors.promptContrast.toFixed(2)}}:1 (min 7.0:1)`);
+          }}
+
+          // 2. Test interactive tab switching
+          await page.click('.cli-tab[data-cmd="verify"]');
+          await page.waitForTimeout(50);
+          const verifyText = await page.$eval('#cliCommandText', el => el.textContent);
+          if (!verifyText.includes('npx orthotect verify')) {{
+            throw new Error(`Expected 'npx orthotect verify' after clicking verify tab, got: ${{verifyText}}`);
+          }}
+
+          await page.click('.cli-tab[data-cmd="compile"]');
+          await page.waitForTimeout(50);
+          const compileText = await page.$eval('#cliCommandText', el => el.textContent);
+          if (!compileText.includes('npx orthotect compile')) {{
+            throw new Error(`Expected 'npx orthotect compile' after clicking compile tab, got: ${{compileText}}`);
+          }}
+
+          // 3. Test Copy button
+          await page.click('#cliCopyBtn');
+          await page.waitForTimeout(50);
+          const copyLabel = await page.$eval('#cliCopyBtn', el => el.textContent);
+          if (!copyLabel.includes('Copied')) {{
+            throw new Error(`Expected '✓ Copied' label after click, got: ${{copyLabel}}`);
+          }}
+
+          await browser.close();
+          console.log('SUCCESS_CLI_CONTRAST_INTERACTIVITY');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"CLI terminal contrast & interactivity test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_CLI_CONTRAST_INTERACTIVITY", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
 

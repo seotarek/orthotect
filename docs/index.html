@@ -7,6 +7,16 @@
   <meta name="description" content="The deterministic interface engineering and runtime gate architecture for AI coding agents. Objective parallel gates for WCAG 2.2 token contrast, strict CSS logical properties, FSM integrity, and media layout stability." />
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" type="image/svg+xml" href="assets/brand/favicon.svg" />
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem("ortho_theme");
+        if (saved) {
+          document.documentElement.setAttribute("data-theme", saved);
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
 
@@ -97,7 +107,7 @@
           <div class="container">
             <div class="hero-pill">
               <span class="status-dot"></span>
-              <span id="heroBadge">v1.5.2 • Deterministic Quality Standard for Autonomous Coding Agents</span>
+              <span id="heroBadge">v1.6.0 • Deterministic Quality Standard for Autonomous Coding Agents</span>
             </div>
 
             <h1 class="hero-title" id="heroTitle">
@@ -124,7 +134,7 @@
                 <div class="proof-lbl" id="proofGates">Deterministic Gates</div>
               </div>
               <div class="proof-card">
-                <div class="proof-val">138 / 138</div>
+                <div class="proof-val">167 / 167</div>
                 <div class="proof-lbl" id="proofTests">Automated Unit &amp; E2E Tests</div>
               </div>
               <div class="proof-card">
@@ -192,7 +202,7 @@
                 <div class="terminal-footer">
                   <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                     <span class="term-prompt">$</span>
-                    <span class="term-summary" id="heroTerminalSummary">Parallel Gate Latency: <strong>554.2ms</strong> • Total Verified Code: <strong>138/138 Tests Passed</strong></span>
+                    <span class="term-summary" id="heroTerminalSummary">Parallel Gate Latency: <strong>554.2ms</strong> • Total Verified Code: <strong>167/167 Tests Passed</strong></span>
                   </div>
                   <span class="term-certified" id="heroTerminalCert">SPECIFICATION CERTIFIED</span>
                 </div>
@@ -202,7 +212,7 @@
         </div>
 
         <!-- CLI Quickstart -->
-        <div class="section-pad" style="background-color: var(--ortho-surface-1); border-block: 1px solid var(--ortho-border-subtle);">
+        <div class="section-pad cli-quickstart-section">
           <div class="container">
             <div class="section-hdr">
               <div class="section-pill">DEVELOPER QUICKSTART</div>
@@ -210,15 +220,15 @@
               <p class="section-desc">Scaffold, verify, and compile design tokens directly in any project repository.</p>
             </div>
 
-            <div class="cli-box" role="region" aria-label="Terminal Quickstart" style="max-inline-size: 720px; margin-inline: auto;">
+            <div class="cli-box" role="region" aria-label="Terminal Quickstart">
               <div class="cli-tabs" role="tablist">
                 <button class="cli-tab active" data-cmd="init" role="tab" aria-selected="true">init</button>
                 <button class="cli-tab" data-cmd="verify" role="tab" aria-selected="false">verify</button>
                 <button class="cli-tab" data-cmd="compile" role="tab" aria-selected="false">compile:tokens</button>
               </div>
               <div class="cli-content">
-                <div style="display: flex; align-items: center; gap: 0.5rem; overflow: hidden;">
-                  <span style="color: var(--ortho-text-muted);">$</span>
+                <div class="cli-command-row">
+                  <span class="cli-prompt">$</span>
                   <code class="cli-command-text" id="cliCommandText">npx orthotect init</code>
                 </div>
                 <button class="cli-copy-btn" id="cliCopyBtn" aria-label="Copy Command">Copy</button>
@@ -472,7 +482,7 @@
             <div class="section-hdr">
               <div class="section-pill" id="catalogPill">Repository Synchronized Skills</div>
               <h2 class="section-title" id="catalogTitle">Orthotect Skill Catalog</h2>
-              <p class="section-desc" id="catalogSub">Explore the 6 modular skills installed directly in skills/. Each skill provides explicit system instructions, constraints, and gate validation for autonomous coding agents.</p>
+              <p class="section-desc" id="catalogSub">Explore the 15 modular skills installed directly in skills/. Each skill provides explicit system instructions, constraints, and gate validation for autonomous coding agents.</p>
             </div>
 
             <!-- Search and Filter Bar -->
@@ -481,11 +491,14 @@
                 <input type="text" id="skillSearchInput" class="docs-modal-input" placeholder="Search skills by name, law, or keyword..." aria-label="Search Skills" style="margin: 0;" />
               </div>
               <div class="cat-filter-group" role="tablist" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <button class="cat-tab active" data-cat="all">All Skills (6)</button>
-                <button class="cat-tab" data-cat="architecture">Architecture</button>
-                <button class="cat-tab" data-cat="internationalization">Internationalization</button>
-                <button class="cat-tab" data-cat="tokens">Tokens &amp; FSM</button>
-                <button class="cat-tab" data-cat="telemetry">Telemetry</button>
+                <button class="cat-tab filter-pill active" data-cat="all">All Skills (15)</button>
+                <button class="cat-tab filter-pill" data-cat="architecture">Architecture</button>
+                <button class="cat-tab filter-pill" data-cat="tokens">Tokens &amp; Systems</button>
+                <button class="cat-tab filter-pill" data-cat="components">Components &amp; FSM</button>
+                <button class="cat-tab filter-pill" data-cat="accessibility">Accessibility &amp; QA</button>
+                <button class="cat-tab filter-pill" data-cat="internationalization">BiDi / i18n</button>
+                <button class="cat-tab filter-pill" data-cat="dashboard">Dashboard &amp; Data-Viz</button>
+                <button class="cat-tab filter-pill" data-cat="responsive">Responsive &amp; Motion</button>
               </div>
             </div>
 
@@ -530,14 +543,14 @@
                     <span style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; color: var(--ortho-accent-cyan);">LIVE VIEWPORT</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <button id="pgThemeBtn" class="btn-ctrl" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Theme: Dark</button>
-                    <button id="pgBidiBtn" class="btn-ctrl" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">BiDi: LTR</button>
-                    <button id="pgDensityBtn" class="btn-ctrl" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Density: Default</button>
+                    <button id="pgThemeBtn" class="btn-ctrl" data-pg-action="theme" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" aria-label="Toggle Playground Theme">Theme: Dark</button>
+                    <button id="pgBidiBtn" class="btn-ctrl" data-pg-action="bidi" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" aria-label="Toggle Playground Direction">BiDi: LTR</button>
+                    <button id="pgDensityBtn" class="btn-ctrl" data-pg-action="density" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" aria-label="Cycle Playground Density">Density: Default</button>
                   </div>
                 </div>
 
                 <!-- Interactive Viewport Canvas -->
-                <div id="pgViewport" dir="ltr" data-theme="dark" style="padding: 1.5rem; background-color: var(--ortho-canvas); min-block-size: 420px; transition: all var(--transition-fast);">
+                <div id="pgViewport" dir="ltr" data-theme="dark" class="pg-viewport-canvas" style="padding: 1.5rem; background-color: var(--ortho-canvas); min-block-size: 420px; transition: all var(--transition-fast);">
                   <div id="pgContentArea">
                     <!-- Component rendered by app.js -->
                   </div>
@@ -556,7 +569,7 @@
                 <div id="pgTokensList" style="display: flex; flex-wrap: wrap; gap: 0.35rem; margin-block-end: 1rem;"></div>
 
                 <h4 style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ortho-text-muted); margin-block-end: 0.5rem;">Agent Prompt Instruction</h4>
-                <pre style="background: var(--ortho-surface-2); padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.75rem; overflow-x: auto; margin-block-end: 1rem; color: var(--ortho-text-secondary);"><code id="pgPromptCode"></code></pre>
+                <pre class="pg-prompt-code"><code id="pgPromptCode"></code></pre>
 
                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                   <button id="pgCopyPromptBtn" class="btn-ctrl" style="flex: 1; font-size: 0.75rem;">Copy Prompt</button>
@@ -903,7 +916,7 @@
           <a href="https://github.com/seotarek/orthotect/blob/main/LICENSE" target="_blank" rel="noopener" class="footer-link">MIT License</a>
         </div>
         <div id="footerCopy">
-          Orthotect v1.5.2 &copy; 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok.
+          Orthotect v1.6.0 &copy; 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok.
         </div>
       </div>
     </footer>

@@ -1,5 +1,5 @@
 /**
- * ORTHOTECT v1.5.2 — Skill Studio & Interactive Demonstration Platform
+ * ORTHOTECT v1.6.0 — Skill Studio & Interactive Demonstration Platform
  * 100% Client-Side | Zero Bloat | True Bidirectional Runtime
  */
 
@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentLang = localStorage.getItem("ortho_lang") || "en";
   let activePlaygroundComponent = "analytics";
   let playgroundDensity = "default";
-  let playgroundTheme = "dark";
+  let playgroundTheme = currentTheme;
   let playgroundDir = "ltr";
 
   const validRoutes = ["home", "catalog", "playground", "builder", "gallery", "gates", "install"];
@@ -149,6 +149,16 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================================================================
   // 2. THEME ENGINE
   // =========================================================================
+  function syncPlaygroundTheme(theme) {
+    playgroundTheme = theme;
+    const vp = document.getElementById("pgViewport");
+    if (vp) vp.setAttribute("data-theme", theme);
+    const pgThemeBtn = document.getElementById("pgThemeBtn");
+    if (pgThemeBtn) {
+      pgThemeBtn.textContent = `Theme: ${theme.charAt(0).toUpperCase() + theme.slice(1)}`;
+    }
+  }
+
   function applyTheme(theme) {
     currentTheme = theme;
     document.documentElement.setAttribute("data-theme", theme);
@@ -161,6 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".brand-logo-img").forEach(logo => {
       logo.src = theme === "light" ? "assets/brand/logo-light.svg" : "assets/brand/logo.svg";
     });
+    syncPlaygroundTheme(theme);
   }
 
   const themeToggleBtn = document.getElementById("themeToggleBtn");
@@ -173,12 +184,34 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   applyTheme(currentTheme);
 
+  // Reactive theme observer for any external or automated theme mutation
+  const themeObserver = new MutationObserver(mutations => {
+    for (const mutation of mutations) {
+      if (mutation.type === "attributes" && mutation.attributeName === "data-theme") {
+        const observedTheme = document.documentElement.getAttribute("data-theme") || "dark";
+        if (observedTheme !== currentTheme) {
+          currentTheme = observedTheme;
+          localStorage.setItem("ortho_theme", observedTheme);
+          const themeBtnText = document.getElementById("themeBtnText");
+          if (themeBtnText) {
+            themeBtnText.textContent = observedTheme === "dark" ? "Dark" : observedTheme === "light" ? "Light" : "Contrast";
+          }
+        }
+        document.querySelectorAll(".brand-logo-img").forEach(logo => {
+          logo.src = observedTheme === "light" ? "assets/brand/logo-light.svg" : "assets/brand/logo.svg";
+        });
+        syncPlaygroundTheme(observedTheme);
+      }
+    }
+  });
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
   // =========================================================================
   // 3. BILINGUAL INTERNATIONALIZATION (BiDi)
   // =========================================================================
   const bidiDict = {
     en: {
-      brandDesc: "v1.5.2",
+      brandDesc: "v1.6.0",
       navHome: "Home",
       navCatalog: "Skill Catalog",
       navPlayground: "Playground",
@@ -193,7 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mNavGallery: "Examples",
       mNavGates: "Quality Gates",
       mNavInstall: "Install & Usage",
-      heroBadge: "v1.5.2 • Deterministic Quality Standard for Autonomous Coding Agents",
+      heroBadge: "v1.6.0 • Deterministic Quality Standard for Autonomous Coding Agents",
       heroTitle: "Deterministic Interface Engineering & <span class=\"hero-gradient-text\">Runtime Quality Gates</span>",
       heroSub: "Stop trusting probabilistic UI code. Orthotect enforces mathematical WCAG 2.2 token contrast, strict CSS logical properties, formal state machines, and media box bounding in parallel deterministic gates.",
       ctaPlayground: "Open Interactive Playground",
@@ -217,7 +250,7 @@ document.addEventListener("DOMContentLoaded", () => {
       step4Desc: "Validated zero-CLS code committed directly to main, deployable without human rework.",
       catalogPill: "Repository Synchronized Skills",
       catalogTitle: "Orthotect Skill Catalog",
-      catalogSub: "Explore the 6 modular skills installed directly in skills/. Each skill provides explicit system instructions, constraints, and gate validation for autonomous coding agents.",
+      catalogSub: "Explore the 15 modular skills installed directly in skills/. Each skill provides explicit system instructions, constraints, and gate validation for autonomous coding agents.",
       playgroundPill: "Live Interface Sandbox",
       playgroundTitle: "Interactive Skill Playground",
       playgroundSub: "Interact with 7 pre-validated enterprise components built using Orthotect skills. Toggle theme, text direction, and spacing density in real time to observe deterministic behavior.",
@@ -233,10 +266,10 @@ document.addEventListener("DOMContentLoaded", () => {
       installPill: "Developer Tooling & CLI",
       installTitle: "Installation & CLI Usage",
       installSub: "Orthotect provides zero-config command line tools to scaffold, compile, and verify projects deterministically in local environments and GitHub Actions CI.",
-      footerCopy: "Orthotect v1.5.2 © 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok."
+      footerCopy: "Orthotect v1.6.0 © 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok."
     },
     ar: {
-      brandDesc: "v1.5.2",
+      brandDesc: "v1.6.0",
       navHome: "الرئيسية",
       navCatalog: "كتالوج المهارات",
       navPlayground: "المختبر التفاعلي",
@@ -251,7 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mNavGallery: "الأمثلة الجاهزة",
       mNavGates: "بوابات الجودة",
       mNavInstall: "التثبيت والاستخدام",
-      heroBadge: "v1.5.2 • معيار الجودة الحتمية للوكلاء البرمجيين المستقلين",
+      heroBadge: "v1.6.0 • معيار الجودة الحتمية للوكلاء البرمجيين المستقلين",
       heroTitle: "هندسة الواجهات الحتمية و<span class=\"hero-gradient-text\">بوابات الجودة أثناء التشغيل</span>",
       heroSub: "توقف عن قبول كود الواجهات العشوائي. يفرض أورثوتكت تباين WCAG 2.2 للتوكنز، وصرامة خواص CSS المنطقية، ونزاهة آلات الحالة FSM، وتحديد أبعاد الوسائط في بوابات حتمية متوازية.",
       ctaPlayground: "فتح المختبر التفاعلي",
@@ -275,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
       step4Desc: "كود موثق بانعدام CLS يُدمج في main مباشرة ويدخل الإنتاج دون حاجة لإعادة صياغة بشرية.",
       catalogPill: "مهارات متزامنة مع المستودع",
       catalogTitle: "كتالوج مهارات أورثوتكت",
-      catalogSub: "استكشف المهارات الست المثبتة في skills/. تقدم كل مهارة تعليمات نظام واضحة وقيودًا حازمة وبوابات تحقق مخصصة لوكلاء البرمجة.",
+      catalogSub: "استكشف 15 مهارة معيارية مثبتة في skills/. تقدم كل مهارة تعليمات نظام واضحة وقيودًا حازمة وبوابات تحقق مخصصة لوكلاء البرمجة.",
       playgroundPill: "المختبر الحي للمكونات",
       playgroundTitle: "مختبر المهارات التفاعلي",
       playgroundSub: "تفاعل مع 7 مكونات مؤسسية مبنية وفق مهارات أورثوتكت. بدّل الثيم والاتجاه وكثافة المسافات لملاحظة السلوك الحتمي الموثوق.",
@@ -291,7 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
       installPill: "أدوات المطور وسطر الأوامر",
       installTitle: "التثبيت وأوامر الاستخدام",
       installSub: "يوفر أورثوتكت أدوات سطر أوامر خفيفة لتهيئة المشاريع وترجمة التوكنز وفحص الكود حتميًا في البيئة المحلية وسير العمل CI.",
-      footerCopy: "أورثوتكت v1.5.2 © 2026. معتمد لوكلاء البرمجة الذاتية: Antigravity وClaude Code وCursor وCodex وGrok."
+      footerCopy: "أورثوتكت v1.6.0 © 2026. معتمد لوكلاء البرمجة الذاتية: Antigravity وClaude Code وCursor وCodex وGrok."
     }
   };
 
@@ -344,6 +377,20 @@ document.addEventListener("DOMContentLoaded", () => {
       prompt: "Execute task adhering strictly to the 7 Non-Negotiable Laws of Interface Engineering in skills/orthotect-doctrine/SKILL.md."
     },
     {
+      id: "orthotect-uiux",
+      name: "orthotect-uiux",
+      category: "architecture",
+      title: "Master UI/UX Design Intelligence & Orchestrator",
+      purpose: "Orchestrates comprehensive UI/UX design intelligence, selects original style recipes, establishes 19-dimensional design reasoning, and binds intent tokens.",
+      problem: "AI coding assistants generate disjointed, repetitive components that lack unified art direction and cohesive visual systems.",
+      when: "Activate as central entry point for new feature workflows, landing pages, application redesigns, and design reasoning.",
+      inputs: "Product brief, target user persona, domain constraints, visual preferences.",
+      outputs: "Complete design reasoning model, chosen style recipe, and orchestrated implementation plan.",
+      gates: "All 5 Orthotect Gates",
+      githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-uiux/SKILL.md",
+      prompt: "Orchestrate interface design using Orthotect UI/UX design intelligence per skills/orthotect-uiux/SKILL.md."
+    },
+    {
       id: "orthotect-gates",
       name: "orthotect-gates",
       category: "architecture",
@@ -386,6 +433,20 @@ document.addEventListener("DOMContentLoaded", () => {
       prompt: "Compile W3C DTCG tokens with mathematical contrast verification: npx orthotect compile core/tokens --out tokens.css."
     },
     {
+      id: "orthotect-design-systems",
+      name: "orthotect-design-systems",
+      category: "tokens",
+      title: "Enterprise Design System Architecture & Multi-Brand Theming",
+      purpose: "Architects scalable multi-tier token hierarchies, component token bindings, and cross-framework design system pipelines.",
+      problem: "Teams struggle with token drift, inconsistent naming, and painful multi-brand or white-label theming implementations.",
+      when: "Use when establishing design systems, structuring token architecture, or building multi-brand theming layers.",
+      inputs: "Brand color palettes, typography scales, elevation guidelines.",
+      outputs: "Standardized W3C DTCG token architecture with semantic intent mappings and automated compiler targets.",
+      gates: "gate_contrast_wcag.py, gate_no_slop.py",
+      githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-design-systems/SKILL.md",
+      prompt: "Architect design system tokens with multi-theme support per skills/orthotect-design-systems/SKILL.md."
+    },
+    {
       id: "orthotect-fsm",
       name: "orthotect-fsm",
       category: "fsm",
@@ -400,6 +461,34 @@ document.addEventListener("DOMContentLoaded", () => {
       prompt: "Implement interactive component governed strictly by FSM schema in skills/orthotect-fsm/SKILL.md."
     },
     {
+      id: "orthotect-forms",
+      name: "orthotect-forms",
+      category: "fsm",
+      title: "Resilient Forms, Double-Submission Locks & Validation FSM",
+      purpose: "Engineers rock-solid forms with async validation state machines, double-submission locks, inline error cues, and accessible labeling.",
+      problem: "Users face lost form inputs, broken error states, double charges on repeated clicks, and unhelpful generic validation errors.",
+      when: "Use when creating checkout flows, registration forms, settings panels, or multi-field operational inputs.",
+      inputs: "Field validation schemas, submission endpoints, error response formats.",
+      outputs: "Production-grade form components with permanent labels, ARIA error linking, and deterministic submission locks.",
+      gates: "gate_fsm_integrity.py, gate_contrast_wcag.py",
+      githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-forms/SKILL.md",
+      prompt: "Engineer resilient form with double-submit protection per skills/orthotect-forms/SKILL.md."
+    },
+    {
+      id: "orthotect-components",
+      name: "orthotect-components",
+      category: "components",
+      title: "Accessible UI Components & WAI-ARIA APG State Contracts",
+      purpose: "Provides production-ready component contracts for Button, Input, Modal, Tabs, Dropdown, Table, and Card across 8 explicit states.",
+      problem: "AI code generates visually plausible components that fail keyboard navigation, lack focus bounds, and neglect edge states.",
+      when: "Use when building reusable component libraries, design system primitives, or interactive widgets.",
+      inputs: "Component anatomy requirements, target framework (React, Vue, Svelte, Web Components, HTML).",
+      outputs: "Accessible, fully keyboard-operable components with ARIA roles and visible focus indicators.",
+      gates: "gate_fsm_integrity.py, gate_contrast_wcag.py",
+      githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-components/SKILL.md",
+      prompt: "Author accessible component with 8 explicit states per skills/orthotect-components/SKILL.md."
+    },
+    {
       id: "orthotect-dashboard",
       name: "orthotect-dashboard",
       category: "dashboard",
@@ -412,6 +501,76 @@ document.addEventListener("DOMContentLoaded", () => {
       gates: "gate_cwv_budget.mjs, gate_contrast_wcag.py",
       githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-dashboard/SKILL.md",
       prompt: "Build high-density enterprise dashboard with inline SVG telemetry and zero layout shift per skills/orthotect-dashboard/SKILL.md."
+    },
+    {
+      id: "orthotect-data-viz",
+      name: "orthotect-data-viz",
+      category: "dashboard",
+      title: "Data Visualization Tokens & Accessible Telemetry Charts",
+      purpose: "Builds high-density, accessible data visualizations, sparklines, and operational metrics using token-driven SVG geometry and tabular numbers.",
+      problem: "Charts frequently lack color-contrast compliance, cause cumulative layout shifts, and fail screen-reader accessibility checks.",
+      when: "Use when creating data charts, time-series telemetry, sparkline cards, or real-time operational graphs.",
+      inputs: "Numeric datasets, chart type specifications, interval bounds.",
+      outputs: "Token-bound SVG charts with tabular numerals, high-contrast metrics, and accessible alternative data tables.",
+      gates: "gate_cwv_budget.mjs, gate_contrast_wcag.py",
+      githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-data-viz/SKILL.md",
+      prompt: "Create accessible token-driven data visualization per skills/orthotect-data-viz/SKILL.md."
+    },
+    {
+      id: "orthotect-accessibility",
+      name: "orthotect-accessibility",
+      category: "accessibility",
+      title: "WCAG 2.2 AA/AAA Deterministic Accessibility Auditing",
+      purpose: "Audits and certifies interfaces against WCAG 2.2 Level AA/AAA standards: contrast, keyboard traps, touch targets, and ARIA roles.",
+      problem: "Automated linters miss cognitive traps, focus leaks, and touch target violations that degrade usability for assistive tech users.",
+      when: "Mandatory review step for all public UI pages, interactive components, and production releases.",
+      inputs: "HTML/CSS markup, component tree, interactive event handlers.",
+      outputs: "Accessibility certification report with mathematical contrast proofs and focus-management audit.",
+      gates: "gate_contrast_wcag.py",
+      githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-accessibility/SKILL.md",
+      prompt: "Audit interface against WCAG 2.2 AA standards per skills/orthotect-accessibility/SKILL.md."
+    },
+    {
+      id: "orthotect-visual-qa",
+      name: "orthotect-visual-qa",
+      category: "accessibility",
+      title: "Automated Browser Visual Regression & Theme Contrast Gate",
+      purpose: "Runs automated headless browser tests to verify rendered computed styles, dual-theme switching, and zero visual clash.",
+      problem: "CSS-only tests miss browser-specific rendering bugs, theme desynchronization, and invisible text on computed background surfaces.",
+      when: "Use when validating dual-theme changes, terminal viewports, playground components, or visual regressions.",
+      inputs: "Rendered web pages, theme configurations, test viewports.",
+      outputs: "Deterministic test run results proving computed contrast and zero visual clash.",
+      gates: "test_docs_browser.py, gate_contrast_wcag.py",
+      githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-visual-qa/SKILL.md",
+      prompt: "Execute automated browser visual QA test suite per skills/orthotect-visual-qa/SKILL.md."
+    },
+    {
+      id: "orthotect-responsive",
+      name: "orthotect-responsive",
+      category: "responsive",
+      title: "Adaptive Bento Layouts, Fluid Typography & Container Queries",
+      purpose: "Engineers fluid responsive layouts using CSS Grid, container queries, and clamp() fluid typography across viewports 360px to 2560px.",
+      problem: "Fixed-width breakpoints break on modern foldables and containerized dashboard widgets, causing layout clipping.",
+      when: "Use when creating multi-column page layouts, responsive bento grids, or adaptive component systems.",
+      inputs: "Viewport ranges, component container dimensions, content hierarchy.",
+      outputs: "Zero-overflow responsive stylesheets with intrinsic container query adaptability and CLS = 0.",
+      gates: "gate_no_slop.py, gate_cwv_budget.mjs",
+      githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-responsive/SKILL.md",
+      prompt: "Build fluid responsive layout with container queries per skills/orthotect-responsive/SKILL.md."
+    },
+    {
+      id: "orthotect-motion",
+      name: "orthotect-motion",
+      category: "motion",
+      title: "Spring Physics Motion Tokens & Reduced-Motion Accessibility",
+      purpose: "Implements physically grounded UI transitions using calibrated spring physics tokens and mandatory prefers-reduced-motion overrides.",
+      problem: "Arbitrary CSS transitions (transition: all 0.2s) feel sluggish, trigger CPU layout recalculations, and cause vestibular discomfort.",
+      when: "Use when adding transitions to dialogs, menus, tabs, hover states, and data card updates.",
+      inputs: "Interactive component triggers, transition requirements.",
+      outputs: "Hardware-accelerated CSS motion rules bounded by --ot-motion-snappy and --ot-motion-expressive.",
+      gates: "gate_no_slop.py",
+      githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-motion/SKILL.md",
+      prompt: "Implement spring physics motion with reduced-motion support per skills/orthotect-motion/SKILL.md."
     }
   ];
 
@@ -420,7 +579,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!container) return;
 
     const filtered = skillsData.filter(s => {
-      const matchCat = category === "all" || s.category === category;
+      const matchCat = category === "all" || s.category === category ||
+        (category === "tokens" && (s.category === "tokens" || s.id.includes("tokens") || s.id.includes("design-systems"))) ||
+        (category === "components" && (s.category === "components" || s.category === "fsm")) ||
+        (category === "accessibility" && (s.category === "accessibility" || s.id.includes("visual-qa"))) ||
+        (category === "dashboard" && (s.category === "dashboard")) ||
+        (category === "responsive" && (s.category === "responsive" || s.category === "motion"));
       const q = query.toLowerCase();
       const matchQuery = !q || s.name.includes(q) || s.title.toLowerCase().includes(q) || s.purpose.toLowerCase().includes(q);
       return matchCat && matchQuery;
@@ -868,6 +1032,19 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Playground density toggles
+  const pgDensityBtn = document.getElementById("pgDensityBtn");
+  if (pgDensityBtn) {
+    pgDensityBtn.addEventListener("click", () => {
+      const densities = ["default", "comfortable", "compact"];
+      playgroundDensity = densities[(densities.indexOf(playgroundDensity) + 1) % densities.length];
+      const vp = document.getElementById("pgViewport");
+      if (vp) {
+        vp.classList.remove("density-compact", "density-default", "density-comfortable");
+        vp.classList.add(`density-${playgroundDensity}`);
+      }
+      pgDensityBtn.textContent = `Density: ${playgroundDensity.charAt(0).toUpperCase() + playgroundDensity.slice(1)}`;
+    });
+  }
   document.querySelectorAll("[data-pg-density]").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll("[data-pg-density]").forEach(b => b.classList.remove("active"));
@@ -878,10 +1055,23 @@ document.addEventListener("DOMContentLoaded", () => {
         vp.classList.remove("density-compact", "density-default", "density-comfortable");
         vp.classList.add(`density-${playgroundDensity}`);
       }
+      if (pgDensityBtn) {
+        pgDensityBtn.textContent = `Density: ${playgroundDensity.charAt(0).toUpperCase() + playgroundDensity.slice(1)}`;
+      }
     });
   });
 
   // Playground theme toggles
+  const pgThemeBtn = document.getElementById("pgThemeBtn");
+  if (pgThemeBtn) {
+    pgThemeBtn.addEventListener("click", () => {
+      const themes = ["dark", "light", "contrast"];
+      playgroundTheme = themes[(themes.indexOf(playgroundTheme) + 1) % themes.length];
+      const vp = document.getElementById("pgViewport");
+      if (vp) vp.setAttribute("data-theme", playgroundTheme);
+      pgThemeBtn.textContent = `Theme: ${playgroundTheme.charAt(0).toUpperCase() + playgroundTheme.slice(1)}`;
+    });
+  }
   document.querySelectorAll("[data-pg-theme]").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll("[data-pg-theme]").forEach(b => b.classList.remove("active"));
@@ -889,10 +1079,22 @@ document.addEventListener("DOMContentLoaded", () => {
       playgroundTheme = btn.getAttribute("data-pg-theme") || "dark";
       const vp = document.getElementById("pgViewport");
       if (vp) vp.setAttribute("data-theme", playgroundTheme);
+      if (pgThemeBtn) {
+        pgThemeBtn.textContent = `Theme: ${playgroundTheme.charAt(0).toUpperCase() + playgroundTheme.slice(1)}`;
+      }
     });
   });
 
   // Playground direction toggles
+  const pgBidiBtn = document.getElementById("pgBidiBtn");
+  if (pgBidiBtn) {
+    pgBidiBtn.addEventListener("click", () => {
+      playgroundDir = playgroundDir === "ltr" ? "rtl" : "ltr";
+      const vp = document.getElementById("pgViewport");
+      if (vp) vp.setAttribute("dir", playgroundDir);
+      pgBidiBtn.textContent = `BiDi: ${playgroundDir.toUpperCase()}`;
+    });
+  }
   document.querySelectorAll("[data-pg-dir]").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll("[data-pg-dir]").forEach(b => b.classList.remove("active"));
@@ -900,8 +1102,47 @@ document.addEventListener("DOMContentLoaded", () => {
       playgroundDir = btn.getAttribute("data-pg-dir") || "ltr";
       const vp = document.getElementById("pgViewport");
       if (vp) vp.setAttribute("dir", playgroundDir);
+      if (pgBidiBtn) {
+        pgBidiBtn.textContent = `BiDi: ${playgroundDir.toUpperCase()}`;
+      }
     });
   });
+
+  // CLI Quickstart Tabs & Copy Button
+  const cliCommands = {
+    init: "npx orthotect init",
+    verify: "npx orthotect verify",
+    compile: "npx orthotect compile core/tokens --out dist/tokens.css"
+  };
+  document.querySelectorAll(".cli-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".cli-tab").forEach(t => {
+        t.classList.remove("active");
+        t.setAttribute("aria-selected", "false");
+      });
+      tab.classList.add("active");
+      tab.setAttribute("aria-selected", "true");
+      const cmdKey = tab.getAttribute("data-cmd") || "init";
+      const cmdText = document.getElementById("cliCommandText");
+      if (cmdText && cliCommands[cmdKey]) {
+        cmdText.textContent = cliCommands[cmdKey];
+      }
+    });
+  });
+
+  const cliCopyBtn = document.getElementById("cliCopyBtn");
+  if (cliCopyBtn) {
+    cliCopyBtn.addEventListener("click", () => {
+      const cmdText = document.getElementById("cliCommandText");
+      if (cmdText) {
+        navigator.clipboard.writeText(cmdText.textContent.trim()).then(() => {
+          const original = cliCopyBtn.textContent;
+          cliCopyBtn.textContent = "✓ Copied";
+          setTimeout(() => { cliCopyBtn.textContent = original; }, 2000);
+        });
+      }
+    });
+  }
 
   // Copy agent prompt button
   const pgCopyPromptBtn = document.getElementById("pgCopyPromptBtn");

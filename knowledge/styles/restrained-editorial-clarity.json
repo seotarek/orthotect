@@ -1,0 +1,68 @@
+{
+  "$schema": "../schemas/style-recipe.schema.json",
+  "id": "restrained-editorial-clarity",
+  "name": "Restrained Editorial Clarity",
+  "version": "1.0.0",
+  "designThesis": "Elevated, content-first readability with disciplined typographic scale, generous asymmetric whitespace, and muted tonal surfaces. Eliminates artificial decorative chrome in favor of clear semantic hierarchy.",
+  "bestFitContexts": [
+    "Long-form publication platforms",
+    "Technical documentation portals",
+    "Architecture and design monograph sites",
+    "Thought-leadership blogs",
+    "High-end corporate manifestos"
+  ],
+  "poorFitContexts": [
+    "High-frequency telemetry consoles",
+    "Multi-stream operational dashboards",
+    "Dense enterprise transaction forms",
+    "Low-latency trading terminals"
+  ],
+  "colorStrategy": {
+    "canvasTone": "Warm off-white (#fbfbf9) in light mode; deep obsidian graphite (#0d0e11) in dark mode",
+    "accentUsage": "Single accent (burnt amber or cold slate) reserved exclusively for active navigation and primary text highlights",
+    "contrastTarget": "Minimum 7.0:1 AAA on body copy; 4.5:1 AA on secondary captions"
+  },
+  "typographyStrategy": {
+    "fontPairing": "Editorial serif display (Newsreader / Playfair / Charter) paired with neutral humanist sans body (Inter / Geist / system-ui)",
+    "hierarchyEmphasis": "High contrast between display titles and body text; tight line tracking on titles, generous 1.65 line-height on long-form prose",
+    "scaleFactor": "1.333 (Perfect Fourth) modular scale with max reading width clamped to 68ch"
+  },
+  "layoutRhythm": {
+    "density": "comfortable",
+    "gridStructure": "12-column asymmetric grid with wide margins (min 48px), offset blockquotes, and dedicated margin annotation rail",
+    "whitespaceDiscipline": "Generous vertical cadence (48px–96px between semantic chapters); zero cramped card containers"
+  },
+  "surfaceTreatment": {
+    "radius": "2px to 4px subtle rounded corners; sharp architectural edges on structural panels",
+    "borderStyle": "1px hairline solid using semi-transparent border tokens (var(--ot-border-subtle))",
+    "depthElevation": "Flat planar elevation with subtle ambient contact shadows (0 1px 3px rgba(0,0,0,0.04))"
+  },
+  "componentGuidelines": {
+    "primaryActionStyle": "Underlined textual links or restrained hairline outline buttons with subtle background fill on hover",
+    "cardStructure": "Borderless or hairline-bounded content cells with generous internal padding (min 24px) and zero gradient fills",
+    "tablePresentation": "Open tabular layout with subtle horizontal rules only; no vertical borders, right-aligned numeric data"
+  },
+  "accessibilityProfile": {
+    "targetWcagRatio": 7.0,
+    "keyboardHandling": "Prominent 2px solid focus ring with 2px offset; skip-to-content link always present at document start",
+    "reducedMotionRules": "All scroll and fade transitions disabled or collapsed to immediate 0ms when prefers-reduced-motion is active"
+  },
+  "antiPatterns": [
+    "Gimmicky multi-color gradient text",
+    "Emoji icons in section headings",
+    "Overcrowded multi-column sidebars on reading pages",
+    "Unclamped text containers exceeding 80 characters per line"
+  ],
+  "verificationProtocol": {
+    "requiredGates": [
+      "gate_contrast_wcag.py",
+      "gate_no_slop.py",
+      "gate_bidi_logical.py"
+    ],
+    "browserChecks": [
+      "Verify text readability at 100%, 150%, and 200% zoom",
+      "Verify line-length clamps across viewports (375px to 1440px)",
+      "Verify high contrast mode renders all text with system borders"
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "$schema": "../schemas/knowledge-record.schema.json",
+  "id": "component-contracts",
+  "title": "Interactive Component FSM State Contracts & Keyboard Accessibility",
+  "category": "components",
+  "summary": "Strict Finite State Machine contracts for standard UI components: Button, Input, Modal, Tabs, Dropdown, Table, and Toast.",
+  "whenToUse": "When authoring or reviewing interactive UI components, asynchronous form controls, and accessible navigation widgets.",
+  "whenNotToUse": "Do not treat UI components as purely visual templates; every interactive element must declare its state transitions.",
+  "rules": [
+    "Every interactive element must handle 7 explicit states: idle, hover, active/pressed, focus-visible, loading, disabled, and error/success.",
+    "Loading state must maintain accessible label (aria-busy='true', aria-live='polite') and never drop contrast below 3.0:1.",
+    "Buttons must prevent double-submission race conditions using deterministic event locks.",
+    "Interactive cards with clickable nested actions must isolate click targets using stopPropagation and distinct focus boundaries."
+  ],
+  "antiPatterns": [
+    "Buttons with loading spinners that completely remove the button label causing layout shift",
+    "Disabling buttons without providing an explanation for why the action is disabled",
+    "Clickable divs (<div onClick=...>) without role='button', tabindex='0', and Enter/Space key listeners",
+    "Nested buttons inside anchor tags violating HTML specifications"
+  ],
+  "applicableStacks": [
+    "javascript",
+    "typescript",
+    "react",
+    "vue",
+    "svelte",
+    "web-components",
+    "html"
+  ],
+  "accessibilityNotes": "Component contracts are deterministically verified by gate_fsm_integrity.py and WAI-ARIA APG pattern checkers.",
+  "provenance": "Orthotect FSM architecture and W3C WAI-ARIA 1.2 authoring practices.",
+  "verificationStatus": "VERIFIED_DETERMINISTIC",
+  "tags": [
+    "components",
+    "fsm",
+    "state-machine",
+    "keyboard",
+    "wai-aria",
+    "accessibility",
+    "contracts"
+  ]
+}

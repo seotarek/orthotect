@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OrthotectKnowledgeRecord",
+  "description": "Schema for individual knowledge records in Orthotect's searchable UI/UX knowledge base.",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "category",
+    "summary",
+    "whenToUse",
+    "whenNotToUse",
+    "rules",
+    "antiPatterns",
+    "applicableStacks",
+    "accessibilityNotes",
+    "provenance",
+    "verificationStatus",
+    "tags"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "title": { "type": "string" },
+    "category": { "type": "string", "enum": ["styles", "palettes", "typography", "components", "patterns", "ux-guidelines", "accessibility", "motion", "bidi"] },
+    "summary": { "type": "string" },
+    "whenToUse": { "type": "string" },
+    "whenNotToUse": { "type": "string" },
+    "rules": { "type": "array", "items": { "type": "string" } },
+    "antiPatterns": { "type": "array", "items": { "type": "string" } },
+    "applicableStacks": { "type": "array", "items": { "type": "string" } },
+    "accessibilityNotes": { "type": "string" },
+    "provenance": { "type": "string" },
+    "verificationStatus": { "type": "string", "enum": ["VERIFIED_DETERMINISTIC", "VERIFIED_BROWSER", "HEURISTIC"] },
+    "tags": { "type": "array", "items": { "type": "string" } }
+  }
+}

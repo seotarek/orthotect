@@ -1,0 +1,40 @@
+{
+  "$schema": "../schemas/knowledge-record.schema.json",
+  "id": "layout-patterns",
+  "title": "Architectural Layout Patterns: Bento Grids, Split Rails & Responsive Containers",
+  "category": "patterns",
+  "summary": "Compositional grid systems, asymmetric bento layouts, sticky telemetry rails, and responsive breakpoint reflow structures.",
+  "whenToUse": "When structuring page architectures, dashboard layouts, feature showcases, and multi-pane applications.",
+  "whenNotToUse": "Do not force complex multi-column grids onto narrow mobile viewports (<640px) without single-column linear reflow.",
+  "rules": [
+    "Containers must define explicit max-inline-size (e.g., 1280px / 1440px) and margin-inline: auto.",
+    "Bento grids must establish clear visual hierarchy: 1 primary hero anchor cell (2x2 or 2x1) supported by secondary 1x1 cells.",
+    "Use CSS Grid with minmax(min(100%, ...), 1fr) to guarantee intrinsic responsiveness without unexpected horizontal overflows.",
+    "Sticky sidebars and control rails must account for viewport height (max-block-size: 100vh; overflow-y: auto)."
+  ],
+  "antiPatterns": [
+    "Symmetric flat bento grids where every card has identical dimensions and visual weight",
+    "Layouts causing horizontal scrollbars on 375px mobile screens",
+    "Sticky rails with fixed pixel heights that clip action buttons on small laptop screens",
+    "Using absolute positioning for structural page layout columns"
+  ],
+  "applicableStacks": [
+    "css",
+    "html",
+    "grid",
+    "flexbox",
+    "tailwind",
+    "responsive"
+  ],
+  "accessibilityNotes": "Grid layout reading order in DOM must match visual reading order to ensure logical screen reader navigation.",
+  "provenance": "Synthesized from modern interface composition research and CSS Grid level 2 standards.",
+  "verificationStatus": "VERIFIED_DETERMINISTIC",
+  "tags": [
+    "layout",
+    "grid",
+    "bento",
+    "responsive",
+    "containers",
+    "composition"
+  ]
+}

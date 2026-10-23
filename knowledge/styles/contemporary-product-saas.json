@@ -1,0 +1,69 @@
+{
+  "$schema": "../schemas/style-recipe.schema.json",
+  "id": "contemporary-product-saas",
+  "name": "Contemporary Product SaaS",
+  "version": "1.0.0",
+  "designThesis": "Purposeful, balanced modern product architecture. Combines clean structural bento cards, restrained brand accentuation, crisp micro-interactions, and accessible typography into an efficient enterprise workflow environment.",
+  "bestFitContexts": [
+    "B2B SaaS workflow tools",
+    "Customer relationship management platforms",
+    "Team collaboration and issue tracking workspaces",
+    "Project management consoles",
+    "Billing and subscription management portals"
+  ],
+  "poorFitContexts": [
+    "High-frequency algorithmic trading terminals",
+    "Immersive 3D gaming hubs",
+    "Brutalist underground art zines",
+    "Purely textual legal archives"
+  ],
+  "colorStrategy": {
+    "canvasTone": "Neutral balanced canvas (#ffffff / #f8fafc in light; #0f172a / #0b0f17 in dark)",
+    "accentUsage": "Single primary brand color (e.g., electric cobalt, deep teal) for primary CTAs and active states; semantic tokens for status",
+    "contrastTarget": "Minimum 4.5:1 AA for UI text, 7.0:1 AAA for body copy"
+  },
+  "typographyStrategy": {
+    "fontPairing": "Modern geometric/neo-grotesque sans (Inter, Geist, Plus Jakarta Sans, SF Pro)",
+    "hierarchyEmphasis": "Clear 6-level type hierarchy; medium-weight subheadings (500), bold section titles (600), clean regular body (400)",
+    "scaleFactor": "1.250 (Major Third) modular scale with balanced optical sizing"
+  },
+  "layoutRhythm": {
+    "density": "default",
+    "gridStructure": "12-column responsive layout with flexible bento grids (1/3, 2/3, full-width configurations)",
+    "whitespaceDiscipline": "Consistent 8pt spatial grid (8px, 16px, 24px, 32px, 48px token steps)"
+  },
+  "surfaceTreatment": {
+    "radius": "6px to 8px smooth rounded corners; 9999px for status badges only",
+    "borderStyle": "1px subtle hairline border (var(--ot-border-subtle)) with subtle surface contrast",
+    "depthElevation": "Multi-tier elevation system: level-1 for cards (subtle border + 1px shadow), level-2 for dropdowns, level-3 for modals"
+  },
+  "componentGuidelines": {
+    "primaryActionStyle": "Solid high-contrast button with 6px radius, clear hover highlight, and spring-physics active press",
+    "cardStructure": "Clean bento cards with distinct header, body, and action footer; consistent 20px internal padding",
+    "tablePresentation": "Zebra or border-divided data rows with hover state, action menus on row hover, and pagination footer"
+  },
+  "accessibilityProfile": {
+    "targetWcagRatio": 4.5,
+    "keyboardHandling": "Standard tab-order traversal; full aria-expanded and aria-controls binding on dropdowns and drawers",
+    "reducedMotionRules": "Modal fade/scale animations replaced with instantaneous display state"
+  },
+  "antiPatterns": [
+    "Generic indigo-to-purple gradient blobs",
+    "Cards nested inside cards nested inside cards (card nesting syndrome)",
+    "Disabled buttons that drop contrast below 3.0:1 without explanation tooltip",
+    "Inconsistent border radius mixing 4px, 12px, 24px arbitrarily"
+  ],
+  "verificationProtocol": {
+    "requiredGates": [
+      "gate_contrast_wcag.py",
+      "gate_fsm_integrity.py",
+      "gate_bidi_logical.py",
+      "gate_no_slop.py"
+    ],
+    "browserChecks": [
+      "Verify responsive reflow at 768px, 1024px, and 1280px breakpoints",
+      "Verify modal focus trapping and restoration on dismiss",
+      "Verify LTR to RTL bidirectional symmetry"
+    ]
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "$schema": "../schemas/style-recipe.schema.json",
+  "id": "high-density-operational",
+  "name": "High-Density Operational",
+  "version": "1.0.0",
+  "designThesis": "Extreme spatial efficiency for complex multi-parameter control rooms and administrative dispatchers. Maximizes above-the-fold information throughput while preventing sensory fatigue through monochrome data grids and selective color alerts.",
+  "bestFitContexts": [
+    "Logistics fleet dispatch consoles",
+    "Network operations center (NOC) topology controls",
+    "Aviation / maritime flight path trackers",
+    "Enterprise resource planning (ERP) batch processing views",
+    "Audio/video production multi-track matrixes"
+  ],
+  "poorFitContexts": [
+    "Casual consumer onboarding screens",
+    "Brand marketing microsites",
+    "Photo portfolio galleries",
+    "Minimalist personal notes applications"
+  ],
+  "colorStrategy": {
+    "canvasTone": "Deep matte carbon (#121316) in dark mode; high-clarity ash gray (#eceef2) in light mode",
+    "accentUsage": "Monochrome default with surgical application of amber (#f59e0b) and red (#ef4444) strictly for anomalies",
+    "contrastTarget": "Minimum 7.0:1 AAA across all control elements and indicators"
+  },
+  "typographyStrategy": {
+    "fontPairing": "Condensed sans-serif (IBM Plex Sans Condensed, Roboto Condensed) paired with tabular monospace for values",
+    "hierarchyEmphasis": "Distinction achieved via font-weight and background badge contrast rather than large font size leaps",
+    "scaleFactor": "1.100 (Minor Second) micro-scale to fit dense matrices without overflowing"
+  },
+  "layoutRhythm": {
+    "density": "compact",
+    "gridStructure": "24-column ultra-granular grid with 4px gutters; multi-pane splitters and dockable toolbars",
+    "whitespaceDiscipline": "Zero wasted margin space; 2px to 4px padding on actionable cells"
+  },
+  "surfaceTreatment": {
+    "radius": "0px to 2px utilitarian architectural corners",
+    "borderStyle": "1px hairline grid dividing lines; high-contrast focus rings",
+    "depthElevation": "Flat layered docking planes with z-index separation and 1px inset borders"
+  },
+  "componentGuidelines": {
+    "primaryActionStyle": "Tactile micro-buttons with distinct armed / triggered / locked states",
+    "cardStructure": "Collapsible metric cells with miniature status bars and instantaneous refresh indicators",
+    "tablePresentation": "Spreadsheet-style dense grid with multi-column sorting, row grouping, column reordering, and cell editing"
+  },
+  "accessibilityProfile": {
+    "targetWcagRatio": 7.0,
+    "keyboardHandling": "Full spreadsheet navigation (arrow keys, Tab, Enter, Space, Home, End, PageUp/Down); keyboard shortcuts for all commands",
+    "reducedMotionRules": "Zero spatial translation motion; updates are instantaneous DOM changes"
+  },
+  "antiPatterns": [
+    "Large decorative illustrations taking up vertical viewport space",
+    "Excessive 32px padding inside data cards",
+    "Hidden data behind decorative hover tooltips that could be shown directly",
+    "Animated spinning loaders that delay interaction"
+  ],
+  "verificationProtocol": {
+    "requiredGates": [
+      "gate_contrast_wcag.py",
+      "gate_fsm_integrity.py",
+      "gate_bidi_logical.py",
+      "gate_cwv_budget.mjs"
+    ],
+    "browserChecks": [
+      "Verify DOM node count efficiency under 1000+ displayed data cells",
+      "Verify zero CPU lockup during high-frequency data push",
+      "Verify keyboard shortcuts operate reliably across all pane states"
+    ]
+  }
+}

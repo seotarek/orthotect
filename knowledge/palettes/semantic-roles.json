@@ -1,0 +1,42 @@
+{
+  "$schema": "../schemas/knowledge-record.schema.json",
+  "id": "semantic-roles",
+  "title": "Deterministic Semantic Color Token Roles & Contrast Architecture",
+  "category": "palettes",
+  "summary": "Formal specification of intent-driven color roles, canvas surfaces, and dark/light mode token mappings satisfying WCAG 2.2 contrast thresholds.",
+  "whenToUse": "When designing or implementing color tokens, styling components, or theming application surfaces across light and dark modes.",
+  "whenNotToUse": "Do not use arbitrary hex codes or component-scoped ad-hoc colors outside the 3-tier token system.",
+  "rules": [
+    "All color assignments must use semantic tokens: var(--ot-surface-canvas), var(--ot-surface-card), var(--ot-action-primary), var(--ot-action-danger).",
+    "Text on canvas must achieve at least 4.5:1 contrast for regular text and 3.0:1 for large text (AA); AAA targets 7.0:1 and 4.5:1.",
+    "Dark mode must elevate surface brightness as hierarchy increases (surface-0 < surface-1 < surface-2 < surface-3).",
+    "Light mode must maintain contrast without cutting harsh white blocks through colored grids or dark terminal backgrounds."
+  ],
+  "antiPatterns": [
+    "Hardcoded hex or rgba color codes in component CSS",
+    "Flipping dark to light by inverting colors without re-verifying contrast ratios",
+    "Using gray text with contrast below 4.5:1 on light backgrounds",
+    "Mixing saturated colored drop shadows under neutral text cards"
+  ],
+  "applicableStacks": [
+    "css",
+    "scss",
+    "tailwind",
+    "react",
+    "vue",
+    "svelte",
+    "design-tokens"
+  ],
+  "accessibilityNotes": "Every semantic token pair must pass the automated gate_contrast_wcag.py analyzer before deployment.",
+  "provenance": "Synthesized independently from DTCG specification, WCAG 2.2 APG guidelines, and Orthotect architecture doctrine.",
+  "verificationStatus": "VERIFIED_DETERMINISTIC",
+  "tags": [
+    "palettes",
+    "contrast",
+    "wcag",
+    "tokens",
+    "dark-mode",
+    "light-mode",
+    "semantic-colors"
+  ]
+}

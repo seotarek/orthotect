@@ -1,0 +1,42 @@
+{
+  "$schema": "../schemas/knowledge-record.schema.json",
+  "id": "logical-rules",
+  "title": "True Bidirectional (BiDi) Engineering via CSS Logical Properties",
+  "category": "bidi",
+  "summary": "Mandatory use of CSS Logical Properties and directional vector isolation for flawless LTR and RTL symmetric layout rendering.",
+  "whenToUse": "Mandatory on all layout, spacing, alignment, and directional styling across components and screens.",
+  "whenNotToUse": "Physical directions (left, right, margin-left, padding-right) are strictly forbidden under Orthotect Law 2.",
+  "rules": [
+    "Replace margin-left with margin-inline-start; replace margin-right with margin-inline-end.",
+    "Replace padding-left with padding-inline-start; replace padding-right with padding-inline-end.",
+    "Replace text-align: left with text-align: start; replace text-align: right with text-align: end.",
+    "Replace left/right position offsets with inset-inline-start and inset-inline-end.",
+    "Directional vectors (e.g. forward arrow →) must flip automatically in RTL via [dir='rtl'] svg { transform: scaleX(-1); }."
+  ],
+  "antiPatterns": [
+    "Writing duplicate stylesheets (style-rtl.css) or hardcoded .rtl overrides",
+    "Using float: left or float: right in modern CSS",
+    "Hardcoding physical left/right margins that invert incorrectly in Arabic or Hebrew",
+    "Flipping non-directional icons (e.g., search magnifying glass, clock, checkmark) in RTL"
+  ],
+  "applicableStacks": [
+    "css",
+    "html",
+    "bidi",
+    "rtl",
+    "arabic",
+    "hebrew",
+    "internationalization"
+  ],
+  "accessibilityNotes": "Guarantees full cognitive symmetry and natural reading order for right-to-left language users.",
+  "provenance": "W3C CSS Logical Properties and Values Level 1 recommendation and Orthotect Law 2.",
+  "verificationStatus": "VERIFIED_DETERMINISTIC",
+  "tags": [
+    "bidi",
+    "rtl",
+    "logical-properties",
+    "css-logical",
+    "internationalization",
+    "symmetry"
+  ]
+}
