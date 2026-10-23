@@ -1926,13 +1926,21 @@ body.nav-open {
   transition: transform var(--transition-fast), border-color var(--transition-fast);
 }
 
-.gallery-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--ortho-border-active);
+.gallery-filter-btn.active {
+  background-color: var(--ortho-accent-cyan);
+  color: #040810;
+  border-color: var(--ortho-accent-cyan);
+  font-weight: 700;
+}
+
+[data-theme="light"] .gallery-filter-btn.active {
+  background-color: var(--ortho-accent-cyan);
+  color: #ffffff;
 }
 
 .gallery-card-thumb {
-  block-size: 160px;
+  position: relative;
+  block-size: 140px;
   background-color: var(--ortho-surface-2);
   display: flex;
   align-items: center;
@@ -1960,11 +1968,81 @@ body.nav-open {
   margin-block-end: 1rem;
 }
 
+.gallery-controls-bar {
+  margin-block-end: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.gallery-cluster-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.gallery-search-wrap {
+  display: flex;
+  gap: 1rem;
+  max-inline-size: 600px;
+  margin-inline: auto;
+  inline-size: 100%;
+}
+
+.gallery-search-input {
+  flex: 1;
+  padding-inline: 1rem;
+  padding-block: 0.65rem;
+  background-color: var(--ortho-surface-1);
+  border: 1px solid var(--ortho-border-medium);
+  border-radius: var(--radius-sm);
+  color: var(--ortho-text-primary);
+}
+
+.gallery-count-badge {
+  align-self: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ortho-accent-cyan);
+  white-space: nowrap;
+}
+
+.gallery-cluster-badge {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-end: 8px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding-inline: 6px;
+  padding-block: 2px;
+  border-radius: var(--radius-xs);
+  background-color: var(--ortho-surface-3);
+  color: var(--ortho-accent-cyan);
+  border: 1px solid var(--ortho-border-subtle);
+}
+
 .gallery-card-actions {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
   margin-block-start: auto;
+}
+
+.gallery-open-btn {
+  text-decoration: none;
+  flex: 1;
+  text-align: center;
+  justify-content: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.gallery-interactive-btn {
+  text-decoration: none;
+  font-size: 0.8rem;
 }
 
 /* ==========================================================================

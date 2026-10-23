@@ -1401,6 +1401,110 @@ class TestDocsBrowserPlatform(unittest.TestCase):
         self.assertEqual(res.returncode, 0, f"CLI terminal contrast & interactivity test failed: {res.stderr}\n{res.stdout}")
         self.assertIn("SUCCESS_CLI_CONTRAST_INTERACTIVITY", res.stdout)
 
+    def test_gallery_50_templates_and_seo_infrastructure(self):
+        """Verify 50 standalone templates, cluster filtering, search, and SEO assets."""
+        templates_dir = os.path.join(self.root_dir, 'docs', 'templates')
+        html_files = [f for f in os.listdir(templates_dir) if f.endswith('.html')]
+        self.assertEqual(len(html_files), 50, f"Expected exactly 50 standalone HTML templates, found {len(html_files)}")
+
+        # Verify sitemap.xml
+        sitemap_path = os.path.join(self.root_dir, 'docs', 'sitemap.xml')
+        self.assertTrue(os.path.exists(sitemap_path), "sitemap.xml must exist")
+        with open(sitemap_path, 'r', encoding='utf-8') as f:
+            sitemap_content = f.read()
+        self.assertIn("<loc>https://seotarek.github.io/orthotect/</loc>", sitemap_content)
+        for h in html_files:
+            self.assertIn(f"<loc>https://seotarek.github.io/orthotect/templates/{h}</loc>", sitemap_content)
+
+        # Verify robots.txt
+        robots_path = os.path.join(self.root_dir, 'docs', 'robots.txt')
+        self.assertTrue(os.path.exists(robots_path), "robots.txt must exist")
+        with open(robots_path, 'r', encoding='utf-8') as f:
+            robots_content = f.read()
+        self.assertIn("Sitemap: https://seotarek.github.io/orthotect/sitemap.xml", robots_content)
+
+        # Browser verification of gallery filtering and search
+        node_script = f"""
+        import('playwright-core').then(async ({{ chromium }}) => {{
+          const browser = await chromium.launch({{
+            executablePath: '{self.chrome_path}',
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+          }});
+          const page = await browser.newPage();
+          await page.goto('file://{self.docs_html}#gallery');
+          await page.waitForTimeout(100);
+
+          // 1. Initial count must be 50
+          let cards = await page.$$('.gallery-card');
+          if (cards.length !== 50) {{
+            throw new Error(`Expected 50 gallery cards initially, got ${{cards.length}}`);
+          }}
+
+          // 2. Filter by Dashboards (Cluster 1) -> 10
+          await page.click('button[data-cluster="dashboards"]');
+          await page.waitForTimeout(60);
+          cards = await page.$$('.gallery-card');
+          if (cards.length !== 10) {{
+            throw new Error(`Expected 10 dashboard cards, got ${{cards.length}}`);
+          }}
+
+          // 3. Filter by Forms (Cluster 2) -> 10
+          await page.click('button[data-cluster="forms"]');
+          await page.waitForTimeout(60);
+          cards = await page.$$('.gallery-card');
+          if (cards.length !== 10) {{
+            throw new Error(`Expected 10 forms cards, got ${{cards.length}}`);
+          }}
+
+          // 4. Filter by E-Commerce (Cluster 3) -> 10
+          await page.click('button[data-cluster="ecommerce"]');
+          await page.waitForTimeout(60);
+          cards = await page.$$('.gallery-card');
+          if (cards.length !== 10) {{
+            throw new Error(`Expected 10 ecommerce cards, got ${{cards.length}}`);
+          }}
+
+          // 5. Filter by Civic (Cluster 4) -> 10
+          await page.click('button[data-cluster="civic"]');
+          await page.waitForTimeout(60);
+          cards = await page.$$('.gallery-card');
+          if (cards.length !== 10) {{
+            throw new Error(`Expected 10 civic cards, got ${{cards.length}}`);
+          }}
+
+          // 6. Filter by SaaS (Cluster 5) -> 10
+          await page.click('button[data-cluster="saas"]');
+          await page.waitForTimeout(60);
+          cards = await page.$$('.gallery-card');
+          if (cards.length !== 10) {{
+            throw new Error(`Expected 10 saas cards, got ${{cards.length}}`);
+          }}
+
+          // 7. Test live search
+          await page.click('button[data-cluster="all"]');
+          await page.fill('#gallerySearchInput', 'trading');
+          await page.waitForTimeout(60);
+          cards = await page.$$('.gallery-card');
+          if (cards.length === 0) {{
+            throw new Error('Expected at least 1 match for search query "trading"');
+          }}
+          const firstTitle = await cards[0].$eval('.gallery-card-title', el => el.textContent);
+          if (!firstTitle.toLowerCase().includes('trading')) {{
+            throw new Error(`Expected trading in title, got: ${{firstTitle}}`);
+          }}
+
+          await browser.close();
+          console.log('SUCCESS_GALLERY_50_TEMPLATES_SEO');
+        }}).catch(err => {{
+          console.error(err);
+          process.exit(1);
+        }});
+        """
+        res = subprocess.run(['node', '--input-type=module', '-e', node_script],
+                             capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Gallery 50 templates browser test failed: {res.stderr}\n{res.stdout}")
+        self.assertIn("SUCCESS_GALLERY_50_TEMPLATES_SEO", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
 

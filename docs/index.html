@@ -3,8 +3,60 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orthotect — Skill Studio &amp; Deterministic Interface Runtime</title>
-  <meta name="description" content="The deterministic interface engineering and runtime gate architecture for AI coding agents. Objective parallel gates for WCAG 2.2 token contrast, strict CSS logical properties, FSM integrity, and media layout stability." />
+  <title>Orthotect — UI/UX Design Intelligence &amp; Deterministic Interface Runtime</title>
+  <meta name="description" content="The deterministic interface engineering and runtime gate architecture for AI coding agents. 50 production templates, DTCG tokens, and sub-second parallel quality gates for WCAG 2.2 AAA contrast, CSS logical properties, and FSM integrity." />
+  <meta name="keywords" content="orthotect, design systems, design tokens, dtcg, ai coding agents, claude code, cursor agent, antigravity, codex, fsm integrity, wcag 2.2 aaa, bidi rtl layout, ui ux design intelligence, 50 production templates, enterprise ui templates" />
+  <link rel="canonical" href="https://seotarek.github.io/orthotect/" />
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+
+  <!-- OpenGraph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Orthotect — UI/UX Design Intelligence &amp; Interface Engineering Platform" />
+  <meta property="og:description" content="Deterministic interface engineering, 50 production templates, DTCG tokens, and runtime quality gates for AI coding agents." />
+  <meta property="og:url" content="https://seotarek.github.io/orthotect/" />
+  <meta property="og:site_name" content="Orthotect Architecture Platform" />
+  <meta property="og:image" content="https://seotarek.github.io/orthotect/assets/brand/brand-guide.jpg" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Orthotect — UI/UX Design Intelligence &amp; Interface Engineering Platform" />
+  <meta name="twitter:description" content="Deterministic interface engineering, 50 production templates, DTCG tokens, and runtime quality gates for AI coding agents." />
+  <meta name="twitter:image" content="https://seotarek.github.io/orthotect/assets/brand/brand-guide.jpg" />
+
+  <!-- Schema.org JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://seotarek.github.io/orthotect/#website",
+        "url": "https://seotarek.github.io/orthotect/",
+        "name": "Orthotect Architecture Platform",
+        "description": "Deterministic Interface Engineering & Runtime Gate Architecture for AI Coding Agents",
+        "inLanguage": "en-US"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "Orthotect",
+        "operatingSystem": "Cross-platform (Node.js, Python)",
+        "applicationCategory": "DeveloperApplication",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "license": "https://opensource.org/licenses/MIT",
+        "author": {
+          "@type": "Organization",
+          "name": "Orthotect Architecture Team",
+          "url": "https://seotarek.github.io/orthotect/"
+        }
+      }
+    ]
+  }
+  </script>
+
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" type="image/svg+xml" href="assets/brand/favicon.svg" />
   <script>
@@ -707,9 +759,26 @@
         <div class="section-pad">
           <div class="container">
             <div class="section-hdr">
-              <div class="section-pill" id="galleryPill">Verified Production Templates</div>
-              <h2 class="section-title" id="galleryTitle">Examples Gallery</h2>
-              <p class="section-desc" id="gallerySub">Explore downloadable, pre-certified production components built to Orthotect standards. Each example includes design tokens, FSM models, test coverage, and one-click source downloads.</p>
+              <div class="section-pill" id="galleryPill">50 Verified Production Templates</div>
+              <h2 class="section-title" id="galleryTitle">Production Examples Gallery</h2>
+              <p class="section-desc" id="gallerySub">Explore 50 standalone, pre-certified production templates built to Orthotect standards. Each template includes DTCG design tokens, FSM models, full BiDi symmetry, WCAG 2.2 AAA contrast, and one-click source downloads.</p>
+            </div>
+
+            <!-- Gallery Controls: Cluster Filter Pills & Search -->
+            <div class="gallery-controls-bar">
+              <div class="gallery-cluster-tabs">
+                <button type="button" class="btn-ctrl gallery-filter-btn active" data-cluster="all">All Templates (50)</button>
+                <button type="button" class="btn-ctrl gallery-filter-btn" data-cluster="dashboards">Dashboards &amp; Telemetry (10)</button>
+                <button type="button" class="btn-ctrl gallery-filter-btn" data-cluster="forms">Forms &amp; FSM (10)</button>
+                <button type="button" class="btn-ctrl gallery-filter-btn" data-cluster="ecommerce">Material E-Commerce (10)</button>
+                <button type="button" class="btn-ctrl gallery-filter-btn" data-cluster="civic">Civic &amp; Clinical (10)</button>
+                <button type="button" class="btn-ctrl gallery-filter-btn" data-cluster="saas">B2B SaaS &amp; DevTools (10)</button>
+              </div>
+
+              <div class="gallery-search-wrap">
+                <input type="text" id="gallerySearchInput" class="form-control gallery-search-input" placeholder="Search templates by keyword, skill, or token...">
+                <div id="galleryCountBadge" class="gallery-count-badge">Showing 50 templates</div>
+              </div>
             </div>
 
             <!-- Gallery Container -->
@@ -950,6 +1019,7 @@
   </div>
 
   <script src="core-models.js"></script>
+  <script src="gallery-data.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

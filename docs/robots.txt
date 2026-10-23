@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://seotarek.github.io/orthotect/sitemap.xml

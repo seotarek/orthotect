@@ -1407,84 +1407,125 @@ ${dod}
   updateSkillBuilderPreview();
 
   // =========================================================================
-  // 7. EXAMPLES GALLERY RENDERER
+  // 7. EXAMPLES GALLERY RENDERER (50 PRODUCTION TEMPLATES)
   // =========================================================================
-  const galleryItems = [
-    {
-      title: "Global Telemetry Console",
-      desc: "High-density SVG latency monitors with zero cumulative layout shifts (CLS = 0.00).",
-      skill: "orthotect-dashboard",
-      tokens: "primitives.json, ergonomics.json",
-      fsm: "core/fsm/data-table-loader.json"
-    },
-    {
-      title: "CRM Deal Pipeline Board",
-      desc: "Multi-stage deal flow with true bidirectional symmetry across LTR and RTL.",
-      skill: "orthotect-bidi",
-      tokens: "semantics.json, motion.json",
-      fsm: "core/fsm/button-states.json"
-    },
-    {
-      title: "Enterprise Data Grid",
-      desc: "Sortable, searchable tabular grid with formal FSM states for loading, empty, and errors.",
-      skill: "orthotect-fsm",
-      tokens: "semantics.json, primitives.json",
-      fsm: "core/fsm/data-table-loader.json"
-    },
-    {
-      title: "Store Inventory Matrix",
-      desc: "Product stock levels, interactive quantity steppers, and WCAG certified status pills.",
-      skill: "orthotect-tokens",
-      tokens: "semantics.json (light & dark)",
-      fsm: "core/fsm/button-states.json"
-    },
-    {
-      title: "FSM Modal Dialog System",
-      desc: "Full W3C APG dialog compliance: focus trap, Escape key handling, and submission locking.",
-      skill: "orthotect-fsm",
-      tokens: "semantics.json, motion.json",
-      fsm: "core/fsm/modal-dialog.json"
-    },
-    {
-      title: "Identity & Credentials Portal",
-      desc: "Account settings with live password strength calculation and two-factor auth.",
-      skill: "orthotect-doctrine",
-      tokens: "semantics.json, ergonomics.json",
-      fsm: "core/fsm/button-states.json"
+  let activeGalleryCluster = "all";
+  let gallerySearchQuery = "";
+
+  function getGalleryItems() {
+    if (window.ORTHOTECT_GALLERY_TEMPLATES && Array.isArray(window.ORTHOTECT_GALLERY_TEMPLATES)) {
+      return window.ORTHOTECT_GALLERY_TEMPLATES;
     }
-  ];
+    return galleryItems;
+  }
 
   function renderGallery() {
     const container = document.getElementById("galleryContainer");
     if (!container) return;
 
-    container.innerHTML = galleryItems.map(item => `
-      <div class="gallery-card">
+    const allItems = getGalleryItems();
+    const filtered = allItems.filter(item => {
+      // Cluster filter
+      const matchesCluster = (activeGalleryCluster === "all") || (item.cluster === activeGalleryCluster);
+      if (!matchesCluster) return false;
+
+      // Search query filter
+      if (!gallerySearchQuery) return true;
+      const q = gallerySearchQuery.toLowerCase();
+      return (
+        item.title.toLowerCase().includes(q) ||
+        item.desc.toLowerCase().includes(q) ||
+        (item.skill && item.skill.toLowerCase().includes(q)) ||
+        (item.tokens && item.tokens.toLowerCase().includes(q)) ||
+        (item.cluster_name && item.cluster_name.toLowerCase().includes(q))
+      );
+    });
+
+    const countBadge = document.getElementById("galleryCountBadge");
+    if (countBadge) {
+      countBadge.textContent = `Showing ${filtered.length} of ${allItems.length} templates`;
+    }
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div style="grid-column: 1 / -1; padding: 3rem 1rem; text-align: center; background: var(--ortho-surface-1); border: 1px dashed var(--ortho-border-medium); border-radius: 12px;">
+          <div style="font-size: 1.5rem; margin-block-end: 0.5rem;">🔍 No templates found</div>
+          <p style="color: var(--ortho-text-secondary); max-width: 480px; margin-inline: auto;">No production templates match "${gallerySearchQuery}". Try clearing search filters or selecting another cluster tab.</p>
+          <button type="button" class="btn-ctrl" onclick="document.getElementById('gallerySearchInput').value=''; window.resetGallerySearch();" style="margin-block-start: 1rem;">Reset Filters</button>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = filtered.map(item => `
+      <div class="gallery-card" data-cluster="${item.cluster || 'all'}">
         <div class="gallery-card-thumb">
-          <svg width="100%" height="80" viewBox="0 0 200 80" fill="none">
-            <rect width="200" height="80" rx="8" fill="var(--ortho-surface-1)" />
+          <svg width="100%" height="90" viewBox="0 0 200 90" fill="none">
+            <rect width="200" height="90" rx="8" fill="var(--ortho-surface-1)" />
             <line x1="20" y1="20" x2="180" y2="20" stroke="var(--ortho-border-medium)" stroke-width="2" />
-            <rect x="20" y="32" width="40" height="10" rx="4" fill="var(--ortho-accent-cyan)" />
-            <rect x="70" y="32" width="60" height="10" rx="4" fill="var(--ortho-border-subtle)" />
-            <rect x="20" y="52" width="160" height="14" rx="4" fill="var(--ortho-surface-2)" />
+            <rect x="20" y="32" width="48" height="10" rx="4" fill="var(--ortho-accent-cyan)" />
+            <rect x="76" y="32" width="60" height="10" rx="4" fill="var(--ortho-border-subtle)" />
+            <rect x="20" y="52" width="160" height="12" rx="4" fill="var(--ortho-surface-2)" />
+            <circle cx="168" cy="37" r="4" fill="#4ade80" />
           </svg>
+          <span class="gallery-cluster-badge">
+            ${item.cluster_name ? item.cluster_name : 'Cluster ' + (item.cluster_num || '1')}
+          </span>
         </div>
         <div class="gallery-card-body">
           <h3 class="gallery-card-title">${item.title}</h3>
           <p class="gallery-card-desc">${item.desc}</p>
           <div class="skill-meta-box">
-            <div class="skill-meta-item"><strong>Skill:</strong> <code>${item.skill}</code></div>
+            <div class="skill-meta-item"><strong>Target Skill:</strong> <code>${item.skill}</code></div>
             <div class="skill-meta-item"><strong>Tokens:</strong> ${item.tokens}</div>
           </div>
           <div class="gallery-card-actions">
-            <a href="#playground" class="btn-ctrl-accent" style="text-decoration: none;">Interactive View</a>
-            <a href="https://github.com/seotarek/orthotect" target="_blank" rel="noopener" class="btn-ctrl" style="text-decoration: none;">GitHub Source</a>
+            ${item.template_url ? `
+              <a href="${item.template_url}" target="_blank" rel="noopener" class="btn-ctrl-accent gallery-open-btn">
+                <span>Open Live</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>
+            ` : ''}
+            <a href="#playground" class="btn-ctrl gallery-interactive-btn">Interactive View</a>
           </div>
         </div>
       </div>
     `).join("");
   }
+
+  // Setup Gallery Event Listeners
+  function initGalleryControls() {
+    const filterButtons = document.querySelectorAll(".gallery-filter-btn");
+    filterButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        filterButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeGalleryCluster = btn.getAttribute("data-cluster") || "all";
+        renderGallery();
+      });
+    });
+
+    const searchInput = document.getElementById("gallerySearchInput");
+    if (searchInput) {
+      searchInput.addEventListener("input", (e) => {
+        gallerySearchQuery = e.target.value.trim();
+        renderGallery();
+      });
+    }
+
+    window.resetGallerySearch = function() {
+      gallerySearchQuery = "";
+      activeGalleryCluster = "all";
+      document.querySelectorAll(".gallery-filter-btn").forEach(b => {
+        b.classList.toggle("active", b.getAttribute("data-cluster") === "all");
+      });
+      renderGallery();
+    };
+  }
+
+  // Initialize gallery
   renderGallery();
+  initGalleryControls();
 
   // =========================================================================
   // 8. QUALITY GATES SIMULATOR (EDUCATIONAL IN-BROWSER INSPECTOR)
