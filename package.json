@@ -58,6 +58,7 @@
     "CHANGELOG.md",
     "CONTRIBUTING.md",
     "docs",
+    "knowledge",
     "COMPETITORS.md",
     "MANIFESTO.md",
     "!**/__pycache__/**",
