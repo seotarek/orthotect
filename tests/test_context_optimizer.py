@@ -4,6 +4,7 @@ Unit and Integration Tests for Orthotect Context Architecture & Token Optimizer
 """
 
 import unittest
+from unittest.mock import patch
 import os
 import sys
 import json
@@ -269,6 +270,264 @@ class TestContextOptimizer(unittest.TestCase):
         files = [f['path'] for f in skel['files']]
         self.assertIn(os.path.join('lvl1', 'Top.js'), files)
         self.assertNotIn(os.path.join('lvl1', 'lvl2', 'lvl3', 'lvl4', 'Deep.js'), files)
+    def test_semantic_chunking_large_top_level_function_preserves_scope_metadata(self):
+        js_lines = ["export function giantPipeline(input) {"]
+        js_lines.append("  const stages = [];")
+        for i in range(120):
+            js_lines.append(f"  function nested_{i}(value) {{")
+            js_lines.append(f"    const local_{i} = `segment {i} with braces {{not-scope}} and // slash`;")
+            js_lines.append("    const regex = /https?:\\/\\/[a-z/]+/i;")
+            js_lines.append(f"    return (() => value + {i})() + (regex.test('https://a') ? 1 : 0);")
+            js_lines.append("  }")
+            js_lines.append(f"  stages.push(nested_{i}(input));")
+        js_lines.append("  return stages.join(',');")
+        js_lines.append("}")
+        js_lines.append("export function tail() { return 'done'; }")
+        js_code = "\n".join(js_lines)
+
+        chunks = semantic_chunk(js_code, max_tokens=180, is_content=True, ext='.js')
+        self.assertGreater(len(chunks), 2)
+        self.assertEqual(chunks[0]['start_line'], 1)
+        self.assertIn("export function giantPipeline", chunks[0]['content'])
+        continuation_chunks = [c for c in chunks if c.get('continuation_of') == 'function giantPipeline']
+        self.assertGreaterEqual(len(continuation_chunks), 1)
+        for c in continuation_chunks:
+            self.assertEqual(c['context_path'], ['function giantPipeline'])
+            self.assertIn('oversized_scope', c)
+            self.assertEqual(c['oversized_scope']['name'], 'giantPipeline')
+            self.assertEqual(c['split_strategy'] in ('nested_boundary', 'line_window'), True)
+
+    def test_semantic_chunking_python_nested_functions_with_tabs(self):
+        py_code = (
+            "def outer(value):\n"
+            "\ttotal = value\n"
+            "\tdef inner_a(v):\n"
+            "\t\tdef inner_b(x):\n"
+            "\t\t\treturn x + 1\n"
+            "\t\treturn inner_b(v)\n"
+            "\tfor i in range(180):\n"
+            "\t\ttotal += inner_a(i)\n"
+            "\tlog_message = 'this is a deliberately long line to force token expansion in semantic chunking for python tabs'\n"
+            "\tlog_message2 = 'another deliberately long line to keep the declaration above the max token threshold'\n"
+            "\tlog_message3 = 'chunking should keep explicit continuation metadata for oversized declarations'\n"
+            "\treturn total\n\n"
+            "def sibling():\n"
+            "\treturn 'ok'\n"
+        )
+        symbols = extract_symbols(py_code, '.py')
+        names = [s['name'] for s in symbols]
+        self.assertIn('outer', names)
+        self.assertIn('inner_a', names)
+        self.assertIn('inner_b', names)
+        inner_b = [s for s in symbols if s['name'] == 'inner_b'][0]
+        self.assertEqual(inner_b['parent'], 'inner_a')
+
+        chunks = semantic_chunk(py_code, max_tokens=40, is_content=True, ext='.py')
+        self.assertGreaterEqual(len(chunks), 2)
+        continuation_chunks = [c for c in chunks if c.get('continuation_of') == 'function outer']
+        self.assertTrue(continuation_chunks)
+        for c in continuation_chunks:
+            self.assertIn('function outer', " > ".join(c['context_path']))
+
+    def test_extract_symbols_multiple_declarations_same_line(self):
+        js_code = "export function a() { return 1; } export function b() { return 2; } const c = () => 3;"
+        symbols = extract_symbols(js_code, '.js')
+        names = [s['name'] for s in symbols]
+        self.assertIn('a', names)
+        self.assertIn('b', names)
+        self.assertIn('c', names)
+
+    def test_generate_context_skeleton_depth_pruning_stops_traversal(self):
+        root = os.path.join(self.temp_dir, 'repo')
+        os.makedirs(root)
+        os.makedirs(os.path.join(root, 'lvl1', 'lvl2', 'lvl3'))
+        with open(os.path.join(root, 'lvl1', 'Top.js'), 'w') as f:
+            f.write("export const top = true;\n")
+        with open(os.path.join(root, 'lvl1', 'lvl2', 'Deep.js'), 'w') as f:
+            f.write("export const deep = true;\n")
+
+        visited = []
+        subdirs = {
+            root: ['lvl1'],
+            os.path.join(root, 'lvl1'): ['lvl2'],
+            os.path.join(root, 'lvl1', 'lvl2'): ['lvl3'],
+            os.path.join(root, 'lvl1', 'lvl2', 'lvl3'): []
+        }
+        files_map = {
+            root: [],
+            os.path.join(root, 'lvl1'): ['Top.js'],
+            os.path.join(root, 'lvl1', 'lvl2'): ['Deep.js'],
+            os.path.join(root, 'lvl1', 'lvl2', 'lvl3'): []
+        }
+
+        def instrumented_walk(_root_path):
+            queue = [root]
+            while queue:
+                current = queue.pop(0)
+                dirs = list(subdirs[current])
+                files = list(files_map[current])
+                visited.append(current)
+                yield current, dirs, files
+                for d in dirs:
+                    queue.append(os.path.join(current, d))
+
+        with patch('core.context_optimizer.os.walk', side_effect=instrumented_walk):
+            skel = generate_context_skeleton(root, max_depth=1)
+
+        self.assertIn(os.path.join(root, 'lvl1'), visited)
+        self.assertNotIn(os.path.join(root, 'lvl1', 'lvl2'), visited)
+        files = [f['path'] for f in skel['files']]
+        self.assertIn(os.path.join('lvl1', 'Top.js'), files)
+        self.assertNotIn(os.path.join('lvl1', 'lvl2', 'Deep.js'), files)
+
+    def test_extract_symbols_ignores_declarations_in_comments_strings_templates_and_regex(self):
+        js_code = '''
+        // function ghostSingleLine() {}
+        /* export class GhostMultiLine {} */
+        const singleStr = 'function fakeInSingle() {}';
+        const doubleStr = "export class FakeInDouble {}";
+        const tpl = `
+            function fakeInTpl() {}
+            ${function realInExpression() { return 100; }}
+            /* comment inside template */
+        `;
+        const regex1 = /function fakeInRegex() {}/g;
+        const regex2 = /[a-z/\\-\\[\\]]+/i;
+        const division = (a + b) / 2;
+        export function realTopLevel() {
+            return true;
+        }
+        '''
+        symbols = extract_symbols(js_code, '.js')
+        names = [s['name'] for s in symbols]
+        self.assertNotIn('ghostSingleLine', names)
+        self.assertNotIn('GhostMultiLine', names)
+        self.assertNotIn('fakeInSingle', names)
+        self.assertNotIn('FakeInDouble', names)
+        self.assertNotIn('fakeInTpl', names)
+        self.assertNotIn('fakeInRegex', names)
+
+        self.assertIn('realInExpression', names)
+        self.assertIn('realTopLevel', names)
+
+    def test_extract_symbols_same_named_methods_and_nested_functions(self):
+        js_code = '''
+        export class ViewA {
+            constructor() {}
+            render() { return "A"; }
+        }
+        export class ViewB {
+            constructor() {}
+            render() { return "B"; }
+        }
+        export function outerA() {
+            function helper() { return 1; }
+            return helper();
+        }
+        export function outerB() {
+            function helper() { return 2; }
+            return helper();
+        }
+        '''
+        symbols = extract_symbols(js_code, '.js')
+        renders = [s for s in symbols if s['name'] == 'render']
+        self.assertEqual(len(renders), 2)
+        parents = {r['parent'] for r in renders}
+        self.assertEqual(parents, {'ViewA', 'ViewB'})
+        self.assertNotEqual(renders[0]['id'], renders[1]['id'])
+
+        helpers = [s for s in symbols if s['name'] == 'helper']
+        self.assertEqual(len(helpers), 2)
+        h_parents = {h['parent'] for h in helpers}
+        self.assertEqual(h_parents, {'outerA', 'outerB'})
+        self.assertNotEqual(helpers[0]['id'], helpers[1]['id'])
+
+    def test_extract_symbols_python_decorators_and_tab_indentation(self):
+        py_code = (
+            "@dataclass\n"
+            "class Configuration:\n"
+            "\tname: str\n\n"
+            "@router.get('/endpoint')\n"
+            "@authenticate(\n"
+            "\tscope='admin',\n"
+            "\tstrict=True\n"
+            ")\n"
+            "def handle_get():\n"
+            "\t@memoize\n"
+            "\tdef cached_helper():\n"
+            "\t\treturn 42\n"
+            "\treturn cached_helper()\n\n"
+            "@router.post('/endpoint')\n"
+            "def handle_post():\n"
+            "\treturn True\n"
+        )
+        symbols = extract_symbols(py_code, '.py')
+        names = [s['name'] for s in symbols]
+        self.assertIn('Configuration', names)
+        self.assertIn('handle_get', names)
+        self.assertIn('cached_helper', names)
+        self.assertIn('handle_post', names)
+
+        cfg = [s for s in symbols if s['name'] == 'Configuration'][0]
+        self.assertEqual(cfg['line'], 1)
+        self.assertEqual(cfg['def_line'], 2)
+        self.assertIn('@dataclass', cfg['decorators'])
+
+        h_get = [s for s in symbols if s['name'] == 'handle_get'][0]
+        self.assertEqual(h_get['line'], 5)
+        self.assertEqual(h_get['def_line'], 10)
+        self.assertEqual(len(h_get['decorators']), 5)
+
+        cached = [s for s in symbols if s['name'] == 'cached_helper'][0]
+        self.assertEqual(cached['parent'], 'handle_get')
+        self.assertEqual(cached['line'], 11)
+
+    def test_generate_context_skeleton_boundary_depths(self):
+        root = os.path.join(self.temp_dir, 'depth_test')
+        os.makedirs(os.path.join(root, 'd1', 'd2', 'd3'))
+        with open(os.path.join(root, 'Root.js'), 'w') as f:
+            f.write("export const root = true;\n")
+        with open(os.path.join(root, 'd1', 'D1.js'), 'w') as f:
+            f.write("export const d1 = true;\n")
+        with open(os.path.join(root, 'd1', 'd2', 'D2.js'), 'w') as f:
+            f.write("export const d2 = true;\n")
+
+        # Depth 0: only root directory files
+        skel0 = generate_context_skeleton(root, max_depth=0)
+        files0 = [f['path'] for f in skel0['files']]
+        self.assertIn('Root.js', files0)
+        self.assertNotIn(os.path.join('d1', 'D1.js'), files0)
+
+        # Depth 1: root and direct children
+        skel1 = generate_context_skeleton(root, max_depth=1)
+        files1 = [f['path'] for f in skel1['files']]
+        self.assertIn('Root.js', files1)
+        self.assertIn(os.path.join('d1', 'D1.js'), files1)
+        self.assertNotIn(os.path.join('d1', 'd2', 'D2.js'), files1)
+
+        # Depth 2: down to d2
+        skel2 = generate_context_skeleton(root, max_depth=2)
+        files2 = [f['path'] for f in skel2['files']]
+        self.assertIn('Root.js', files2)
+        self.assertIn(os.path.join('d1', 'D1.js'), files2)
+        self.assertIn(os.path.join('d1', 'd2', 'D2.js'), files2)
+
+    def test_semantic_chunking_oversized_nested_declaration(self):
+        js_lines = ["export function masterController() {"]
+        for i in range(120):
+            js_lines.append(f"  function worker_{i}(data) {{ return data + {i}; }}")
+        js_lines.append("  return worker_0('start');")
+        js_lines.append("}")
+        js_code = "\n".join(js_lines)
+
+        chunks = semantic_chunk(js_code, max_tokens=100, is_content=True, ext='.js')
+        self.assertGreaterEqual(len(chunks), 2)
+        worker_chunks = [c for c in chunks if c.get('continuation_of') == 'function masterController']
+        self.assertTrue(worker_chunks)
+        for c in worker_chunks:
+            self.assertEqual(c['context_path'], ['function masterController'])
+            self.assertIn('oversized_scope', c)
+            self.assertEqual(c['oversized_scope']['name'], 'masterController')
 
 if __name__ == '__main__':
     unittest.main()

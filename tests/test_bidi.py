@@ -416,7 +416,21 @@ class TestBidiGateE2E(unittest.TestCase):
         self.assertNotEqual(res_div.returncode, 0)
         self.assertIn("paddingLeft", res_div.stdout)
 
+    def test_bidi_regex_and_division_edge_cases_do_not_hide_violations(self):
+        """Regex literals (nested headers, escaped classes) and arithmetic division must preserve downstream violation detection."""
+        js_file = os.path.join(self.temp_dir, 'regex_division_edges.jsx')
+        with open(js_file, 'w') as f:
+            f.write("""
+            if ((isProd && check(path)) || (flags?.enabled ?? false)) /https?:\\/\\/[a-z/\\-\\[\\]]+/i.test(url);
+            const ratioA = (a + b) / total;
+            const ratioB = computeScore(a, b) / 2; // division after call
+            const safe = /foo\\/[bar\\]]+/.test("foo/bar]");
+            const Card = () => <div style={{ marginLeft: 8, paddingRight: 4 }} />; /* trailing comment with /slashes/ */
+            """)
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("marginLeft", res.stdout)
+        self.assertIn("paddingRight", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
-
-

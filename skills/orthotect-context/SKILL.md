@@ -12,7 +12,7 @@ The house standard for maximizing autonomous AI coding agent efficiency, prevent
 ### Law 1: Zero-Scan Grounding (Index-First Navigation)
 Never run recursive directory dumps or unbounded file tree traversals.
 - Ground agent intent using project index files (`README.md`, `package.json`, `MANIFESTO.md`, or `AGENTS.md`) before running discovery commands.
-- Run `orthotect context skeleton <dir>` to load a 95%+ compressed symbol map mapping symbols to exact lines.
+- Run `orthotect context skeleton <dir>` to load a compact architectural symbol map mapping symbols to exact lines.
 
 ### Law 2: 3-Tier Progressive Disclosure
 Never read an entire file over 120 lines when inspecting or modifying isolated logic. Always use the 3-tier funnel:
