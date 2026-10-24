@@ -4,7 +4,7 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.7.4] - 2026-10-24
 
 ### Added
 - **Auto-Healing Engine (`--fix`)**:
@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Supports custom file exclusion patterns (`exclude: [...]`), customized DOM nesting depth ceilings (`cwv: { maxDomDepth: 32 }`), and gate toggles.
   - Integrated into `gates/gate_bidi_logical.py`, `gates/gate_cwv_budget.mjs`, and `gates/run_all_gates.py`.
   - Added full test coverage in `tests/test_config.py`.
+- **Universal Release Version Synchronization**:
+  - Synchronized CLI package fallback in `bin/orthotect.js` to `1.7.4`.
+  - Synchronized canonical contrast matrix specifications (`core/tokens/contrast-matrix.json` and `examples/golden-showcase/...`) to `1.7.4`.
+  - Synchronized verification revision tags across all 12 UI/UX style recipes in `knowledge/styles/*.json` to `v1.7.4`.
+  - Updated SEO gallery generator (`scripts/generate_seo_gallery.py`) and regenerated all 50 standalone production HTML templates (`docs/templates/*.html`) with `v1.7.4` terminal bars and changelog entries.
 
 ## [1.7.3] - 2026-10-23
 

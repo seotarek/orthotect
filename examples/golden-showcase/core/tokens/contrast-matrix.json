@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Orthotect Canonical Contrast Matrix Specification",
-  "version": "1.7.3",
+  "version": "1.7.4",
   "tiers": {
     "normal_text": {
       "minRatioAA": 4.5,

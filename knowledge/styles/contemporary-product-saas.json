@@ -69,9 +69,11 @@
   "verificationStatus": "HEURISTIC",
   "evidence": {
     "schemaValid": true,
-    "gatesPassed": ["gate_bidi_logical.py"],
+    "gatesPassed": [
+      "gate_bidi_logical.py"
+    ],
     "browserVerified": false,
     "verifiedAt": "2026-10-23T04:00:00Z",
-    "revision": "v1.7.3"
+    "revision": "v1.7.4"
   }
 }
