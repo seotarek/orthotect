@@ -160,7 +160,7 @@ def mask_js_code(text: str) -> str:
                 i += 2
             elif ch == '$' and i + 1 < n and text[i + 1] == '{':
                 stack.append(['TEMPLATE_EXPR', 1])
-                result.append('  ')
+                result.append(' {')
                 i += 2
             elif ch == '`':
                 stack.pop()
@@ -244,7 +244,7 @@ def mask_js_code(text: str) -> str:
                 top[1] -= 1
                 if top[1] == 0:
                     stack.pop()
-                    result.append(' ')
+                    result.append('}')
                     i += 1
                     continue
 
@@ -277,20 +277,29 @@ def _build_scope_path(symbol: dict, symbol_by_id: dict) -> list:
 def _split_oversized_range_by_lines(lines: list, range_start: int, range_end: int, max_tokens: int) -> list:
     """
     Deterministic structural fallback for a single oversized declaration range.
-    Splits by line windows sized by local token density.
+    Splits by accumulating lines strictly within the max_tokens budget.
+    If an indivisible single line exceeds max_tokens on its own, it is allocated
+    its own single-line chunk to preserve line structure.
     """
-    text = "\n".join(lines[range_start - 1:range_end])
-    tokens = estimate_tokens(text)
-    total_lines = max(1, range_end - range_start + 1)
-    tokens_per_line = max(1.0, tokens / total_lines)
-    window_lines = max(20, int(max_tokens / tokens_per_line))
-
     spans = []
-    cursor = range_start
-    while cursor <= range_end:
-        end_line = min(range_end, cursor + window_lines - 1)
-        spans.append((cursor, end_line, 'line_window'))
-        cursor = end_line + 1
+    chunk_start = range_start
+    accumulated_lines = []
+
+    for line_idx in range(range_start, range_end + 1):
+        line_text = lines[line_idx - 1]
+        test_lines = accumulated_lines + [line_text]
+        test_tokens = estimate_tokens("\n".join(test_lines))
+
+        if test_tokens > max_tokens and accumulated_lines:
+            spans.append((chunk_start, line_idx - 1, 'line_window'))
+            chunk_start = line_idx
+            accumulated_lines = [line_text]
+        else:
+            accumulated_lines.append(line_text)
+
+    if accumulated_lines:
+        spans.append((chunk_start, range_end, 'line_window'))
+
     return spans
 
 
@@ -640,10 +649,16 @@ def semantic_chunk(filepath_or_content: str, max_tokens: int = 500, is_content: 
 
         symbol_name = f"{symbol['type']} {symbol['name']}"
         context_path = _build_scope_path(symbol, symbol_by_id)
-        child_symbols = [
-            s for s in symbols_sorted
-            if r_start < s['line'] <= r_end and (s.get('parent_id') == symbol.get('id') or s.get('parent') == symbol.get('name'))
-        ]
+        if symbol.get('id'):
+            child_symbols = [
+                s for s in symbols_sorted
+                if r_start < s['line'] <= r_end and s.get('parent_id') == symbol.get('id')
+            ]
+        else:
+            child_symbols = [
+                s for s in symbols_sorted
+                if r_start < s['line'] <= r_end and s.get('parent') == symbol.get('name')
+            ]
         child_starts = sorted({s['line'] for s in child_symbols})
 
         sub_ranges = []
@@ -674,15 +689,35 @@ def semantic_chunk(filepath_or_content: str, max_tokens: int = 500, is_content: 
             sub_tokens = estimate_tokens(sub_text)
 
             if sub_tokens > max_tokens and strategy != 'line_window':
+                if sub_sym:
+                    sub_sym_name = f"{sub_sym['type']} {sub_sym['name']}"
+                    sub_context_path = _build_scope_path(sub_sym, symbol_by_id)
+                    sub_oversized_meta = {
+                        'name': sub_sym.get('name'),
+                        'type': sub_sym.get('type'),
+                        'start_line': sub_start,
+                        'end_line': sub_end
+                    }
+                else:
+                    sub_sym_name = symbol_name
+                    sub_context_path = context_path
+                    sub_oversized_meta = oversized_meta
+
                 finer = _split_oversized_range_by_lines(lines, sub_start, sub_end, max_tokens)
                 for j, (f_start, f_end, f_strategy) in enumerate(finer):
-                    continuation = None if (idx_sub == 0 and j == 0 and f_start == r_start) else symbol_name
+                    if idx_sub == 0 and j == 0 and f_start == r_start:
+                        continuation = None
+                    elif j == 0:
+                        continuation = symbol_name
+                    else:
+                        continuation = sub_sym_name
+
                     append_chunk(
                         f_start, f_end,
                         continuation_of=continuation,
                         split_strategy=f_strategy,
-                        context_path=context_path,
-                        oversized_scope=oversized_meta
+                        context_path=sub_context_path,
+                        oversized_scope=sub_oversized_meta
                     )
             else:
                 continuation = None if (idx_sub == 0 and sub_start == r_start) else symbol_name

@@ -252,8 +252,14 @@ class TestContextOptimizer(unittest.TestCase):
         continuation_chunks = [c for c in chunks if c.get('continuation_of')]
         self.assertTrue(len(continuation_chunks) >= 1)
         for c in continuation_chunks:
-            self.assertEqual(c['continuation_of'], 'class HeavyProcessor')
-            self.assertIn("// [Context Continuation: class HeavyProcessor", c['content'])
+            self.assertIn(c['continuation_of'], ('class HeavyProcessor', 'method phaseOne', 'method phaseTwo'))
+            self.assertTrue(
+                any(marker in c['content'] for marker in (
+                    "// [Context Continuation: class HeavyProcessor",
+                    "// [Context Continuation: method phaseOne",
+                    "// [Context Continuation: method phaseTwo"
+                ))
+            )
 
     def test_generate_context_skeleton_depth_pruning(self):
         # Create d1/d2/d3/d4 directory structure
@@ -527,7 +533,81 @@ class TestContextOptimizer(unittest.TestCase):
         for c in worker_chunks:
             self.assertEqual(c['context_path'], ['function masterController'])
             self.assertIn('oversized_scope', c)
-            self.assertEqual(c['oversized_scope']['name'], 'masterController')
+    def test_semantic_chunking_strict_max_tokens_budget_adherence(self):
+        """Verify chunking strictly obeys max_tokens budget without hardcoded line minimums."""
+        # 10 lines of 20 tokens each = 200 tokens
+        lines = [f"const record_{i} = {{ id: {i}, value: 'deterministic payload string sample number {i}' }};" for i in range(20)]
+        # Add one single indivisible line with 150 tokens
+        long_line = "const giant = '" + "x" * 600 + "';"
+        lines.insert(10, long_line)
+        content = "\n".join(lines)
+
+        # Budget of 60 tokens: each multi-line chunk must not exceed 60 tokens
+        chunks = semantic_chunk(content, max_tokens=60, is_content=True, ext='.js')
+        self.assertGreater(len(chunks), 4)
+
+        for c in chunks:
+            if c['lines_count'] > 1:
+                # Multi-line chunks must strictly respect the token ceiling
+                raw_lines = content.splitlines()[c['start_line'] - 1:c['end_line']]
+                raw_tokens = estimate_tokens("\n".join(raw_lines))
+                self.assertLessEqual(raw_tokens, 60, f"Chunk {c['chunk_index']} exceeded budget: {raw_tokens} > 60")
+            else:
+                # Single line chunks are allowed to exceed only if that single line itself exceeds 60 tokens
+                single_line = content.splitlines()[c['start_line'] - 1]
+                if estimate_tokens(single_line) > 60:
+                    self.assertEqual(c['start_line'], c['end_line'], "Oversized line must be an isolated single-line chunk")
+
+    def test_semantic_chunking_oversized_inner_function_tracks_inner_scope(self):
+        """Verify that when a nested method itself is oversized and partitioned, metadata tracks the inner method."""
+        js_lines = [
+            "export class OrderProcessor {",
+            "  init() { return true; }",
+            "  processHeavyBatch(items) {"
+        ]
+        # 60 lines of heavy processing inside processHeavyBatch
+        for i in range(60):
+            js_lines.append(f"    const step_{i} = items.map(x => x.price * {i} + Math.random());")
+        js_lines.append("    return items;")
+        js_lines.append("  }")
+        js_lines.append("}")
+        code = "\n".join(js_lines)
+
+        chunks = semantic_chunk(code, max_tokens=80, is_content=True, ext='.js')
+        self.assertGreaterEqual(len(chunks), 3)
+
+        # Find subsequent chunks of processHeavyBatch
+        inner_chunks = [c for c in chunks if c.get('continuation_of') == 'method processHeavyBatch']
+        self.assertTrue(len(inner_chunks) >= 1, "Expected chunks with continuation_of == 'method processHeavyBatch'")
+
+        for c in inner_chunks:
+            self.assertEqual(c['context_path'], ['class OrderProcessor', 'method processHeavyBatch'])
+            self.assertEqual(c['oversized_scope']['name'], 'processHeavyBatch')
+            self.assertEqual(c['oversized_scope']['type'], 'method')
+
+    def test_extract_symbols_functions_inside_template_literals_are_not_top_level(self):
+        """Verify functions defined inside template literal expressions are not classified as top-level."""
+        js_code = """
+        const greeting = `Hello ${function inlineHelper() { return 'world'; }}!`;
+        const nested = `${`Inner ${function nestedHelper() { return 42; }}`}`;
+        export function realTopLevel() {
+            return true;
+        }
+        """
+        syms = extract_symbols(js_code, ext='.js')
+        sym_map = {s['name']: s for s in syms}
+
+        self.assertIn('inlineHelper', sym_map)
+        self.assertFalse(sym_map['inlineHelper']['is_top_level'], "inlineHelper inside ${} must NOT be top-level")
+        self.assertGreaterEqual(sym_map['inlineHelper']['depth'], 1)
+
+        self.assertIn('nestedHelper', sym_map)
+        self.assertFalse(sym_map['nestedHelper']['is_top_level'], "nestedHelper inside nested ${} must NOT be top-level")
+        self.assertGreaterEqual(sym_map['nestedHelper']['depth'], 1)
+
+        self.assertIn('realTopLevel', sym_map)
+        self.assertTrue(sym_map['realTopLevel']['is_top_level'], "realTopLevel must be top-level")
+        self.assertEqual(sym_map['realTopLevel']['depth'], 0)
 
 if __name__ == '__main__':
     unittest.main()

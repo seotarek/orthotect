@@ -20,6 +20,24 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const SKILLS_DIR = process.env.SKILLS_DIR ? path.resolve(ROOT, process.env.SKILLS_DIR) : path.join(ROOT, 'skills');
 
+export function extractHeadingSlugs(markdownText) {
+  const slugs = new Set();
+  const headingLines = markdownText.match(/^#{1,6}\s+(.+)$/gm) || [];
+  for (const h of headingLines) {
+    const rawTitle = h.replace(/^#{1,6}\s+/, '').trim();
+    // GitHub-style anchor slug: lowercase, strip punctuation, spaces to dashes
+    const slug = rawTitle
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-');
+    slugs.add(slug);
+    // Also include pure alphanumeric hyphen slug
+    slugs.add(rawTitle.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-'));
+  }
+  return slugs;
+}
+
 export function validateSkills(skillsDirectory = SKILLS_DIR) {
   const results = {
     total: 0,
@@ -28,6 +46,17 @@ export function validateSkills(skillsDirectory = SKILLS_DIR) {
     errors: 0,
     details: []
   };
+
+  const rootLicense = path.join(ROOT, 'LICENSE');
+  if (!fs.existsSync(rootLicense)) {
+    results.errors++;
+    results.details.push({
+      name: 'repository-root',
+      file: rootLicense,
+      errors: ['Missing required LICENSE file at repository root'],
+      warnings: []
+    });
+  }
 
   if (!fs.existsSync(skillsDirectory)) {
     throw new Error(`Skills directory not found: ${skillsDirectory}`);
@@ -107,8 +136,20 @@ export function validateSkills(skillsDirectory = SKILLS_DIR) {
       }
     }
 
+    // License Validation (if declared in frontmatter)
+    const licenseMatch = frontmatter.match(/^license:\s*(.+)$/m);
+    if (licenseMatch) {
+      const declaredLicense = licenseMatch[1].trim().replace(/^['"]|['"]$/g, '');
+      const validSpdx = new Set(['MIT', 'Apache-2.0', 'BSD-2-Clause', 'BSD-3-Clause', 'ISC', 'GPL-3.0', 'LGPL-3.0', 'MPL-2.0', 'Unlicense', 'CC0-1.0']);
+      if (!validSpdx.has(declaredLicense)) {
+        skillReport.errors.push(`Invalid license SPDX identifier '${declaredLicense}' in frontmatter`);
+      }
+    }
+
     // 4. File Length & Progressive Disclosure
-    if (lines.length > 500) {
+    if (lines.length > 1000) {
+      skillReport.errors.push(`SKILL.md is ${lines.length} lines (>1000 lines); progressive disclosure requires moving deep specifications to references/`);
+    } else if (lines.length > 500) {
       skillReport.warnings.push(`SKILL.md is ${lines.length} lines (>500 lines); consider moving deep specs to references/`);
     }
 
@@ -138,16 +179,46 @@ export function validateSkills(skillsDirectory = SKILLS_DIR) {
       }
     }
 
-    // 6. Dead Relative Link Verification (SKILL.md and references/*.md)
+    // 6. Dead Relative Link and Anchor Verification (SKILL.md and references/*.md)
     const checkLinks = (fileContent, baseDir, sourceFileDesc) => {
       const linkMatches = fileContent.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g);
       for (const match of linkMatches) {
-        const href = match[2].trim();
-        if (!href.startsWith('http') && !href.startsWith('#') && !href.startsWith('mailto:')) {
-          const targetPath = path.resolve(baseDir, href);
-          if (!fs.existsSync(targetPath)) {
-            skillReport.errors.push(`Dead relative link in ${sourceFileDesc}: '${href}' does not resolve to an existing file`);
+        let href = match[2].trim();
+        if (href.includes(' "')) {
+          href = href.split(' "')[0].trim();
+        }
+        if (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('mailto:')) {
+          continue;
+        }
+
+        if (href.startsWith('#')) {
+          const anchor = href.slice(1).toLowerCase();
+          const slugs = extractHeadingSlugs(fileContent);
+          if (!slugs.has(anchor)) {
+            skillReport.errors.push(`Broken anchor link in ${sourceFileDesc}: '${href}' (heading '#${anchor}' not found)`);
           }
+          continue;
+        }
+
+        if (href.includes('#')) {
+          const [filePart, anchorPart] = href.split('#');
+          const targetPath = path.resolve(baseDir, filePart);
+          if (!fs.existsSync(targetPath)) {
+            skillReport.errors.push(`Dead relative link in ${sourceFileDesc}: '${filePart}' does not resolve to an existing file`);
+          } else if (targetPath.endsWith('.md')) {
+            const targetContent = fs.readFileSync(targetPath, 'utf8');
+            const slugs = extractHeadingSlugs(targetContent);
+            const anchor = anchorPart.toLowerCase();
+            if (!slugs.has(anchor)) {
+              skillReport.errors.push(`Broken anchor in ${sourceFileDesc}: '${href}' (heading '#${anchor}' not found in '${filePart}')`);
+            }
+          }
+          continue;
+        }
+
+        const targetPath = path.resolve(baseDir, href);
+        if (!fs.existsSync(targetPath)) {
+          skillReport.errors.push(`Dead relative link in ${sourceFileDesc}: '${href}' does not resolve to an existing file`);
         }
       }
     };

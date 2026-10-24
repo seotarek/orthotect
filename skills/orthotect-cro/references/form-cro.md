@@ -3,9 +3,9 @@
 Form abandonment occurs when users encounter cognitive friction, unexpected validation errors, or ambiguous input requests. This reference provides concrete patterns for maximizing form completion rates while maintaining data integrity.
 
 ## 1. Field Minimization Principle
-- **The 3-Field Rule for Lead Capture**: Require only `Name`, `Work Email`, and `Password` (or single `Email` for initial signups). Every additional field drops conversion rates by an estimated 8-15%.
-- **Defer Non-Essential Data**: Collect job title, company size, phone number, and billing preferences inside the onboarding flow after authentication succeeds.
-- **Single-Column Stacking**: Always stack form fields in a single vertical column. Multi-column forms disrupt the natural vertical reading path and cause users to skip fields.
+- **Streamlined Initial Conversion**: Require only essential inputs for initial signups (e.g. `Email` or `Name` and `Email`). Unnecessary fields increase cognitive friction and perceived effort.
+- **Defer Non-Essential Data**: Collect secondary attributes such as job title, company size, phone number, and billing preferences progressively during onboarding after authentication succeeds.
+- **Single-Column Baseline & Paired Inputs**: Default to a single vertical column for form fields to ensure a clear, predictable scanning path on mobile and desktop viewports. Form layouts can pair naturally related, short fields (such as `First Name` / `Last Name` or `City` / `ZIP`) on wide viewports as a testable layout hypothesis, provided tab order and ARIA labeling remain strictly sequential.
 
 ## 2. Progressive Disclosure for Complex Workflows
 - **Multi-Step Chunking**: When a workflow requires more than 5 fields (e.g. checkout, onboarding, configuration), split into distinct logical steps.

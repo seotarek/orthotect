@@ -69,5 +69,42 @@ class TestSkillsSync(unittest.TestCase):
         self.assertIn("18 passed", result.stdout)
         self.assertIn("0 errors", result.stdout)
 
+    def test_validator_detects_broken_anchors_and_invalid_license(self):
+        """Verify that scripts/validate-skills.mjs flags broken markdown anchors and invalid license identifiers."""
+        import tempfile
+        import shutil
+        import subprocess
+
+        temp_dir = tempfile.mkdtemp(prefix="orthotect_val_test_")
+        try:
+            mock_skill = os.path.join(temp_dir, "mock-broken-skill")
+            os.makedirs(mock_skill)
+            skill_content = (
+                "---\n"
+                "name: mock-broken-skill\n"
+                "description: Use when testing validator error detection\n"
+                "license: FakeLicense-9.9\n"
+                "---\n\n"
+                "# Mock Skill\n\n"
+                "See [Missing Section](#nonexistent-heading) for details.\n"
+            )
+            with open(os.path.join(mock_skill, "SKILL.md"), "w", encoding="utf-8") as f:
+                f.write(skill_content)
+
+            env = os.environ.copy()
+            env["SKILLS_DIR"] = temp_dir
+            result = subprocess.run(
+                ["node", os.path.join(self.root_dir, "scripts", "validate-skills.mjs")],
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            output = (result.stdout or "") + (result.stderr or "")
+            self.assertIn("Invalid license SPDX identifier", output)
+            self.assertIn("Broken anchor link", output)
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
 if __name__ == '__main__':
     unittest.main()

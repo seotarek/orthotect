@@ -73,5 +73,24 @@ class TestSkillEvals(unittest.TestCase):
             has_type_or_graph = "@type" in data or "@graph" in data
             self.assertTrue(has_type_or_graph, f"Template #{idx+1} must contain @type or @graph")
 
+            # Verify that replacing template placeholders results in valid production JSON
+            rendered = (
+                block.replace("{{APP_NAME}}", "MyProduct")
+                .replace("{{WEBSITE_URL}}", "https://myproduct.example.com")
+                .replace("{{PRICE}}", "29.99")
+                .replace("{{SUPPORT_URL}}", "https://myproduct.example.com/support")
+            )
+            parsed_rendered = json.loads(rendered)
+            self.assertIsNotNone(parsed_rendered)
+
+            if "@graph" in data:
+                # First template is the unified SaaS homepage @graph
+                app_entities = [e for e in data["@graph"] if e.get("@type") == "SoftwareApplication"]
+                self.assertEqual(len(app_entities), 1)
+                app = app_entities[0]
+                self.assertIn("aggregateRating", app, "SoftwareApplication template must include aggregateRating")
+                self.assertIn("offers", app, "SoftwareApplication template must include offers")
+                self.assertEqual(app["offers"].get("price"), "{{PRICE}}")
+
 if __name__ == '__main__':
     unittest.main()

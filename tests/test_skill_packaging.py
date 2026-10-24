@@ -65,5 +65,67 @@ class TestSkillPackaging(unittest.TestCase):
         self.assertEqual(zip1, zip2, "ZIP archives must be byte-for-byte deterministic across runs")
         self.assertEqual(m1["bundles"][0]["sha256"], m2["bundles"][0]["sha256"])
 
+    def test_sensitive_files_and_dotfiles_are_strictly_excluded(self):
+        """Test that sensitive files, credentials, dotfiles, and disallowed extensions are never packaged."""
+        mock_repo = Path(self.temp_dir) / "mock_repo"
+        mock_repo.mkdir(parents=True)
+        (mock_repo / "LICENSE").write_text("MIT License\n", encoding="utf-8")
+
+        mock_skill_dir = mock_repo / "skills" / "mock-secure-skill"
+        (mock_skill_dir / "references").mkdir(parents=True)
+        (mock_skill_dir / "scripts").mkdir(parents=True)
+
+        # Valid files
+        (mock_skill_dir / "SKILL.md").write_text(
+            "---\nname: mock-secure-skill\ndescription: Mock skill for security testing\n---\n# Mock\n",
+            encoding="utf-8"
+        )
+        (mock_skill_dir / "references" / "guide.md").write_text("# Guide\n", encoding="utf-8")
+        (mock_skill_dir / "scripts" / "tool.mjs").write_text("console.log('ok');\n", encoding="utf-8")
+
+        # Sensitive files and dotfiles planted intentionally
+        (mock_skill_dir / ".env").write_text("SECRET=123\n", encoding="utf-8")
+        (mock_skill_dir / ".env.local").write_text("DB_PASS=xyz\n", encoding="utf-8")
+        (mock_skill_dir / "references" / ".token").write_text("ghp_secret\n", encoding="utf-8")
+        (mock_skill_dir / "references" / "private.key").write_text("PRIVATE KEY\n", encoding="utf-8")
+        (mock_skill_dir / "references" / "id_rsa").write_text("SSH KEY\n", encoding="utf-8")
+        (mock_skill_dir / "references" / "user_credentials.txt").write_text("admin:pass\n", encoding="utf-8")
+        (mock_skill_dir / "references" / "api_secret.json").write_text('{"token": "abc"}\n', encoding="utf-8")
+        (mock_skill_dir / "references" / "binary.bin").write_bytes(b"\x00\x01\x02\x03")
+        (mock_skill_dir / "scripts" / "exploit.exe").write_bytes(b"\x4d\x5a")
+
+        out = Path(self.temp_dir) / "security_out"
+        manifest = build_packages(repo_dir=mock_repo, output_dir=out, skills=["mock-secure-skill"])
+        self.assertEqual(manifest["bundle_count"], 1)
+
+        zip_path = out / "mock-secure-skill.zip"
+        self.assertTrue(zip_path.is_file())
+
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            names = zf.namelist()
+            # Allowed files must be packaged
+            self.assertIn("mock-secure-skill/SKILL.md", names)
+            self.assertIn("mock-secure-skill/LICENSE", names)
+            self.assertIn("mock-secure-skill/references/guide.md", names)
+            self.assertIn("mock-secure-skill/scripts/tool.mjs", names)
+
+            # Sensitive files, dotfiles, and disallowed extensions must be completely absent
+            for forbidden in [
+                ".env",
+                ".env.local",
+                ".token",
+                "private.key",
+                "id_rsa",
+                "user_credentials.txt",
+                "api_secret.json",
+                "binary.bin",
+                "exploit.exe",
+            ]:
+                self.assertFalse(
+                    any(forbidden in n for n in names),
+                    f"Forbidden file '{forbidden}' leaked into packaged ZIP bundle: {names}"
+                )
+
+
 if __name__ == '__main__':
     unittest.main()

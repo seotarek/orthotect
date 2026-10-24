@@ -31,15 +31,15 @@ Load the matching reference before generating or auditing JSON-LD markup:
 - On multi-faceted pages (e.g. SaaS homepage with Organization, WebSite, and SoftwareApplication), unify entities into a single `@graph` array connected via `@id` URIs rather than scattering multiple disconnected script tags.
 
 ### 4. Deterministic Type Contracts
-- Always provide mandatory properties specified by Google Search Central documentation:
+- Provide structured data properties aligned with Google Search Central guidelines:
 
-| Schema Entity | Target Surface | Mandatory Properties | Recommended Enhancements |
+| Schema Entity | Target Surface | Google Requirements | Recommended Enhancements |
 |---|---|---|---|
-| `WebSite` | Homepage / Site Search | `name`, `url` | `potentialAction` (SearchAction) |
-| `Organization` | Company / Brand Identity | `name`, `url`, `logo` | `sameAs` (social profiles), `contactPoint` |
-| `SoftwareApplication` | SaaS / Web Tools | `name`, `applicationCategory`, `operatingSystem` | `offers` (pricing), `aggregateRating` |
-| `FAQPage` | Documentation / FAQ | `mainEntity` (Question/Answer array) | `acceptedAnswer` with plain text or valid HTML |
-| `BreadcrumbList` | Navigation Trees | `itemListElement` | `position`, `name`, `item` |
+| `WebSite` | Homepage / Site Search | Required: `name`, `url` | `potentialAction` (SearchAction) |
+| `Organization` | Company / Brand Identity | Recommended: `name`, `url`, `logo` *(No mandatory properties required by Google for general organizations)* | `sameAs` (social profiles), `contactPoint` |
+| `SoftwareApplication` | SaaS / Web Tools | Required: `name` AND (`offers.price` or `aggregateRating`) | `applicationCategory`, `operatingSystem`, `description` |
+| `FAQPage` | Documentation / FAQ | Required: `mainEntity` *(Note: Since August 2023, Google SERP rich snippet accordions are restricted to authoritative health & government domains; general sites retain LLM/crawler understanding)* | `acceptedAnswer` with plain text or valid HTML |
+| `BreadcrumbList` | Navigation Trees | Required: `itemListElement` (`position`, `name`, `item`) | Nested item hierarchies |
 
 ---
 

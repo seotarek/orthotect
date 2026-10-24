@@ -21,6 +21,20 @@ from pathlib import Path, PurePosixPath
 SKILL_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 EXCLUDED_PARTS = {"evals", "__pycache__", "node_modules", ".cache", ".DS_Store", ".git", ".env", ".github"}
 
+SENSITIVE_PATTERNS = [
+    re.compile(r"^\.env(\..+)?$", re.I),
+    re.compile(r".*\.(pem|key|pkcs12|p12|p8|crt|cer|der)$", re.I),
+    re.compile(r"id_rsa.*", re.I),
+    re.compile(r"id_ed25519.*", re.I),
+    re.compile(r".*(secret|credential|token).*", re.I),
+]
+
+ALLOWED_EXTENSIONS_BY_DIR = {
+    "references": {".md", ".txt", ".json", ".yaml", ".yml"},
+    "scripts": {".mjs", ".js", ".py", ".sh"},
+    "assets": {".svg", ".png", ".jpg", ".jpeg", ".webp", ".json"},
+}
+
 
 def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -68,17 +82,36 @@ def collect_skill_files_from_disk(repo_dir: Path, skill_name: str) -> dict:
     files = {}
     for root, dirs, filenames in os.walk(skill_dir):
         # Exclude directories
-        dirs[:] = [d for d in dirs if d not in EXCLUDED_PARTS]
+        dirs[:] = [d for d in dirs if d not in EXCLUDED_PARTS and not d.startswith(".")]
         for fname in filenames:
-            if fname in EXCLUDED_PARTS:
+            # Exclude dotfiles, excluded parts, and sensitive file patterns
+            if fname in EXCLUDED_PARTS or fname.startswith("."):
                 continue
+            if any(pat.search(fname) for pat in SENSITIVE_PATTERNS):
+                continue
+
             full_path = Path(root) / fname
             rel_path = full_path.relative_to(skill_dir).as_posix()
             parts = PurePosixPath(rel_path).parts
-            if any(p in EXCLUDED_PARTS for p in parts):
+
+            if any(p in EXCLUDED_PARTS or p.startswith(".") for p in parts):
                 continue
-            if rel_path != "SKILL.md" and parts[0] not in {"references", "scripts", "assets"}:
+
+            # SKILL.md is mandatory at the root
+            if rel_path == "SKILL.md":
+                data = full_path.read_bytes()
+                files[rel_path] = (data, "100644", f"skills/{skill_name}/{rel_path}")
                 continue
+
+            # Other allowed subdirectories with strict file extensions
+            top_dir = parts[0]
+            if top_dir not in ALLOWED_EXTENSIONS_BY_DIR:
+                continue
+
+            ext = full_path.suffix.lower()
+            if ext not in ALLOWED_EXTENSIONS_BY_DIR[top_dir]:
+                continue
+
             data = full_path.read_bytes()
             files[rel_path] = (data, "100644", f"skills/{skill_name}/{rel_path}")
 

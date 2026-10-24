@@ -1,6 +1,6 @@
 # JSON-LD Structured Data Templates
 
-Production-grade, validated Schema.org templates in JSON-LD format with `@graph` support for interface engineering.
+Production-grade, validated Schema.org templates in JSON-LD format with `@graph` support for interface engineering. Use customizable placeholders (`{{APP_NAME}}`, `{{WEBSITE_URL}}`, `{{PRICE}}`, `{{SUPPORT_URL}}`) when integrating into your application templates.
 
 ## 1. Unified SaaS Homepage (`@graph` Pattern)
 
@@ -11,48 +11,54 @@ Production-grade, validated Schema.org templates in JSON-LD format with `@graph`
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://example.com/#organization",
-      "name": "Orthotect",
-      "url": "https://example.com/",
+      "@id": "{{WEBSITE_URL}}/#organization",
+      "name": "{{APP_NAME}}",
+      "url": "{{WEBSITE_URL}}/",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://example.com/logo.png",
+        "url": "{{WEBSITE_URL}}/logo.png",
         "width": 512,
         "height": 512
       },
       "sameAs": [
-        "https://github.com/seotarek/orthotect",
-        "https://twitter.com/orthotect"
+        "https://github.com/example/{{APP_NAME}}",
+        "https://x.com/{{APP_NAME}}"
       ]
     },
     {
       "@type": "WebSite",
-      "@id": "https://example.com/#website",
-      "url": "https://example.com/",
-      "name": "Orthotect Interface Engineering",
+      "@id": "{{WEBSITE_URL}}/#website",
+      "url": "{{WEBSITE_URL}}/",
+      "name": "{{APP_NAME}} Interface Engineering",
       "publisher": {
-        "@id": "https://example.com/#organization"
+        "@id": "{{WEBSITE_URL}}/#organization"
       },
       "potentialAction": {
         "@type": "SearchAction",
         "target": {
           "@type": "EntryPoint",
-          "urlTemplate": "https://example.com/search?q={search_term_string}"
+          "urlTemplate": "{{WEBSITE_URL}}/search?q={search_term_string}"
         },
         "query-input": "required name=search_term_string"
       }
     },
     {
       "@type": "SoftwareApplication",
-      "@id": "https://example.com/#software",
-      "name": "Orthotect CLI",
+      "@id": "{{WEBSITE_URL}}/#software",
+      "name": "{{APP_NAME}}",
       "operatingSystem": "All",
       "applicationCategory": "DeveloperApplication",
       "description": "Deterministic interface engineering and runtime gate architecture for autonomous AI agents.",
       "offers": {
         "@type": "Offer",
-        "price": "0",
+        "price": "{{PRICE}}",
         "priceCurrency": "USD"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "ratingCount": "120",
+        "bestRating": "5"
       }
     }
   ]
@@ -72,18 +78,18 @@ Use for documentation, product FAQ sections, or support pages.
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What is Orthotect?",
+      "name": "What is {{APP_NAME}}?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Orthotect is a deterministic interface engineering runtime that enforces WCAG accessibility, CSS logical properties, and finite state machine integrity."
+        "text": "{{APP_NAME}} is a deterministic interface engineering runtime that enforces WCAG accessibility, CSS logical properties, and finite state machine integrity."
       }
     },
     {
       "@type": "Question",
-      "name": "How does Orthotect prevent duplicate form submissions?",
+      "name": "How does {{APP_NAME}} handle customer support?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Orthotect enforces Finite State Machine (FSM) submit button contracts that transition into a disabled loading state upon form dispatch."
+        "text": "Support is available at {{SUPPORT_URL}} and via the community discussion forum."
       }
     }
   ]
@@ -105,19 +111,19 @@ Use for nested documentation, e-commerce categories, or multi-level application 
       "@type": "ListItem",
       "position": 1,
       "name": "Home",
-      "item": "https://example.com/"
+      "item": "{{WEBSITE_URL}}/"
     },
     {
       "@type": "ListItem",
       "position": 2,
       "name": "Documentation",
-      "item": "https://example.com/docs/"
+      "item": "{{WEBSITE_URL}}/docs/"
     },
     {
       "@type": "ListItem",
       "position": 3,
       "name": "Skills",
-      "item": "https://example.com/docs/skills/"
+      "item": "{{WEBSITE_URL}}/docs/skills/"
     }
   ]
 }

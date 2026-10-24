@@ -2,7 +2,7 @@
 
 ### The Deterministic Interface Engineering & Runtime Gate Architecture for AI Coding Agents
 
-[![Version](https://img.shields.io/badge/version-1.7.3-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.7.3)
+[![Version](https://img.shields.io/badge/version-1.7.2-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.7.2)
 [![Live Showcase](https://img.shields.io/badge/Live_Showcase-GitHub_Pages-0ea5e9?style=for-the-badge)](https://seotarek.github.io/orthotect/)
 [![CI Status](https://github.com/seotarek/orthotect/actions/workflows/ci.yml/badge.svg)](https://github.com/seotarek/orthotect/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)](LICENSE)
@@ -81,7 +81,7 @@ orthotect/
 │   ├── orthotect-context         # Token-Optimizer & Context Architecture Guard
 │   ├── orthotect-cro             # Interface Conversion Rate Optimization & Form Ergonomics
 │   └── orthotect-schema          # Semantic Structured Data & Schema.org JSON-LD
-├── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (247 Tests)
+├── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (272 Tests)
 │   ├── test_contrast.py          # Relative luminance & contrast threshold unit tests
 │   ├── test_bidi.py              # BiDi logical scanner positive/negative tests
 │   ├── test_fsm.py               # FSM graph reachability and deadlock tests
@@ -96,9 +96,11 @@ orthotect/
 │   ├── test_docs_browser.py      # Playwright 7-view Skill Studio browser integration & negative benchmark tests
 │   ├── test_modal_browser.py     # Playwright headless Chrome focus trap & FSM tests
 │   ├── test_scaffold_browser.py  # Playwright scaffolded page FSM lifecycle & race lock browser tests
-│   └── test_cli_e2e.py           # E2E CLI verification, boundary & negative rejection tests
+│   ├── test_cli_e2e.py           # E2E CLI verification, boundary & negative rejection tests
+│   ├── test_skill_evals.py       # Skill evaluation fixture schema & JSON-LD template validity tests
+│   └── test_skill_packaging.py   # Skill packager reproducibility, security & manifest tests
 ├── .github/workflows/       # Automated CI & GitHub Pages Deployment Pipelines
-│   ├── ci.yml                    # 247 Unit, Browser & Negative Gate Tests & Full Gate Verification
+│   ├── ci.yml                    # 272 Unit, Browser & Negative Gate Tests & Full Gate Verification
 │   └── pages.yml                 # Automated GitHub Pages Deployment
 ├── agents/
 │   └── orthotect-auditor.md      # Adversarial Quality Auditor Role
