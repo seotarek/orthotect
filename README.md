@@ -81,7 +81,11 @@ orthotect/
 │   ├── orthotect-context         # Token-Optimizer & Context Architecture Guard
 │   ├── orthotect-cro             # Interface Conversion Rate Optimization & Form Ergonomics
 │   └── orthotect-schema          # Semantic Structured Data & Schema.org JSON-LD
-├── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (272 Tests)
+├── scripts/                 # Skills Specification Validator, Packager & Metadata Guards
+│   ├── validate-skills.mjs       # Agent Skills specification validator (SPDX & recursive refs)
+│   ├── package_skills.py         # Deterministic cross-agent skill packager & security scanner
+│   └── check-package-metadata.mjs# Synchronized package version & lockfile guard
+├── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (275 Tests)
 │   ├── test_contrast.py          # Relative luminance & contrast threshold unit tests
 │   ├── test_bidi.py              # BiDi logical scanner positive/negative tests
 │   ├── test_fsm.py               # FSM graph reachability and deadlock tests
@@ -100,14 +104,17 @@ orthotect/
 │   ├── test_skill_evals.py       # Skill evaluation fixture schema & JSON-LD template validity tests
 │   └── test_skill_packaging.py   # Skill packager reproducibility, security & manifest tests
 ├── .github/workflows/       # Automated CI & GitHub Pages Deployment Pipelines
-│   ├── ci.yml                    # 272 Unit, Browser & Negative Gate Tests & Full Gate Verification
+│   ├── ci.yml                    # 275 Unit, Browser & Negative Gate Tests & Full Gate Verification
+│   ├── publish-package.yml       # Release concurrency & fail-closed package publisher
 │   └── pages.yml                 # Automated GitHub Pages Deployment
 ├── agents/
 │   └── orthotect-auditor.md      # Adversarial Quality Auditor Role
-├── CHANGELOG.md             # Full version history (v1.0.0 → v1.7.1)
-├── CONTRIBUTING.md      # Enterprise engineering guidelines
-├── COMPETITORS.md       # Exhaustive architectural competitor teardown
-├── MANIFESTO.md         # The 7 Laws of Interface Engineering
+├── AGENTS.md                # Universal multi-agent system doctrine and lifecycle rules
+├── CLAUDE.md                # Claude Code configuration & command-agent-skill guidance
+├── CHANGELOG.md             # Full version history (v1.0.0 → v1.7.3)
+├── CONTRIBUTING.md          # Enterprise engineering guidelines
+├── COMPETITORS.md           # Exhaustive architectural competitor teardown
+├── MANIFESTO.md             # The 7 Laws of Interface Engineering
 └── examples/
     └── golden-showcase/          # Reference Enterprise Console passing 100% of gates
 ```
@@ -183,6 +190,49 @@ Run independent unit and E2E test suite:
 ```bash
 npm test
 ```
+
+---
+
+## 🤖 Agentic Engineering & Multi-Agent Orchestration
+
+Orthotect is built specifically to transition coding agents from unconstrained "vibe coding" into disciplined **Agentic Engineering**. It provides the deterministic harness that binds autonomous agents (Antigravity, Claude Code, Cursor Agent, OpenAI Codex, Grok Build, OpenCode) to mathematical rigor and zero-defect delivery.
+
+### 🏛️ Orchestration Model: Command → Agent → Skill
+
+```
+┌────────────────────────────────────────────────────────┐
+│  1. COMMANDS (Entry Points)                            │
+│  npx orthotect verify | init | compile | doctor        │
+└──────────────────────────┬─────────────────────────────┘
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│  2. AGENTS (Autonomous Implementers & Auditors)        │
+│  Antigravity · Claude Code · Cursor · Codex · Grok     │
+│  Lifecycle: Research ──> Plan ──> Execute ──> Review   │
+└──────────────────────────┬─────────────────────────────┘
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│  3. SKILLS (Domain Knowledge & State Machines)         │
+│  18 Modular Skills in skills/*/SKILL.md                │
+│  DTCG Tokens · FSM Schemas · Logical Properties · CRO  │
+└──────────────────────────┬─────────────────────────────┘
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│  4. DETERMINISTIC RUNTIME GATES                        │
+│  WCAG 2.2 AAA Contrast · BiDi · FSM · Slop · DOM CLS   │
+│  Exit 0 = Land & Ship  |  Exit 1 = Halt & Fix Line     │
+└────────────────────────────────────────────────────────┘
+```
+
+- **Command Layer**: Discrete CLI and slash commands gather intent, validate scope boundaries, and invoke tools without contaminating primary context memory.
+- **Agent Lifecycle (Research → Plan → Execute → Review → Ship)**:
+  - **Research**: Use `core/context_optimizer.py` to extract compact symbol skeletons before reading whole files.
+  - **Plan**: Define formal state machines (`button-states.json`, `modal-dialog.json`) and token mappings prior to coding.
+  - **Execute**: Author markup strictly referencing CSS Logical Properties and W3C DTCG tokens.
+  - **Review & Gate**: Run `python3 gates/run_all_gates.py` in the foreground. Never assert success without real exit code 0 evidence.
+  - **Ship**: Commit clean, professional conventional commits with zero conversational metadata.
+- **Skill Engine**: 18 certified skills strictly adhering to the Agent Skills Specification (frontmatter with `name`, `description`, `when_to_use`, `argument-hint`, `allowed-tools`, `model`, `effort`, `license`, `compatibility`).
+- **Security & Portability**: `scripts/package_skills.py` generates deterministic, byte-for-byte reproducible ZIP archives with symlink boundary containment (`is_relative_to`) and byte-level scanning against private keys and API tokens.
 
 ---
 

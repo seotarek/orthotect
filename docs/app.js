@@ -1,5 +1,5 @@
 /**
- * ORTHOTECT v1.7.0 — Skill Studio & Interactive Demonstration Platform
+ * ORTHOTECT v1.7.3 — Skill Studio & Interactive Demonstration Platform
  * 100% Client-Side | Zero Bloat | True Bidirectional Runtime
  */
 
@@ -222,7 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================================================================
   const bidiDict = {
     en: {
-      brandDesc: "v1.7.0",
+      brandDesc: "v1.7.3",
       navHome: "Home",
       navCatalog: "Skill Catalog",
       navPlayground: "Playground",
@@ -261,7 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
       step4Desc: "Validated zero-CLS code committed directly to main, deployable without human rework.",
       catalogPill: "Repository Synchronized Skills",
       catalogTitle: "Orthotect Skill Catalog",
-      catalogSub: "Explore the 16 modular skills installed directly in skills/. Each skill provides explicit system instructions, constraints, and gate validation for autonomous coding agents.",
+      catalogSub: "Explore the 18 modular skills installed directly in skills/. Each skill provides explicit system instructions, constraints, and gate validation for autonomous coding agents.",
       playgroundPill: "Live Interface Sandbox",
       playgroundTitle: "Interactive Skill Playground",
       playgroundSub: "Interact with 7 pre-validated enterprise components built using Orthotect skills. Toggle theme, text direction, and spacing density in real time to observe deterministic behavior.",
@@ -277,10 +277,10 @@ document.addEventListener("DOMContentLoaded", () => {
       installPill: "Developer Tooling & CLI",
       installTitle: "Installation & CLI Usage",
       installSub: "Orthotect provides zero-config command line tools to scaffold, compile, and verify projects deterministically in local environments and GitHub Actions CI.",
-      footerCopy: "Orthotect v1.7.0 © 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok."
+      footerCopy: "Orthotect v1.7.3 © 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok."
     },
     ar: {
-      brandDesc: "v1.7.0",
+      brandDesc: "v1.7.3",
       navHome: "الرئيسية",
       navCatalog: "كتالوج المهارات",
       navPlayground: "المختبر التفاعلي",
@@ -319,7 +319,7 @@ document.addEventListener("DOMContentLoaded", () => {
       step4Desc: "كود موثق بانعدام CLS يُدمج في main مباشرة ويدخل الإنتاج دون حاجة لإعادة صياغة بشرية.",
       catalogPill: "مهارات متزامنة مع المستودع",
       catalogTitle: "كتالوج مهارات أورثوتكت",
-      catalogSub: "استكشف 15 مهارة معيارية مثبتة في skills/. تقدم كل مهارة تعليمات نظام واضحة وقيودًا حازمة وبوابات تحقق مخصصة لوكلاء البرمجة.",
+      catalogSub: "استكشف 18 مهارة معيارية مثبتة في skills/. تقدم كل مهارة تعليمات نظام واضحة وقيودًا حازمة وبوابات تحقق مخصصة لوكلاء البرمجة.",
       playgroundPill: "المختبر الحي للمكونات",
       playgroundTitle: "مختبر المهارات التفاعلي",
       playgroundSub: "تفاعل مع 7 مكونات مؤسسية مبنية وفق مهارات أورثوتكت. بدّل الثيم والاتجاه وكثافة المسافات لملاحظة السلوك الحتمي الموثوق.",
@@ -335,7 +335,7 @@ document.addEventListener("DOMContentLoaded", () => {
       installPill: "أدوات المطور وسطر الأوامر",
       installTitle: "التثبيت وأوامر الاستخدام",
       installSub: "يوفر أورثوتكت أدوات سطر أوامر خفيفة لتهيئة المشاريع وترجمة التوكنز وفحص الكود حتميًا في البيئة المحلية وسير العمل CI.",
-      footerCopy: "أورثوتكت v1.7.0 © 2026. معتمد لوكلاء البرمجة الذاتية: Antigravity وClaude Code وCursor وCodex وGrok."
+      footerCopy: "أورثوتكت v1.7.3 © 2026. معتمد لوكلاء البرمجة الذاتية: Antigravity وClaude Code وCursor وCodex وGrok."
     }
   };
 
