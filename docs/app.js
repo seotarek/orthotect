@@ -1880,7 +1880,8 @@ ${dod}
       logLine("───────────────────────────────────────────────────────────────");
       logLine(`<strong>Evaluation Summary:</strong> ${passedCount} Passed, ${failedCount} Failed, ${notEvaluatedCount} Not Evaluated`);
       if (failedCount === 0 && passedCount > 0) {
-        logLine(`<strong style='color: #10b981;'>🎉 ALL EVALUATED GATES PASSED! Build certified for enterprise production (${elapsed}ms)</strong>`);
+        logLine(`<strong style='color: #10b981;'>🎉 ALL EVALUATED GATES PASSED! Target verified against evaluated interface standards (${elapsed}ms)</strong>`);
+        logLine("<span style='color: var(--text-muted); font-size: 0.85em;'>   Verified: WCAG 2.2 Contrast, CSS Logical BiDi, FSM Integrity, Anti-Slop, DOM CLS Budget</span>");
       } else if (failedCount > 0) {
         logLine(`<strong style='color: #ef4444;'>❌ BUILD REJECTED BY ORTHOTECT GATES (${failedCount} failure(s)) (${elapsed}ms)</strong>`);
       } else {
