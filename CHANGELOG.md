@@ -4,6 +4,24 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Auto-Healing Engine (`--fix`)**:
+  - Implemented automated remediation in `gates/gate_bidi_logical.py`, `gates/run_all_gates.py`, and `bin/orthotect.js` via `npx orthotect verify [path] --fix`.
+  - Automatically transforms prohibited physical declarations (`margin-left` → `margin-inline-start`, `paddingRight` → `paddingInlineEnd`, `text-align: left` → `text-align: start`, `float: right` → `float: inline-end`, `clear: left` → `clear: inline-start`) into standard W3C CSS Logical Properties in-place.
+  - Comment- and string-protected state machine preserves original formatting, whitespace, comments, and strings across CSS, HTML, Vue, Svelte, JSX, and TSX files.
+  - Added dedicated verification suite in `tests/test_auto_fix.py`.
+- **Git Pre-Commit Hook Integration (`npx orthotect hooks install|uninstall`)**:
+  - Implemented one-click Git pre-commit hook installation in `bin/orthotect.js` writing an executable `.git/hooks/pre-commit` script.
+  - Blocks non-compliant commits before they can reach branches, prompting with automated `--fix` guidance.
+  - Added safety checks for non-git directories and clean uninstallation in `tests/test_hooks_cli.py`.
+- **Zero-Dependency Configuration Engine (`orthotect.config.json`)**:
+  - Implemented dual Python (`core/config.py`) and Node.js (`core/config.mjs`) configuration engines with upward directory search and deep merging.
+  - Supports custom file exclusion patterns (`exclude: [...]`), customized DOM nesting depth ceilings (`cwv: { maxDomDepth: 32 }`), and gate toggles.
+  - Integrated into `gates/gate_bidi_logical.py`, `gates/gate_cwv_budget.mjs`, and `gates/run_all_gates.py`.
+  - Added full test coverage in `tests/test_config.py`.
+
 ## [1.7.3] - 2026-10-23
 
 ### Added

@@ -1165,6 +1165,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const cliCommands = {
     init: "npx orthotect init",
     verify: "npx orthotect verify",
+    fix: "npx orthotect verify --fix",
+    hooks: "npx orthotect hooks install",
     compile: "npx orthotect compile core/tokens --out dist/tokens.css"
   };
   document.querySelectorAll(".cli-tab").forEach(tab => {

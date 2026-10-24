@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import * as parse5 from 'parse5';
+import { loadOrthotectConfig } from '../core/config.mjs';
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
@@ -875,10 +876,12 @@ function checkHtmlFile(filePath) {
     }
   }
 
-  // 3. DOM nesting depth limit (< 32 levels) using parse5 AST
+  // 3. DOM nesting depth limit using parse5 AST
+  const { config: cwvConfig } = loadOrthotectConfig(filePath);
+  const maxAllowedDomDepth = cwvConfig?.cwv?.maxDomDepth ?? 32;
   const maxDepth = calculateMaxDomDepth(content, filePath);
-  if (maxDepth > 32) {
-    errors.push(`${filePath}: Excessive DOM depth of ${maxDepth} levels (Budget max is 32).`);
+  if (maxDepth > maxAllowedDomDepth) {
+    errors.push(`${filePath}: Excessive DOM depth of ${maxDepth} levels (Budget max is ${maxAllowedDomDepth}).`);
   }
 }
 

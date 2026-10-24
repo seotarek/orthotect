@@ -26,6 +26,7 @@ def main():
     args = sys.argv[1:]
     is_json = '--json' in args or ('--format' in args and 'json' in args)
     is_md = '--md' in args or ('--format' in args and 'md' in args)
+    is_fix = '--fix' in args
     
     # Target path is first non-flag argument
     positional = [a for a in args if not a.startswith('--') and a not in ('json', 'md')]
@@ -40,9 +41,13 @@ def main():
             print(err_msg)
         sys.exit(1)
 
+    bidi_cmd = ["python3", os.path.join(root_dir, "gates", "gate_bidi_logical.py"), target_dir]
+    if is_fix:
+        bidi_cmd.append("--fix")
+
     gates = [
         ("WCAG 2.2 Mathematical Contrast", ["python3", os.path.join(root_dir, "gates", "gate_contrast_wcag.py"), target_dir]),
-        ("True BiDi & Logical Properties", ["python3", os.path.join(root_dir, "gates", "gate_bidi_logical.py"), target_dir]),
+        ("True BiDi & Logical Properties", bidi_cmd),
         ("Finite State Machine Integrity", ["python3", os.path.join(root_dir, "gates", "gate_fsm_integrity.py"), target_dir]),
         ("Anti-Slop Pattern Inspector", ["python3", os.path.join(root_dir, "gates", "gate_no_slop.py"), target_dir]),
         ("DOM & Layout-Shift Budget", ["node", os.path.join(root_dir, "gates", "gate_cwv_budget.mjs"), target_dir])

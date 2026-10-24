@@ -15,6 +15,16 @@ except ImportError:
     tinycss2 = None
     HAVE_TINYCSS2 = False
 
+try:
+    from core.config import load_orthotect_config, is_path_excluded
+except ImportError:
+    try:
+        sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+        from core.config import load_orthotect_config, is_path_excluded
+    except Exception:
+        load_orthotect_config = None
+        is_path_excluded = None
+
 class BidiViolation(tuple):
     """Backwards-compatible 3-tuple (line, content, suggestion) with extended metadata."""
     def __new__(cls, line, col, name, val, suggestion):
@@ -815,28 +825,255 @@ def scan_file(filepath):
     else:
         return scan_css_content(content)
 
+def mask_css_comments_and_strings(css_text):
+    """
+    Masks comments /* ... */ and string literals '...' / "..." in CSS text.
+    Returns (masked_text, placeholders_dict).
+    """
+    placeholders = {}
+    counter = 0
+
+    def comment_repl(m):
+        nonlocal counter
+        key = f"__OT_CSS_COMMENT_{counter}__"
+        counter += 1
+        placeholders[key] = m.group(0)
+        return key
+
+    masked = re.sub(r'/\*[\s\S]*?\*/', comment_repl, css_text)
+
+    def string_repl(m):
+        nonlocal counter
+        key = f"__OT_CSS_STR_{counter}__"
+        counter += 1
+        placeholders[key] = m.group(0)
+        return key
+
+    masked = re.sub(r'"(?:\\.|[^"\\])*"', string_repl, masked)
+    masked = re.sub(r"'(?:\\.|[^'\\])*'", string_repl, masked)
+
+    return masked, placeholders
+
+def unmask_css(masked_text, placeholders):
+    """Restores masked comments and strings back into the CSS text."""
+    for key, original in reversed(list(placeholders.items())):
+        masked_text = masked_text.replace(key, original)
+    return masked_text
+
+def transform_css_declarations(text):
+    """
+    Transforms physical CSS property declarations and values into logical equivalents.
+    """
+    # 1. Banned kebab-case properties
+    for prop, repl in BANNED_PROPERTIES.items():
+        pattern = re.compile(r'(?<![a-zA-Z0-9_-])' + re.escape(prop) + r'(\s*:)', re.IGNORECASE)
+        text = pattern.sub(repl + r'\1', text)
+
+    # 2. Offsets left: and right:
+    def repl_offset(m):
+        prop = m.group(1).lower()
+        val_raw = m.group(3).strip()
+        val_clean = re.sub(r'\s*!\s*important', '', val_raw, flags=re.IGNORECASE).strip().lower().strip('\'"')
+        if val_clean in ALLOWED_OFFSETS:
+            return m.group(0)
+        sug = 'inset-inline-start' if prop == 'left' else 'inset-inline-end'
+        return sug + m.group(2) + m.group(3)
+
+    offset_pattern = re.compile(r'(?<![a-zA-Z0-9_-])(left|right)(\s*:\s*)([^;}\n]+)', re.IGNORECASE)
+    text = offset_pattern.sub(repl_offset, text)
+
+    # 3. text-align: left / right
+    def repl_text_align(m):
+        prop = m.group(1)
+        sep = m.group(2)
+        val = m.group(3)
+        rest = m.group(4)
+        sug_val = 'start' if val.lower() == 'left' else 'end'
+        return prop + sep + sug_val + rest
+
+    ta_pattern = re.compile(r'(?<![a-zA-Z0-9_-])(text-align)(\s*:\s*)(left|right)(\b[^;}\n]*)', re.IGNORECASE)
+    text = ta_pattern.sub(repl_text_align, text)
+
+    # 4. float: left / right
+    def repl_float(m):
+        prop = m.group(1)
+        sep = m.group(2)
+        val = m.group(3)
+        rest = m.group(4)
+        sug_val = 'inline-start' if val.lower() == 'left' else 'inline-end'
+        return prop + sep + sug_val + rest
+
+    float_pattern = re.compile(r'(?<![a-zA-Z0-9_-])(float)(\s*:\s*)(left|right)(\b[^;}\n]*)', re.IGNORECASE)
+    text = float_pattern.sub(repl_float, text)
+
+    # 5. clear: left / right
+    def repl_clear(m):
+        prop = m.group(1)
+        sep = m.group(2)
+        val = m.group(3)
+        rest = m.group(4)
+        sug_val = 'inline-start' if val.lower() == 'left' else 'inline-end'
+        return prop + sep + sug_val + rest
+
+    clear_pattern = re.compile(r'(?<![a-zA-Z0-9_-])(clear)(\s*:\s*)(left|right)(\b[^;}\n]*)', re.IGNORECASE)
+    text = clear_pattern.sub(repl_clear, text)
+
+    return text
+
+def fix_css_content(content):
+    """Fixes physical properties in CSS while preserving comments and string literals."""
+    masked, placeholders = mask_css_comments_and_strings(content)
+    transformed = transform_css_declarations(masked)
+    return unmask_css(transformed, placeholders)
+
+def fix_js_content(content):
+    """Fixes physical properties in JSX, TSX, and JS style declarations."""
+    # 1. Fix JSX style={{ ... }} blocks
+    def fix_jsx_style_match(m):
+        inner = m.group(1)
+        for prop, repl in BANNED_CAMELCASE_PROPERTIES.items():
+            inner = re.sub(r'(?<![a-zA-Z0-9_])' + re.escape(prop) + r'(\s*:)', repl + r'\1', inner)
+        for prop, repl in BANNED_PROPERTIES.items():
+            inner = re.sub(r'([\'"])' + re.escape(prop) + r'([\'"]\s*:)', r'\1' + repl + r'\2', inner)
+        def repl_js_offset(om):
+            val_clean = om.group(3).strip().strip('\'"').lower()
+            if val_clean in ALLOWED_OFFSETS:
+                return om.group(0)
+            sug = 'insetInlineStart' if om.group(1) == 'left' else 'insetInlineEnd'
+            return sug + om.group(2) + om.group(3)
+        inner = re.sub(r'(?<![a-zA-Z0-9_])(left|right)(\s*:\s*)([^,;}\n]+)', repl_js_offset, inner)
+        def repl_js_ta(tam):
+            sug = 'start' if tam.group(3).lower() == 'left' else 'end'
+            return tam.group(1) + tam.group(2) + sug + tam.group(4)
+        inner = re.sub(r'\b(textAlign\s*:\s*)([\'"])(left|right)([\'"])', repl_js_ta, inner, flags=re.IGNORECASE)
+        return 'style={{' + inner + '}}'
+
+    content = re.sub(r'\bstyle\s*=\s*\{\{\s*([\s\S]*?)\s*\}\}', fix_jsx_style_match, content)
+
+    # 2. Fix StyleSheet.create({ ... }) blocks
+    def fix_ss_match(m):
+        inner = m.group(1)
+        for prop, repl in BANNED_CAMELCASE_PROPERTIES.items():
+            inner = re.sub(r'(?<![a-zA-Z0-9_])' + re.escape(prop) + r'(\s*:)', repl + r'\1', inner)
+        for prop, repl in BANNED_PROPERTIES.items():
+            inner = re.sub(r'([\'"])' + re.escape(prop) + r'([\'"]\s*:)', r'\1' + repl + r'\2', inner)
+        def repl_js_offset(om):
+            val_clean = om.group(3).strip().strip('\'"').lower()
+            if val_clean in ALLOWED_OFFSETS:
+                return om.group(0)
+            sug = 'insetInlineStart' if om.group(1) == 'left' else 'insetInlineEnd'
+            return sug + om.group(2) + om.group(3)
+        inner = re.sub(r'(?<![a-zA-Z0-9_])(left|right)(\s*:\s*)([^,;}\n]+)', repl_js_offset, inner)
+        def repl_js_ta(tam):
+            sug = 'start' if tam.group(3).lower() == 'left' else 'end'
+            return tam.group(1) + tam.group(2) + sug + tam.group(4)
+        inner = re.sub(r'\b(textAlign\s*:\s*)([\'"])(left|right)([\'"])', repl_js_ta, inner, flags=re.IGNORECASE)
+        return 'StyleSheet.create({' + inner + '})'
+
+    content = re.sub(r'StyleSheet\s*\.\s*create\s*\(\s*\{([\s\S]*?)\}\s*\)', fix_ss_match, content)
+
+    # 3. Fix tagged template literals (styled.div`...` or css`...`)
+    def fix_template_literals(m):
+        tag = m.group(1)
+        css_body = m.group(2)
+        fixed_body = fix_css_content(css_body)
+        return tag + '`' + fixed_body + '`'
+
+    content = re.sub(r'(\b(?:styled(?:\.[a-zA-Z0-9_]+|\([^\)]+\))|css|keyframes|injectGlobal|createGlobalStyle)\s*)`([\s\S]*?)`', fix_template_literals, content)
+
+    return content
+
+def fix_html_content(content):
+    """Fixes physical properties in HTML <style> tags and inline style attributes."""
+    # 1. <style> blocks
+    def fix_style_tag(m):
+        open_tag = m.group(1)
+        body = m.group(2)
+        close_tag = m.group(3)
+        return open_tag + fix_css_content(body) + close_tag
+
+    content = re.sub(r'(<style[^>]*>)([\s\S]*?)(</style>)', fix_style_tag, content, flags=re.IGNORECASE)
+
+    # 2. Inline style="..." attributes
+    def fix_style_attr(m):
+        prefix = m.group(1)
+        q = m.group(2)
+        body = m.group(3)
+        fixed_body = transform_css_declarations(body)
+        return prefix + q + fixed_body + q
+
+    content = re.sub(r'(\bstyle\s*=\s*)([\'"])([\s\S]*?)\2', fix_style_attr, content, flags=re.IGNORECASE)
+    return content
+
+def apply_bidi_fixes_to_file(filepath):
+    """
+    Reads filepath, computes initial violations, applies deterministic logical property
+    transformations, writes back if fixed, and confirms resolved violation count.
+    Returns (num_fixed, details_list).
+    """
+    ext = os.path.splitext(filepath)[1].lower()
+    if ext not in SUPPORTED_EXTENSIONS:
+        return 0, []
+
+    with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+        original = f.read()
+
+    initial_viols = scan_file(filepath)
+    if not initial_viols:
+        return 0, []
+
+    if ext in ('.html', '.htm', '.vue', '.svelte'):
+        fixed = fix_html_content(original)
+    elif ext in ('.jsx', '.tsx', '.js', '.ts'):
+        fixed = fix_js_content(original)
+    else:
+        fixed = fix_css_content(original)
+
+    if fixed != original:
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(fixed)
+
+    remaining_viols = scan_file(filepath)
+    fixed_count = len(initial_viols) - len(remaining_viols)
+    details = [f"Repaired {v[1]} -> {v[2]}" for v in initial_viols[:fixed_count]]
+    return fixed_count, details
+
 def main():
-    target_dir = sys.argv[1] if len(sys.argv) > 1 else 'examples'
+    args = sys.argv[1:]
+    is_fix = '--fix' in args
+    positional = [a for a in args if not a.startswith('--')]
+    target_dir = positional[0] if positional else 'examples'
+
     if not os.path.exists(target_dir):
         print(f"❌ [REJECT] Target path not found: {target_dir}")
         sys.exit(1)
 
+    # Load configuration if available
+    config = None
+    if load_orthotect_config:
+        config, _ = load_orthotect_config(target_dir)
+
     print("═══════════════════════════════════════════════════════════════")
-    print("  ORTHOTECT GATE: True BiDi Logical Properties Check (AST)")
+    print(f"  ORTHOTECT GATE: True BiDi Logical Properties Check (AST){' [AUTO-FIX MODE]' if is_fix else ''}")
     print("═══════════════════════════════════════════════════════════════")
 
     total_files = 0
     total_violations = 0
+    fixed_files_count = 0
+    fixed_violations_count = 0
 
     if os.path.isfile(target_dir):
         files_to_scan = [(os.path.dirname(target_dir), os.path.basename(target_dir))]
     else:
         files_to_scan = []
         for root, dirs, files in os.walk(target_dir):
-            dirs[:] = [d for d in dirs if d not in IGNORE_DIRS]
+            dirs[:] = [d for d in dirs if d not in IGNORE_DIRS and not (is_path_excluded and is_path_excluded(os.path.join(root, d), config, target_dir))]
             for file in files:
                 ext = os.path.splitext(file)[1].lower()
                 if ext in SUPPORTED_EXTENSIONS:
+                    fpath = os.path.join(root, file)
+                    if is_path_excluded and is_path_excluded(fpath, config, target_dir):
+                        continue
                     files_to_scan.append((root, file))
 
     for root, file in files_to_scan:
@@ -848,6 +1085,14 @@ def main():
             print(f"\n❌ [FAIL] Error evaluating styling in {fpath}: {e}")
             total_violations += 1
             continue
+
+        if viols and is_fix:
+            num_fixed, _ = apply_bidi_fixes_to_file(fpath)
+            if num_fixed > 0:
+                fixed_files_count += 1
+                fixed_violations_count += num_fixed
+                # Re-scan to evaluate remaining violations after fix
+                viols = scan_file(fpath)
 
         if viols:
             print(f"\n❌ [FAIL] Physical direction properties found in: {fpath}")
@@ -862,6 +1107,9 @@ def main():
         print(f"\n❌ [REJECT] No styling or markup files ({', '.join(sorted(SUPPORTED_EXTENSIONS))}) found in: {target_dir}")
         print("   Orthotect cannot certify BiDi compliance on an empty project.")
         sys.exit(1)
+
+    if is_fix and fixed_violations_count > 0:
+        print(f"\n✨ [AUTO-FIX] Repaired {fixed_violations_count} violation(s) across {fixed_files_count} file(s).")
 
     if total_violations == 0:
         print(f"\n✅ [PASS] BiDi Logical Check Passed! Scanned {total_files} file(s) via CSS AST.")

@@ -85,9 +85,12 @@ orthotect/
 │   ├── validate-skills.mjs       # Agent Skills specification validator (SPDX & recursive refs)
 │   ├── package_skills.py         # Deterministic cross-agent skill packager & security scanner
 │   └── check-package-metadata.mjs# Synchronized package version & lockfile guard
-├── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (275 Tests)
+├── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (291 Tests)
 │   ├── test_contrast.py          # Relative luminance & contrast threshold unit tests
 │   ├── test_bidi.py              # BiDi logical scanner positive/negative tests
+│   ├── test_auto_fix.py          # BiDi auto-healing (--fix) remediation tests
+│   ├── test_hooks_cli.py         # Git pre-commit hook installation & enforcement tests
+│   ├── test_config.py            # Configuration loader, deep-merge & path exclusion tests
 │   ├── test_fsm.py               # FSM graph reachability and deadlock tests
 │   ├── test_core_sync.py         # Canonical FSM schemas & DTCG tokens single-source-of-truth tests
 │   ├── test_cwv.py               # Media dimension, aspect-ratio & iterative parse5 DOM depth tests
@@ -104,7 +107,7 @@ orthotect/
 │   ├── test_skill_evals.py       # Skill evaluation fixture schema & JSON-LD template validity tests
 │   └── test_skill_packaging.py   # Skill packager reproducibility, security & manifest tests
 ├── .github/workflows/       # Automated CI & GitHub Pages Deployment Pipelines
-│   ├── ci.yml                    # 275 Unit, Browser & Negative Gate Tests & Full Gate Verification
+│   ├── ci.yml                    # 291 Unit, Browser & Negative Gate Tests & Full Gate Verification
 │   ├── publish-package.yml       # Release concurrency & fail-closed package publisher
 │   └── pages.yml                 # Automated GitHub Pages Deployment
 ├── agents/
@@ -121,7 +124,7 @@ orthotect/
 
 ---
 
-## 🚦 Deterministic Quality Gates
+## 🚦 Deterministic Quality Gates & Auto-Healing
 
 Run the verification suite against your project:
 
@@ -129,9 +132,35 @@ Run the verification suite against your project:
 # Verify current project
 npx orthotect verify .
 
-# Or verify with automated reporting
+# Auto-heal physical CSS properties in-place (margin-left → margin-inline-start, etc.)
+npx orthotect verify . --fix
+
+# Install automated Git pre-commit hook (blocks violating commits before landing)
+npx orthotect hooks install
+
+# Generate machine-readable JSON or Markdown audit reports
 npx orthotect verify ./src --json
 npx orthotect verify ./src --md
+```
+
+### ⚙️ Configuration Engine (`orthotect.config.json`)
+
+Customize file exclusion globs, DOM nesting depth limits, and gate toggles per project:
+
+```json
+{
+  "exclude": ["node_modules/**", "dist/**", "build/**", "legacy/**"],
+  "cwv": {
+    "maxDomDepth": 32,
+    "maxDomNodes": 1500
+  },
+  "bidi": {
+    "allowCamelCase": false
+  },
+  "contrast": {
+    "level": "AA"
+  }
+}
 ```
 
 Illustrative Reference Verification Output (Target: `examples/golden-showcase`):
