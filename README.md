@@ -42,6 +42,8 @@ For an in-depth technical analysis, read our [Architectural Comparison Whitepape
 ```text
 orthotect/
 ├── core/
+│   ├── config.py            # Zero-dependency configuration engine & orthotect.config.json loader
+│   ├── config.mjs           # Zero-dependency ESM configuration loader for Node.js
 │   ├── compiler.py          # W3C DTCG Token Compiler (:root light and [data-theme="dark"])
 │   ├── knowledge_search.py  # Zero-dependency UI/UX knowledge base search engine
 │   ├── context_optimizer.py # Token-optimizer, density profiler & semantic chunker
@@ -49,7 +51,7 @@ orthotect/
 │   └── fsm/                 # State Machine Specifications (Buttons, Data Tables, Modal Dialogs)
 ├── knowledge/               # UI/UX Design Intelligence & Validated Style Recipes
 │   ├── schemas/             # JSON Schemas (design-reasoning, style-recipe, knowledge-record)
-│   ├── styles/              # 6 Original Style Recipes (editorial, analytical, saas, operational, etc.)
+│   ├── styles/              # 12 Validated Style Recipes (editorial, analytical, saas, operational, etc.)
 │   └── [category]/          # Curated Knowledge Records (palettes, typography, components, etc.)
 ├── docs/                    # 7-View Skill Studio Platform & Interactive Showcase (GitHub Pages)
 │   ├── index.html           # 7-view bilingual (EN/AR) interactive workbench
