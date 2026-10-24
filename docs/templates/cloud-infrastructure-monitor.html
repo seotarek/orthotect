@@ -17,13 +17,17 @@
   <meta property="og:description" content="Mission-critical infrastructure console tracking multi-cloud Kubernetes clusters across us-east, eu-central, and ap-southeast with p99 latency telemetry and automatic failover metrics.">
   <meta property="og:url" content="https://seotarek.github.io/orthotect/templates/cloud-infrastructure-monitor.html">
   <meta property="og:site_name" content="Orthotect Interface Engineering">
-  <meta property="og:image" content="https://seotarek.github.io/orthotect/assets/brand/brand-guide.jpg">
+  <meta property="og:image" content="https://seotarek.github.io/orthotect/assets/brand/orthotect-social-preview.jpg">
+  <meta property="og:image:width" content="1376">
+  <meta property="og:image:height" content="768">
+  <meta property="og:image:alt" content="Multi-Region Cloud Infrastructure &amp; Kubernetes Monitor — Orthotect Interface Engineering">
   
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Multi-Region Cloud Infrastructure &amp; Kubernetes Monitor">
   <meta name="twitter:description" content="Mission-critical infrastructure console tracking multi-cloud Kubernetes clusters across us-east, eu-central, and ap-southeast with p99 latency telemetry and automatic failover metrics.">
-  <meta name="twitter:image" content="https://seotarek.github.io/orthotect/assets/brand/brand-guide.jpg">
+  <meta name="twitter:image" content="https://seotarek.github.io/orthotect/assets/brand/orthotect-social-preview.jpg">
+  <meta name="twitter:image:alt" content="Multi-Region Cloud Infrastructure &amp; Kubernetes Monitor">
   
   <link rel="icon" type="image/svg+xml" href="../assets/brand/favicon.svg">
   
@@ -46,15 +50,15 @@
       --tmpl-surface-1: #0F172A;
       --tmpl-surface-2: #1E293B;
       --tmpl-surface-3: #334155;
-      --tmpl-primary: #0369A1;
-      --tmpl-primary-hover: #075985;
+      --tmpl-primary: #0284C7;
+      --tmpl-primary-hover: #0369A1;
       --tmpl-btn-text: #FFFFFF;
       --tmpl-text-primary: #F8FAFC;
       --tmpl-text-secondary: #94A3B8;
-      --tmpl-border: rgba(14, 165, 233, 0.22);
+      --tmpl-border: rgba(14, 165, 233, 0.28);
       --tmpl-radius: 6px;
       --tmpl-border-width: 1px;
-      --tmpl-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      --tmpl-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
     }
 
     html[data-theme="light"] {
@@ -71,14 +75,21 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      background-color: var(--tmpl-bg-canvas);
+      background-color: var(--tmpl-bg-canvas) !important;
+      background-image: linear-gradient(90deg, rgba(14, 165, 233, 0.04) 1px, transparent 1px), linear-gradient(rgba(14, 165, 233, 0.04) 1px, transparent 1px) !important;
+      background-size: 24px 24px, 24px 24px !important;
+      background-attachment: fixed !important;
       color: var(--tmpl-text-primary);
       font-family: var(--tmpl-font-body);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+    }
+
+    button, .topbar-btn, .btn-ctrl, .btn-ctrl-accent, .btn-civic, .prod-badge, .style-badge, .civic-step-badge, .saas-pill, input, select, textarea {
+      border-radius: var(--tmpl-radius) !important;
     }
 
     h1, h2, h3, h4, h5, h6, .template-title, .chart-title, .table-title, .prod-title, .saas-hero-title, .civic-title {
@@ -346,7 +357,7 @@
       border-block-start: max(3px, var(--tmpl-border-width)) solid var(--tmpl-primary);
       padding: 1.25rem;
       text-align: start;
-      
+      border-top: 2px solid #0284C7;
     }
 
     .metric-label {
@@ -375,7 +386,7 @@
       border-radius: var(--tmpl-radius);
       box-shadow: var(--tmpl-shadow);
       padding: 1.5rem;
-      
+      border-top: 2px solid #0284C7;
     }
 
     .chart-header, .table-header-bar {
@@ -445,7 +456,7 @@
       padding: 2rem;
       max-width: 800px;
       margin-inline: auto;
-      
+      border-top: 2px solid #0284C7;
     }
 
     .fsm-progress-bar {
@@ -598,7 +609,7 @@
       border-radius: var(--tmpl-radius);
       box-shadow: var(--tmpl-shadow);
       padding: 2rem;
-      
+      border-top: 2px solid #0284C7;
     }
 
     .product-visual-box {
@@ -715,7 +726,7 @@
       border-radius: var(--tmpl-radius);
       box-shadow: var(--tmpl-shadow);
       padding: 1.5rem;
-      
+      border-top: 2px solid #0284C7;
     }
 
     .specs-title {
@@ -762,7 +773,7 @@
       box-shadow: var(--tmpl-shadow);
       padding: 2rem;
       text-align: start;
-      
+      border-top: 2px solid #0284C7;
     }
 
     .civic-cert-stamp {
@@ -806,7 +817,7 @@
       flex-direction: column;
       justify-content: space-between;
       text-align: start;
-      
+      border-top: 2px solid #0284C7;
     }
 
     .civic-step-badge {
@@ -911,7 +922,7 @@
       margin-inline: auto;
       width: 100%;
       text-align: start;
-      
+      border-top: 2px solid #0284C7;
     }
 
     .terminal-bar {
@@ -986,7 +997,7 @@
       border-radius: var(--tmpl-radius);
       box-shadow: var(--tmpl-shadow);
       padding: 1.5rem;
-      
+      border-top: 2px solid #0284C7;
     }
 
     .feat-icon-bullet {
@@ -1079,8 +1090,8 @@
 
           <div class="topbar-actions">
             <button id="themeToggleBtn" class="topbar-btn" aria-label="Toggle Light and Dark Mode" title="Toggle Theme">
-              <span class="theme-icon-dark" style="">🌙 Dark</span>
-              <span class="theme-icon-light" style="display:none;">☀️ Light</span>
+              <span class="theme-icon-dark" style=""><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-inline-end: 4px; vertical-align: middle;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>Dark</span>
+              <span class="theme-icon-light" style="display:none;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-inline-end: 4px; vertical-align: middle;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>Light</span>
             </button>
             <button id="dirToggleBtn" class="topbar-btn" aria-label="Toggle Text Direction LTR and RTL" title="Toggle BiDi Direction">
               <span class="dir-text">LTR ⇄ RTL</span>
@@ -1153,15 +1164,15 @@
             <svg width="100%" height="220" viewBox="0 0 800 220" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#0369A1" stop-opacity="0.35"/>
-                  <stop offset="100%" stop-color="#0369A1" stop-opacity="0.00"/>
+                  <stop offset="0%" stop-color="#0284C7" stop-opacity="0.35"/>
+                  <stop offset="100%" stop-color="#0284C7" stop-opacity="0.00"/>
                 </linearGradient>
               </defs>
               <line x1="0" y1="50" x2="800" y2="50" stroke="var(--tmpl-border)" stroke-dasharray="4"/>
               <line x1="0" y1="110" x2="800" y2="110" stroke="var(--tmpl-border)" stroke-dasharray="4"/>
               <line x1="0" y1="170" x2="800" y2="170" stroke="var(--tmpl-border)" stroke-dasharray="4"/>
               <polygon points="0,180 80,160 160,140 240,150 320,110 400,90 480,120 560,70 640,60 720,40 800,30 800,220 0,220" fill="url(#chartGrad)"/>
-              <polyline points="0,180 80,160 160,140 240,150 320,110 400,90 480,120 560,70 640,60 720,40 800,30" fill="none" stroke="#0369A1" stroke-width="3" stroke-linecap="round"/>
+              <polyline points="0,180 80,160 160,140 240,150 320,110 400,90 480,120 560,70 640,60 720,40 800,30" fill="none" stroke="#0284C7" stroke-width="3" stroke-linecap="round"/>
             </svg>
           </div>
         </div>

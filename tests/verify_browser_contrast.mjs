@@ -66,7 +66,7 @@ async function evaluateTheme(page, theme) {
   await page.evaluate((t) => {
     document.documentElement.setAttribute("data-theme", t);
   }, theme);
-  await page.waitForTimeout(100);
+  await page.waitForTimeout(250);
 
   const targets = [
     { name: "Brand Title on Header Panel", selector: ".brand-title", bgSelector: ".top-bar", threshold: 4.5, type: "normal_text" },

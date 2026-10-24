@@ -575,10 +575,14 @@ export function extractCssRulesFromHtmlAndLinkedSheets(htmlContent, htmlFilePath
     const attrs = parseHtmlAttributes(match[1]);
     if (attrs['rel'] && attrs['rel'].toLowerCase() === 'stylesheet' && attrs['href']) {
       const href = attrs['href'].split('?')[0].split('#')[0];
+      if (path.isAbsolute(href) || href.startsWith('//') || href.includes('://')) continue;
       const fullPath = path.resolve(dir, href);
-      if (fs.existsSync(fullPath)) {
+      if (fullPath.endsWith('.css') && fs.existsSync(fullPath)) {
         try {
-          cssTexts.push(fs.readFileSync(fullPath, 'utf-8'));
+          const stat = fs.statSync(fullPath);
+          if (stat.isFile()) {
+            cssTexts.push(fs.readFileSync(fullPath, 'utf-8'));
+          }
         } catch (_) {}
       }
     }

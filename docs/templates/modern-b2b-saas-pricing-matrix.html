@@ -17,13 +17,17 @@
   <meta property="og:description" content="Modern transparent B2B pricing table with annual discount badge (20% off), interactive usage tier slider, comprehensive feature comparison checklist, and enterprise quote modal.">
   <meta property="og:url" content="https://seotarek.github.io/orthotect/templates/modern-b2b-saas-pricing-matrix.html">
   <meta property="og:site_name" content="Orthotect Interface Engineering">
-  <meta property="og:image" content="https://seotarek.github.io/orthotect/assets/brand/brand-guide.jpg">
+  <meta property="og:image" content="https://seotarek.github.io/orthotect/assets/brand/orthotect-social-preview.jpg">
+  <meta property="og:image:width" content="1376">
+  <meta property="og:image:height" content="768">
+  <meta property="og:image:alt" content="Usage-Based SaaS Pricing &amp; ROI Calculator — Orthotect Interface Engineering">
   
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Usage-Based SaaS Pricing &amp; ROI Calculator">
   <meta name="twitter:description" content="Modern transparent B2B pricing table with annual discount badge (20% off), interactive usage tier slider, comprehensive feature comparison checklist, and enterprise quote modal.">
-  <meta name="twitter:image" content="https://seotarek.github.io/orthotect/assets/brand/brand-guide.jpg">
+  <meta name="twitter:image" content="https://seotarek.github.io/orthotect/assets/brand/orthotect-social-preview.jpg">
+  <meta name="twitter:image:alt" content="Usage-Based SaaS Pricing &amp; ROI Calculator">
   
   <link rel="icon" type="image/svg+xml" href="../assets/brand/favicon.svg">
   
@@ -46,15 +50,15 @@
       --tmpl-surface-1: #121418;
       --tmpl-surface-2: #1B1E24;
       --tmpl-surface-3: #262A33;
-      --tmpl-primary: #4F46E5;
-      --tmpl-primary-hover: #4338CA;
+      --tmpl-primary: #6366F1;
+      --tmpl-primary-hover: #4F46E5;
       --tmpl-btn-text: #FFFFFF;
       --tmpl-text-primary: #F4F4F5;
       --tmpl-text-secondary: #A1A1AA;
       --tmpl-border: rgba(255, 255, 255, 0.12);
-      --tmpl-radius: 10px;
+      --tmpl-radius: 12px;
       --tmpl-border-width: 1px;
-      --tmpl-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+      --tmpl-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
     }
 
     html[data-theme="light"] {
@@ -71,14 +75,21 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      background-color: var(--tmpl-bg-canvas);
+      background-color: var(--tmpl-bg-canvas) !important;
+      background-image: radial-gradient(ellipse at 50% -20%, rgba(79, 70, 229, 0.2) 0%, transparent 70%) !important;
+      background-size: 100% 100% !important;
+      background-attachment: fixed !important;
       color: var(--tmpl-text-primary);
       font-family: var(--tmpl-font-body);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+    }
+
+    button, .topbar-btn, .btn-ctrl, .btn-ctrl-accent, .btn-civic, .prod-badge, .style-badge, .civic-step-badge, .saas-pill, input, select, textarea {
+      border-radius: var(--tmpl-radius) !important;
     }
 
     h1, h2, h3, h4, h5, h6, .template-title, .chart-title, .table-title, .prod-title, .saas-hero-title, .civic-title {
@@ -1079,8 +1090,8 @@
 
           <div class="topbar-actions">
             <button id="themeToggleBtn" class="topbar-btn" aria-label="Toggle Light and Dark Mode" title="Toggle Theme">
-              <span class="theme-icon-dark" style="">🌙 Dark</span>
-              <span class="theme-icon-light" style="display:none;">☀️ Light</span>
+              <span class="theme-icon-dark" style=""><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-inline-end: 4px; vertical-align: middle;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>Dark</span>
+              <span class="theme-icon-light" style="display:none;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-inline-end: 4px; vertical-align: middle;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>Light</span>
             </button>
             <button id="dirToggleBtn" class="topbar-btn" aria-label="Toggle Text Direction LTR and RTL" title="Toggle BiDi Direction">
               <span class="dir-text">LTR ⇄ RTL</span>
@@ -1121,7 +1132,7 @@
             <p class="saas-hero-desc">Modern transparent B2B pricing table with annual discount badge (20% off), interactive usage tier slider, comprehensive feature comparison checklist, and enterprise quote modal.</p>
             
             <div class="saas-cta-group">
-              <button type="button" class="btn-ctrl-accent" onclick="alert('CLI initialized: npx orthotect design init')">
+              <button type="button" class="btn-ctrl-accent" onclick="alert('CLI initialized: npx orthotect doctor')">
                 <span>Start Building Now</span>
               </button>
               <button type="button" class="btn-ctrl" onclick="alert('Viewing comprehensive technical documentation')">
@@ -1142,11 +1153,7 @@
             </div>
             <div class="terminal-content">
               <div class="term-line"><span class="term-prompt">$</span> npx orthotect doctor</div>
-              <div class="term-line output">✔ Node.js runtime: v20.19.0 (Supported)</div>
-              <div class="term-line output">✔ Python gate engine: v3.12 (Supported)</div>
-              <div class="term-line output">✔ Design tokens: 96 palettes, 57 styles compiled</div>
-              <div class="term-line output">✔ Deterministic quality gates: 5/5 operational (703ms)</div>
-              <div class="term-line output highlight">Status: System healthy. Ready to enforce deterministic UI engineering.</div>
+              <div class="term-line output">✔ Node.js runtime: v20.19.0 (Supported)</div><div class="term-line output">✔ Python gate engine: v3.12 (Supported)</div><div class="term-line output">✔ Design tokens: 96 palettes, 57 styles compiled</div><div class="term-line highlight">Status: System healthy. Ready to enforce deterministic UI engineering.</div>
             </div>
           </div>
 

@@ -134,6 +134,9 @@ class TestFsmValidator(unittest.TestCase):
         with open(fpath, "w") as f:
             json.dump(orphaned, f)
         viols = check_fsm_file(fpath)
+        self.assertGreater(len(viols), 0)
+        self.assertTrue(any("unreachable" in v.lower() for v in viols))
+
     def test_explicit_is_async_property_enforces_lock(self):
         """Schema test: explicit isAsync: true on arbitrary state name must enforce allowClick: false and recovery."""
         fsm = {

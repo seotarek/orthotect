@@ -17,13 +17,17 @@
   <meta property="og:description" content="High-accuracy engineering procurement catalog for aerospace fasteners, CNC-milled titanium components, and DIN-spec hardware with live stock level indicators and CAD viewers.">
   <meta property="og:url" content="https://seotarek.github.io/orthotect/templates/hardware-spec-sheet-store.html">
   <meta property="og:site_name" content="Orthotect Interface Engineering">
-  <meta property="og:image" content="https://seotarek.github.io/orthotect/assets/brand/brand-guide.jpg">
+  <meta property="og:image" content="https://seotarek.github.io/orthotect/assets/brand/orthotect-social-preview.jpg">
+  <meta property="og:image:width" content="1376">
+  <meta property="og:image:height" content="768">
+  <meta property="og:image:alt" content="Precision Hardware &amp; Mechanical Spec Sheet Store — Orthotect Interface Engineering">
   
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Precision Hardware &amp; Mechanical Spec Sheet Store">
   <meta name="twitter:description" content="High-accuracy engineering procurement catalog for aerospace fasteners, CNC-milled titanium components, and DIN-spec hardware with live stock level indicators and CAD viewers.">
-  <meta name="twitter:image" content="https://seotarek.github.io/orthotect/assets/brand/brand-guide.jpg">
+  <meta name="twitter:image" content="https://seotarek.github.io/orthotect/assets/brand/orthotect-social-preview.jpg">
+  <meta name="twitter:image:alt" content="Precision Hardware &amp; Mechanical Spec Sheet Store">
   
   <link rel="icon" type="image/svg+xml" href="../assets/brand/favicon.svg">
   
@@ -46,11 +50,11 @@
       --tmpl-surface-1: #F8FAFC;
       --tmpl-surface-2: #F1F5F9;
       --tmpl-surface-3: #E2E8F0;
-      --tmpl-primary: #C2410C;
-      --tmpl-primary-hover: #9A3412;
+      --tmpl-primary: #DC2626;
+      --tmpl-primary-hover: #B91C1C;
       --tmpl-btn-text: #FFFFFF;
       --tmpl-text-primary: #0F172A;
-      --tmpl-text-secondary: #475569;
+      --tmpl-text-secondary: #334155;
       --tmpl-border: #0F172A;
       --tmpl-radius: 0px;
       --tmpl-border-width: 2px;
@@ -71,14 +75,21 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      background-color: var(--tmpl-bg-canvas);
+      background-color: var(--tmpl-bg-canvas) !important;
+      background-image: linear-gradient(#0F172A 1px, transparent 1px), linear-gradient(90deg, #0F172A 1px, transparent 1px) !important;
+      background-size: 40px 40px, 40px 40px !important;
+      background-attachment: fixed !important;
       color: var(--tmpl-text-primary);
       font-family: var(--tmpl-font-body);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+    }
+
+    button, .topbar-btn, .btn-ctrl, .btn-ctrl-accent, .btn-civic, .prod-badge, .style-badge, .civic-step-badge, .saas-pill, input, select, textarea {
+      border-radius: var(--tmpl-radius) !important;
     }
 
     h1, h2, h3, h4, h5, h6, .template-title, .chart-title, .table-title, .prod-title, .saas-hero-title, .civic-title {
@@ -346,7 +357,7 @@
       border-block-start: max(3px, var(--tmpl-border-width)) solid var(--tmpl-primary);
       padding: 1.25rem;
       text-align: start;
-      
+      border: 2px solid #0F172A; box-shadow: 6px 6px 0px #0F172A;
     }
 
     .metric-label {
@@ -375,7 +386,7 @@
       border-radius: var(--tmpl-radius);
       box-shadow: var(--tmpl-shadow);
       padding: 1.5rem;
-      
+      border: 2px solid #0F172A; box-shadow: 6px 6px 0px #0F172A;
     }
 
     .chart-header, .table-header-bar {
@@ -445,7 +456,7 @@
       padding: 2rem;
       max-width: 800px;
       margin-inline: auto;
-      
+      border: 2px solid #0F172A; box-shadow: 6px 6px 0px #0F172A;
     }
 
     .fsm-progress-bar {
@@ -598,7 +609,7 @@
       border-radius: var(--tmpl-radius);
       box-shadow: var(--tmpl-shadow);
       padding: 2rem;
-      
+      border: 2px solid #0F172A; box-shadow: 6px 6px 0px #0F172A;
     }
 
     .product-visual-box {
@@ -715,7 +726,7 @@
       border-radius: var(--tmpl-radius);
       box-shadow: var(--tmpl-shadow);
       padding: 1.5rem;
-      
+      border: 2px solid #0F172A; box-shadow: 6px 6px 0px #0F172A;
     }
 
     .specs-title {
@@ -762,7 +773,7 @@
       box-shadow: var(--tmpl-shadow);
       padding: 2rem;
       text-align: start;
-      
+      border: 2px solid #0F172A; box-shadow: 6px 6px 0px #0F172A;
     }
 
     .civic-cert-stamp {
@@ -806,7 +817,7 @@
       flex-direction: column;
       justify-content: space-between;
       text-align: start;
-      
+      border: 2px solid #0F172A; box-shadow: 6px 6px 0px #0F172A;
     }
 
     .civic-step-badge {
@@ -911,7 +922,7 @@
       margin-inline: auto;
       width: 100%;
       text-align: start;
-      
+      border: 2px solid #0F172A; box-shadow: 6px 6px 0px #0F172A;
     }
 
     .terminal-bar {
@@ -986,7 +997,7 @@
       border-radius: var(--tmpl-radius);
       box-shadow: var(--tmpl-shadow);
       padding: 1.5rem;
-      
+      border: 2px solid #0F172A; box-shadow: 6px 6px 0px #0F172A;
     }
 
     .feat-icon-bullet {
@@ -1079,8 +1090,8 @@
 
           <div class="topbar-actions">
             <button id="themeToggleBtn" class="topbar-btn" aria-label="Toggle Light and Dark Mode" title="Toggle Theme">
-              <span class="theme-icon-dark" style="display:none;">🌙 Dark</span>
-              <span class="theme-icon-light" style="">☀️ Light</span>
+              <span class="theme-icon-dark" style="display:none;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-inline-end: 4px; vertical-align: middle;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>Dark</span>
+              <span class="theme-icon-light" style=""><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-inline-end: 4px; vertical-align: middle;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>Light</span>
             </button>
             <button id="dirToggleBtn" class="topbar-btn" aria-label="Toggle Text Direction LTR and RTL" title="Toggle BiDi Direction">
               <span class="dir-text">LTR ⇄ RTL</span>
@@ -1118,20 +1129,20 @@
           <div class="product-hero-panel">
             <div class="product-visual-box">
               <div class="product-schematic-bg">
-                <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
-                  <rect x="20" y="20" width="360" height="200" rx="12" stroke="var(--tmpl-border)" stroke-dasharray="6" fill="var(--tmpl-surface-1)"/>
-                  <circle cx="200" cy="120" r="60" stroke="#C2410C" stroke-width="2"/>
-                  <circle cx="200" cy="120" r="20" fill="#C2410C" fill-opacity="0.2" stroke="#C2410C"/>
-                  <line x1="200" y1="30" x2="200" y2="210" stroke="var(--tmpl-border)"/>
-                  <line x1="40" y1="120" x2="360" y2="120" stroke="var(--tmpl-border)"/>
-                  <text x="215" y="70" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="11">R_TOL: ±0.005mm</text>
-                  <text x="215" y="170" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="11">SURF: Ra 0.4μm</text>
-                </svg>
+                
+        <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
+          <rect x="20" y="20" width="360" height="200" rx="12" stroke="var(--tmpl-border)" stroke-dasharray="6" fill="var(--tmpl-surface-1)"/>
+          <circle cx="200" cy="120" r="60" stroke="#DC2626" stroke-width="2"/>
+          <circle cx="200" cy="120" r="20" fill="#DC2626" fill-opacity="0.2" stroke="#DC2626"/>
+          <line x1="200" y1="30" x2="200" y2="210" stroke="var(--tmpl-border)"/>
+          <line x1="40" y1="120" x2="360" y2="120" stroke="var(--tmpl-border)"/>
+          <text x="215" y="70" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="11">R_TOL: ±0.005mm</text>
+          <text x="215" y="170" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="11">SURF: Ra 0.4μm</text>
+        </svg>
+        
               </div>
               <div class="product-badge-row">
-                <span class="prod-badge">DIN 912 / ISO 4762</span>
-                <span class="prod-badge">Certificate 3.1 Attached</span>
-                <span class="prod-badge highlight">In Stock: Dispatch 24h</span>
+                <span class="prod-badge ">DIN 912 / ISO 4762</span><span class="prod-badge ">AMS 4928 Grade 5</span><span class="prod-badge highlight">In Stock: Dispatch 24h</span>
               </div>
             </div>
 
@@ -1150,7 +1161,7 @@
                   <input type="number" value="1" min="1" max="500" class="qty-input">
                   <button type="button" class="btn-step" onclick="this.previousElementSibling.stepUp()">+</button>
                 </div>
-                <button type="button" class="btn-ctrl-accent" onclick="alert('Added to B2B procurement cart with inventory reservation lock')">
+                <button type="button" class="btn-ctrl-accent" onclick="alert('Order placed with deterministic FSM reservation lock')">
                   Add to Procurement Cart
                 </button>
               </div>

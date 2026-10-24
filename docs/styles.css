@@ -2425,6 +2425,11 @@ body.nav-open {
   line-height: 1.5;
 }
 
+.gate-terminal-box .term-brand { color: var(--ortho-accent-cyan, #38bdf8); }
+.gate-terminal-box .term-success { color: var(--ortho-success, #10b981); }
+.gate-terminal-box .term-danger { color: var(--ortho-danger, #ef4444); }
+.gate-terminal-box .term-muted { color: var(--ortho-text-secondary, #94a3b8); }
+
 /* ==========================================================================
    PAGE 7: INSTALLATION STYLES
    ========================================================================== */

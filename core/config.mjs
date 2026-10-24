@@ -52,6 +52,7 @@ export function findConfigFile(startPath) {
 function deepMerge(base, override) {
   const result = { ...base };
   for (const [key, value] of Object.entries(override)) {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
     if (result[key] && typeof result[key] === 'object' && !Array.isArray(result[key]) &&
         value && typeof value === 'object' && !Array.isArray(value)) {
       result[key] = deepMerge(result[key], value);

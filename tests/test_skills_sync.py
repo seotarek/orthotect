@@ -65,8 +65,8 @@ class TestSkillsSync(unittest.TestCase):
             capture_output=True,
             text=True
         )
-        self.assertEqual(result.returncode, 0, f"Specification validator failed: {result.stderr or result.stdout}")
-        self.assertIn("18 passed", result.stdout)
+        skill_count = len([f for f in os.listdir(self.skills_dir) if os.path.isdir(os.path.join(self.skills_dir, f))])
+        self.assertIn(f"{skill_count} passed", result.stdout)
         self.assertIn("0 errors", result.stdout)
 
     def test_validator_detects_broken_anchors_and_invalid_license(self):

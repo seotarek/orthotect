@@ -7,13 +7,20 @@ description: Architect interactive UI components as resilient Finite State Machi
 
 Use this skill when building forms, action buttons, data tables, or async components to ensure rock-solid state management.
 
-## Guidelines
-1. **Declare States Explicitly:** Never rely on a single boolean `isLoading`. Use explicit status enums:
-   `type Status = 'idle' | 'loading' | 'success' | 'error' | 'disabled';`
-2. **Prevent Double-Submission:** During `loading`, disable pointer events and keyboard triggers while maintaining full visual contrast.
-3. **Optimistic Updates:** If performing optimistic updates, always preserve a rollback snapshot to restore if the network fails.
-4. **Accessible Announcers:** Use `aria-live="polite"` to announce state changes (e.g., "Deploying service...", "Service deployed successfully").
+## Canonical State Models (`core/fsm/`)
+Reference these validated JSON schemas when building interactive flows:
+- `core/fsm/button-states.json`: Idle -> Loading (`allowClick: false`) -> Success / Error -> Idle timeout.
+- `core/fsm/modal-dialog.json`: Closed -> Opening -> Open (focus trapped) -> Closing -> Closed.
+- `core/fsm/data-table-loader.json`: Empty -> Fetching -> Ready / Error (with Retry transition).
+- `core/fsm/multi-step-wizard.json`: Step 1 -> Validating -> Step 2 -> Submitting -> Completed.
+
+## Architectural Rules
+1. **Async Interaction Locks:** Any state performing async work must explicitly declare `"allowClick": false` or `"locksInteraction": true` to block re-triggering.
+2. **Error Recovery Transitions:** Error states must never be terminal deadlocks; they must provide explicit retry or dismiss transitions back to an active state.
+3. **Graph Reachability:** All states defined in `states` must be reachable via BFS traversal from `initialState`.
 
 ## Verification
-Run:
-`python3 gates/gate_fsm_integrity.py`
+Run deterministic state machine verification:
+```bash
+python3 gates/gate_fsm_integrity.py examples/golden-showcase
+```

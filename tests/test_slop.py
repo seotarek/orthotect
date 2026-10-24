@@ -102,6 +102,22 @@ class TestAntiSlopGate(unittest.TestCase):
         self.assertEqual(res.returncode, 0, "Clean buttons with intermediate paragraph emoji must NOT be flagged as button emoji")
         self.assertIn("No AI Slop detected", res.stdout)
 
+    def test_nested_emoji_in_heading_fails(self):
+        html_file = os.path.join(self.temp_dir, 'nested-heading.html')
+        with open(html_file, 'w') as f:
+            f.write('<h2><span>⚡</span> Lightning Performance</h2>')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Raw Emoji in Heading element", res.stdout)
+
+    def test_expanded_purple_gradient_fails(self):
+        css_file = os.path.join(self.temp_dir, 'purple.css')
+        with open(css_file, 'w') as f:
+            f.write('.card { background: linear-gradient(to right, #7c3aed, #9333ea); }')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Generic AI Purple/Indigo Gradient", res.stdout)
+
 if __name__ == '__main__':
     unittest.main()
 

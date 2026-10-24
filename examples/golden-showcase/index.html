@@ -49,6 +49,7 @@
       font-size: 1.125rem;
       font-weight: 700;
       letter-spacing: -0.02em;
+      color: var(--ot-content-primary);
     }
     .controls-group {
       display: flex;
@@ -109,6 +110,7 @@
     .card-val {
       font-size: 1.5rem;
       font-weight: 700;
+      color: var(--ot-content-primary);
     }
     /* Buttons with Finite State Machine styles */
     .btn {
@@ -169,6 +171,9 @@
       font-weight: 600;
       color: var(--ot-content-secondary);
       background-color: var(--ot-surface-subtle);
+    }
+    td {
+      color: var(--ot-content-primary);
     }
     .spinner {
       width: 16px;
@@ -265,9 +270,7 @@
   <div class="app-shell">
     <header class="top-bar">
       <div class="brand-group">
-        <svg class="brand-logo" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-        </svg>
+        <img src="../../docs/assets/brand/favicon.svg" alt="Orthotect Emblem" width="28" height="28" style="aspect-ratio: 1;" />
         <span class="brand-title">Orthotect Console</span>
       </div>
       <div class="controls-group">

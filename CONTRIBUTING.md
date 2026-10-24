@@ -13,7 +13,7 @@ Before submitting any changes, you must run the full automated test suite:
 ```bash
 npm test
 ```
-All 225+ unit, browser, AST, and integration gate tests must pass.
+All 296+ unit, browser, AST, and integration gate tests must pass.
 
 ### 3. Running Deterministic Quality Gates
 Verify that the reference showcase satisfies all 5 objective gates:

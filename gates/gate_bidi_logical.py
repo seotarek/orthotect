@@ -79,6 +79,31 @@ ALLOWED_OFFSETS = {'auto', 'inherit', 'initial', 'unset', 'revert'}
 IGNORE_DIRS = {'node_modules', '.git', 'dist', '__pycache__', '.claude', '.gemini', 'tmp'}
 SUPPORTED_EXTENSIONS = {'.css', '.scss', '.less', '.html', '.htm', '.vue', '.svelte', '.jsx', '.tsx', '.js', '.ts'}
 
+def split_css_values(val):
+    values = []
+    current = []
+    depth = 0
+    for char in val:
+        if char == '(':
+            depth += 1
+            current.append(char)
+        elif char == ')':
+            depth -= 1
+            current.append(char)
+        elif char in (' ', '\t', '\n') and depth == 0:
+            if current:
+                token = "".join(current).strip()
+                if token and token != '!important':
+                    values.append(token)
+                current = []
+        else:
+            current.append(char)
+    if current:
+        token = "".join(current).strip()
+        if token and token != '!important':
+            values.append(token)
+    return values
+
 def check_declaration(d, line_offset=0):
     violations = []
     name = d.name.lower()
@@ -103,6 +128,11 @@ def check_declaration(d, line_offset=0):
     elif name == 'clear' and val in ('left', 'right'):
         suggestion = 'clear: inline-start' if val == 'left' else 'clear: inline-end'
         violations.append(BidiViolation(line, col, name, val, suggestion))
+    elif name in ('margin', 'padding', 'border-width', 'inset'):
+        tokens = split_css_values(val)
+        if len(tokens) == 4 and tokens[1] != tokens[3]:
+            suggestion = f"Logical separation: {name}-block: {tokens[0]} {tokens[2]}; {name}-inline: {tokens[3]} {tokens[1]};"
+            violations.append(BidiViolation(line, col, name, val, suggestion))
 
     return violations
 

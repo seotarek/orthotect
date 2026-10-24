@@ -17,13 +17,17 @@
   <meta property="og:description" content="University course curriculum portal designed for universal design for learning (UDL) with synchronized audio transcripts, keyboard accessible syllabus outlines, and contrast verified diagrams.">
   <meta property="og:url" content="https://seotarek.github.io/orthotect/templates/educational-course-curriculum.html">
   <meta property="og:site_name" content="Orthotect Interface Engineering">
-  <meta property="og:image" content="https://seotarek.github.io/orthotect/assets/brand/brand-guide.jpg">
+  <meta property="og:image" content="https://seotarek.github.io/orthotect/assets/brand/orthotect-social-preview.jpg">
+  <meta property="og:image:width" content="1376">
+  <meta property="og:image:height" content="768">
+  <meta property="og:image:alt" content="Higher Education Accessible Course Curriculum Hub — Orthotect Interface Engineering">
   
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Higher Education Accessible Course Curriculum Hub">
   <meta name="twitter:description" content="University course curriculum portal designed for universal design for learning (UDL) with synchronized audio transcripts, keyboard accessible syllabus outlines, and contrast verified diagrams.">
-  <meta name="twitter:image" content="https://seotarek.github.io/orthotect/assets/brand/brand-guide.jpg">
+  <meta name="twitter:image" content="https://seotarek.github.io/orthotect/assets/brand/orthotect-social-preview.jpg">
+  <meta name="twitter:image:alt" content="Higher Education Accessible Course Curriculum Hub">
   
   <link rel="icon" type="image/svg+xml" href="../assets/brand/favicon.svg">
   
@@ -54,7 +58,7 @@
       --tmpl-border: #D6D3D1;
       --tmpl-radius: 4px;
       --tmpl-border-width: 1px;
-      --tmpl-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      --tmpl-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
     }
 
     html[data-theme="dark"] {
@@ -71,14 +75,21 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      background-color: var(--tmpl-bg-canvas);
+      background-color: var(--tmpl-bg-canvas) !important;
+      background-image: none !important;
+      background-size: auto !important;
+      background-attachment: fixed !important;
       color: var(--tmpl-text-primary);
       font-family: var(--tmpl-font-body);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+    }
+
+    button, .topbar-btn, .btn-ctrl, .btn-ctrl-accent, .btn-civic, .prod-badge, .style-badge, .civic-step-badge, .saas-pill, input, select, textarea {
+      border-radius: var(--tmpl-radius) !important;
     }
 
     h1, h2, h3, h4, h5, h6, .template-title, .chart-title, .table-title, .prod-title, .saas-hero-title, .civic-title {
@@ -1079,8 +1090,8 @@
 
           <div class="topbar-actions">
             <button id="themeToggleBtn" class="topbar-btn" aria-label="Toggle Light and Dark Mode" title="Toggle Theme">
-              <span class="theme-icon-dark" style="display:none;">🌙 Dark</span>
-              <span class="theme-icon-light" style="">☀️ Light</span>
+              <span class="theme-icon-dark" style="display:none;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-inline-end: 4px; vertical-align: middle;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>Dark</span>
+              <span class="theme-icon-light" style=""><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-inline-end: 4px; vertical-align: middle;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>Light</span>
             </button>
             <button id="dirToggleBtn" class="topbar-btn" aria-label="Toggle Text Direction LTR and RTL" title="Toggle BiDi Direction">
               <span class="dir-text">LTR ⇄ RTL</span>
@@ -1120,7 +1131,7 @@
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               </svg>
-              <span>WCAG 2.2 AAA Accessible Public Infrastructure Service</span>
+              <span>Higher Education Section 508 &amp; ADA Academic Hub</span>
             </div>
             <h3 class="civic-title">Higher Education Accessible Course Curriculum Hub</h3>
             <p class="civic-desc">University course curriculum portal designed for universal design for learning (UDL) with synchronized audio transcripts, keyboard accessible syllabus outlines, and contrast verified diagrams.</p>
@@ -1136,8 +1147,8 @@
               </svg>
             </div>
             <div class="assist-text">
-              <strong>Need Multilingual or Assistive Telecommunications Support?</strong>
-              <p>Call the 24/7 Accessible Voter Helpline at <strong>1-800-555-VOTE</strong> (TTY 711) or activate screen reader high-contrast audio mode.</p>
+              <strong>University Academic Accommodation &amp; Assistive Tech Liaison: Dedicated Accessibility Line</strong>
+              <p>Call the 24/7 Accessible Hotline at <strong>1-800-ACAD-ADA</strong> (TTY 711) or activate screen reader high-contrast audio mode.</p>
             </div>
           </div>
         </div>

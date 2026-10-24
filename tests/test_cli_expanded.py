@@ -16,23 +16,24 @@ class TestCLIExpanded(unittest.TestCase):
         self.assertIn("HEALTHY", res.stdout)
         self.assertIn("Node.js Runtime", res.stdout)
         self.assertIn("Python Runtime", res.stdout)
-        self.assertIn("18 skills installed", res.stdout)
+        self.assertIn("21 skills installed", res.stdout)
         self.assertIn("UI/UX Knowledge Base", res.stdout)
         self.assertIn("Context & Token Engine: Operational", res.stdout)
 
     def test_cli_skills_list_command(self):
-        """Verify 'orthotect skills' lists all 18 skills."""
+        """Verify 'orthotect skills' lists all 21 skills."""
         res = subprocess.run(['node', self.cli_path, 'skills'],
                              capture_output=True, text=True)
         self.assertEqual(res.returncode, 0)
-        self.assertIn("18 Modular Disciplines", res.stdout)
+        self.assertIn("21 Modular Disciplines", res.stdout)
         expected_skills = [
             "orthotect-doctrine", "orthotect-bidi", "orthotect-dashboard",
             "orthotect-fsm", "orthotect-gates", "orthotect-tokens",
             "orthotect-visual-qa", "orthotect-uiux", "orthotect-design-systems",
             "orthotect-components", "orthotect-accessibility", "orthotect-responsive",
             "orthotect-motion", "orthotect-forms", "orthotect-data-viz", "orthotect-context",
-            "orthotect-cro", "orthotect-schema"
+            "orthotect-cro", "orthotect-schema", "orthotect-auto-fix", "orthotect-hooks",
+            "orthotect-typography"
         ]
         for s in expected_skills:
             self.assertIn(s, res.stdout, f"Skill {s} missing from CLI output")

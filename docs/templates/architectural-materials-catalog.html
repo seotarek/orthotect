@@ -17,20 +17,24 @@
   <meta property="og:description" content="Architect-focused sustainable materials catalog with verified Environmental Product Declarations (EPD), Noise Reduction Coefficients (NRC), fire ratings, and physical swatch orders.">
   <meta property="og:url" content="https://seotarek.github.io/orthotect/templates/architectural-materials-catalog.html">
   <meta property="og:site_name" content="Orthotect Interface Engineering">
-  <meta property="og:image" content="https://seotarek.github.io/orthotect/assets/brand/brand-guide.jpg">
+  <meta property="og:image" content="https://seotarek.github.io/orthotect/assets/brand/orthotect-social-preview.jpg">
+  <meta property="og:image:width" content="1376">
+  <meta property="og:image:height" content="768">
+  <meta property="og:image:alt" content="Sustainable Architectural Materials &amp; Acoustic Panels — Orthotect Interface Engineering">
   
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Sustainable Architectural Materials &amp; Acoustic Panels">
   <meta name="twitter:description" content="Architect-focused sustainable materials catalog with verified Environmental Product Declarations (EPD), Noise Reduction Coefficients (NRC), fire ratings, and physical swatch orders.">
-  <meta name="twitter:image" content="https://seotarek.github.io/orthotect/assets/brand/brand-guide.jpg">
+  <meta name="twitter:image" content="https://seotarek.github.io/orthotect/assets/brand/orthotect-social-preview.jpg">
+  <meta name="twitter:image:alt" content="Sustainable Architectural Materials &amp; Acoustic Panels">
   
   <link rel="icon" type="image/svg+xml" href="../assets/brand/favicon.svg">
   
   <!-- Google Web Fonts for Bespoke Typographic Personality -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant:wght@500;600;700&family=Montserrat:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,500;0,600;0,700;1,600&family=Montserrat:wght@400;500;600&display=swap">
 
   <!-- Global Shared Tokens & Stylesheet -->
   <link rel="stylesheet" href="../styles.css">
@@ -54,7 +58,7 @@
       --tmpl-border: #D6D3D1;
       --tmpl-radius: 2px;
       --tmpl-border-width: 1px;
-      --tmpl-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+      --tmpl-shadow: 0 2px 16px rgba(0, 0, 0, 0.05);
     }
 
     html[data-theme="dark"] {
@@ -71,14 +75,21 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      background-color: var(--tmpl-bg-canvas);
+      background-color: var(--tmpl-bg-canvas) !important;
+      background-image: none !important;
+      background-size: auto !important;
+      background-attachment: fixed !important;
       color: var(--tmpl-text-primary);
       font-family: var(--tmpl-font-body);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+    }
+
+    button, .topbar-btn, .btn-ctrl, .btn-ctrl-accent, .btn-civic, .prod-badge, .style-badge, .civic-step-badge, .saas-pill, input, select, textarea {
+      border-radius: var(--tmpl-radius) !important;
     }
 
     h1, h2, h3, h4, h5, h6, .template-title, .chart-title, .table-title, .prod-title, .saas-hero-title, .civic-title {
@@ -1079,8 +1090,8 @@
 
           <div class="topbar-actions">
             <button id="themeToggleBtn" class="topbar-btn" aria-label="Toggle Light and Dark Mode" title="Toggle Theme">
-              <span class="theme-icon-dark" style="display:none;">🌙 Dark</span>
-              <span class="theme-icon-light" style="">☀️ Light</span>
+              <span class="theme-icon-dark" style="display:none;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-inline-end: 4px; vertical-align: middle;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>Dark</span>
+              <span class="theme-icon-light" style=""><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-inline-end: 4px; vertical-align: middle;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>Light</span>
             </button>
             <button id="dirToggleBtn" class="topbar-btn" aria-label="Toggle Text Direction LTR and RTL" title="Toggle BiDi Direction">
               <span class="dir-text">LTR ⇄ RTL</span>
@@ -1118,20 +1129,18 @@
           <div class="product-hero-panel">
             <div class="product-visual-box">
               <div class="product-schematic-bg">
-                <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
-                  <rect x="20" y="20" width="360" height="200" rx="12" stroke="var(--tmpl-border)" stroke-dasharray="6" fill="var(--tmpl-surface-1)"/>
-                  <circle cx="200" cy="120" r="60" stroke="#9A3412" stroke-width="2"/>
-                  <circle cx="200" cy="120" r="20" fill="#9A3412" fill-opacity="0.2" stroke="#9A3412"/>
-                  <line x1="200" y1="30" x2="200" y2="210" stroke="var(--tmpl-border)"/>
-                  <line x1="40" y1="120" x2="360" y2="120" stroke="var(--tmpl-border)"/>
-                  <text x="215" y="70" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="11">R_TOL: ±0.005mm</text>
-                  <text x="215" y="170" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="11">SURF: Ra 0.4μm</text>
-                </svg>
+                
+        <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
+          <rect x="40" y="30" width="320" height="180" rx="4" stroke="#9A3412" stroke-width="1.5" fill="var(--tmpl-surface-1)"/>
+          <path d="M50 180 Q120 140 180 150 T310 90 T350 40" stroke="#9A3412" stroke-width="1.5" stroke-opacity="0.6" fill="none"/>
+          <path d="M70 200 Q150 160 210 170 T330 110" stroke="#9A3412" stroke-width="0.8" stroke-opacity="0.4" fill="none"/>
+          <path d="M120 50 Q180 80 240 60 T340 120" stroke="#9A3412" stroke-width="1.2" stroke-opacity="0.5" fill="none"/>
+          <text x="200" y="195" text-anchor="middle" fill="var(--tmpl-text-secondary)" font-family="serif" font-size="11" font-style="italic">Calacatta Oro Honed Porcelain Slabs 1200x600mm</text>
+        </svg>
+        
               </div>
               <div class="product-badge-row">
-                <span class="prod-badge">DIN 912 / ISO 4762</span>
-                <span class="prod-badge">Certificate 3.1 Attached</span>
-                <span class="prod-badge highlight">In Stock: Dispatch 24h</span>
+                <span class="prod-badge ">Italian Calacatta Oro</span><span class="prod-badge ">Greenguard Gold Certified</span><span class="prod-badge highlight">Slip Resistance R10</span>
               </div>
             </div>
 
@@ -1140,8 +1149,8 @@
               <p class="prod-desc">Architect-focused sustainable materials catalog with verified Environmental Product Declarations (EPD), Noise Reduction Coefficients (NRC), fire ratings, and physical swatch orders.</p>
               
               <div class="prod-pricing-row">
-                <div class="prod-price">$48.00 <span class="prod-unit">/ unit (lot of 100)</span></div>
-                <div class="prod-moq">MOQ: 1 Lot</div>
+                <div class="prod-price">$84.50 <span class="prod-unit">/ m² (Honed Slab)</span></div>
+                <div class="prod-moq">Min Order: 25 m²</div>
               </div>
 
               <div class="order-actions-grid">
@@ -1150,8 +1159,8 @@
                   <input type="number" value="1" min="1" max="500" class="qty-input">
                   <button type="button" class="btn-step" onclick="this.previousElementSibling.stepUp()">+</button>
                 </div>
-                <button type="button" class="btn-ctrl-accent" onclick="alert('Added to B2B procurement cart with inventory reservation lock')">
-                  Add to Procurement Cart
+                <button type="button" class="btn-ctrl-accent" onclick="alert('Order placed with deterministic FSM reservation lock')">
+                  Order Architect Swatch Box
                 </button>
               </div>
             </div>

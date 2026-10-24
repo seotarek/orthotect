@@ -13,7 +13,12 @@ Use this skill when engineering charts, operational telemetry, sparklines, or de
 3. **Accessible Data Tables:** Every visual chart must provide an accessible alternative (e.g. an accessible table or screen-reader summary using `aria-label`).
 4. **Zero Layout Shift:** Chart containers must reserve fixed aspect ratios or bounding boxes before data loads.
 
+## Inline SVG Telemetry Patterns
+- **Sparklines:** Use `<svg viewBox="0 0 100 24" preserveAspectRatio="none">` with `fill="none" stroke="currentColor" stroke-width="1.5"` and vector-effect `non-scaling-stroke`.
+- **Radial Donut Gauges:** Calculate stroke-dasharray and stroke-dashoffset via mathematical circumferences (`2 * π * r`), reserving a square container with CSS `aspect-ratio: 1`.
+- **Bid/Ask Depth Curves:** Area paths must close cleanly at the baseline (`V 100 H 0 Z`) to avoid rendering artifacts across themes.
+
 ## Verification
 ```bash
-python3 gates/gate_cwv_budget.mjs examples/golden-showcase
+node gates/gate_cwv_budget.mjs examples/golden-showcase
 ```

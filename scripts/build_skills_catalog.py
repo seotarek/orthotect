@@ -4,7 +4,15 @@ Orthotect Skill Catalog Builder
 Authors and validates all 15 modular skills in skills/*/SKILL.md.
 """
 
+import sys
 from pathlib import Path
+
+# Deprecation Guard: prevent accidental overwriting of mature skills
+if __name__ == '__main__':
+    print("❌ [DEPRECATED] scripts/build_skills_catalog.py is deprecated.")
+    print("   Skills in skills/*/SKILL.md are actively maintained and validated via 'npm run validate:skills'.")
+    print("   To prevent clobbering mature skills, this generator is disabled.")
+    sys.exit(1)
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 SKILLS_DIR = ROOT_DIR / "skills"

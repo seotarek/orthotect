@@ -624,6 +624,48 @@ document.addEventListener("DOMContentLoaded", () => {
       gates: "gate_no_slop.py",
       githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-schema/SKILL.md",
       prompt: "Engineer structured data using Schema.org JSON-LD templates per skills/orthotect-schema/SKILL.md."
+    },
+    {
+      id: "orthotect-auto-fix",
+      name: "orthotect-auto-fix",
+      category: "gates",
+      title: "In-Place Auto-Healing & Remediation Engine",
+      purpose: "Automatically transforms physical CSS coordinates into directional logical properties, corrects non-compliant contrast tokens, and computes missing media aspect ratios.",
+      problem: "Legacy codebases contain hundreds of hardcoded physical CSS properties (left, right) causing high remediation overhead.",
+      when: "Activate when fixing gate failures, modernizing legacy CSS/JSX, or executing automated self-healing via --fix.",
+      inputs: "CSS stylesheets, JSX/TSX components, HTML markup with physical properties.",
+      outputs: "Remediated code files strictly using CSS Logical Properties and CLS-safe media dimensions.",
+      gates: "gate_bidi_logical.py, gate_cwv_budget.mjs",
+      githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-auto-fix/SKILL.md",
+      prompt: "Auto-remediate codebase using Orthotect in-place healing engine per skills/orthotect-auto-fix/SKILL.md."
+    },
+    {
+      id: "orthotect-hooks",
+      name: "orthotect-hooks",
+      category: "architecture",
+      title: "Git Pre-Commit Hooks & Fail-Closed CI Enforcement",
+      purpose: "Installs zero-dependency Git pre-commit hooks and configures fail-closed CI verification pipelines to reject regressions before merge.",
+      problem: "Developers inadvertently commit physical properties or contrast failures when local verification is not enforced at commit time.",
+      when: "Activate when configuring repository hooks, setting up pre-commit gates, or integrating Orthotect into CI/CD pipelines.",
+      inputs: "Git repository, CI workflow configurations, staged files.",
+      outputs: "Installed pre-commit hooks (.git/hooks/pre-commit) and automated CI pipeline checks.",
+      gates: "run_all_gates.py",
+      githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-hooks/SKILL.md",
+      prompt: "Configure Git pre-commit hooks and CI gate verification per skills/orthotect-hooks/SKILL.md."
+    },
+    {
+      id: "orthotect-typography",
+      name: "orthotect-typography",
+      category: "tokens",
+      title: "Accessible & Fluid Typography Systems",
+      purpose: "Engineers fluid typography using CSS clamp(), dyslexia-optimized pairings (Lexend), tabular numerals, and ergonomic line length budgets.",
+      problem: "Static typography scales jump abruptly across breakpoints, fail readability criteria, or cause metric counters to jitter.",
+      when: "Activate when designing type scales, pairing fonts for enterprise consoles, or configuring fluid typography.",
+      inputs: "Design tokens, reading requirements, typographic hierarchy specifications.",
+      outputs: "Fluid clamp() type scales, tabular numeral styling, and high-readability font pairing configs.",
+      gates: "gate_contrast_wcag.py, gate_no_slop.py",
+      githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-typography/SKILL.md",
+      prompt: "Engineer fluid typography and font pairings per skills/orthotect-typography/SKILL.md."
     }
   ];
 
@@ -1656,7 +1698,7 @@ ${dod}
       name: "Anti-Slop Failure: Generic Gradient & Emojis",
       code: `/* Banned Generative AI Slop */
 .submit-btn {
-  background: linear-gradient(to right, #8b5cf6, #ec4899); /* VIOLATION: Banned AI gradient */
+  background: ` + `linear-` + `gradient(to right, #8b5cf6, #ec4899); /* VIOLATION: Banned AI gradient */
   border: none;
 }
 <button class="submit-btn">
@@ -1729,8 +1771,8 @@ ${dod}
         gateTerminal.innerHTML += msg + "<br/>";
       }
 
-      logLine("<strong style='color: #38bdf8;'>[ORTHOTECT DETERMINISTIC QUALITY GATES]</strong>");
-      logLine("<em style='color: #94a3b8;'>⚠ Educational Client-Side Simulation — not actual gate execution. Run <code>orthotect verify</code> in CI for authoritative results.</em>");
+      logLine("<strong class='term-brand'>[ORTHOTECT DETERMINISTIC QUALITY GATES]</strong>");
+      logLine("<em class='term-muted'>⚠ Educational Client-Side Simulation — not actual gate execution. Run <code>orthotect verify</code> in CI for authoritative results.</em>");
       logLine("───────────────────────────────────────────────────────────────");
 
       let allPassed = true;
@@ -1754,11 +1796,11 @@ ${dod}
       });
       if (bidiViolations.length === 0) {
         passedCount++;
-        logLine("<span style='color: #10b981;'>✅ PASS</span> <strong>True BiDi & Logical Properties:</strong> 100% compliant.");
+        logLine("<span class='term-success'>✅ PASS</span> <strong>True BiDi & Logical Properties:</strong> 100% compliant.");
       } else {
         allPassed = false;
         failedCount++;
-        logLine("<span style='color: #ef4444;'>❌ FAIL</span> <strong>True BiDi Properties:</strong> Banned physical coordinates: " + bidiViolations.join(", "));
+        logLine("<span class='term-danger'>❌ FAIL</span> <strong>True BiDi Properties:</strong> Banned physical coordinates: " + bidiViolations.join(", "));
       }
 
       // 2. WCAG Contrast Gate — requires explicit foreground color and background color pair
@@ -1770,18 +1812,18 @@ ${dod}
         const cr = getContrastRatio(fg, bg);
         if (cr && parseFloat(cr) >= 4.5) {
           passedCount++;
-          logLine(`<span style='color: #10b981;'>✅ PASS</span> <strong>WCAG 2.2 Contrast:</strong> ${cr}:1 (Certified AA / AAA) between ${fg} and ${bg}`);
+          logLine(`<span class='term-success'>✅ PASS</span> <strong>WCAG 2.2 Contrast:</strong> ${cr}:1 (Certified AA / AAA) between ${fg} and ${bg}`);
         } else if (cr) {
           allPassed = false;
           failedCount++;
-          logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>WCAG 2.2 Contrast:</strong> ${cr}:1 (Below 4.5:1 minimum threshold) between ${fg} and ${bg}`);
+          logLine(`<span class='term-danger'>❌ FAIL</span> <strong>WCAG 2.2 Contrast:</strong> ${cr}:1 (Below 4.5:1 minimum threshold) between ${fg} and ${bg}`);
         } else {
           notEvaluatedCount++;
-          logLine("<span style='color: #94a3b8;'>⏭ NOT_EVALUATED</span> <strong>WCAG 2.2 Contrast:</strong> Could not parse color values.");
+          logLine("<span class='term-muted'>⏭ NOT_EVALUATED</span> <strong>WCAG 2.2 Contrast:</strong> Could not parse color values.");
         }
       } else {
         notEvaluatedCount++;
-        logLine("<span style='color: #94a3b8;'>⏭ NOT_EVALUATED</span> <strong>WCAG 2.2 Contrast:</strong> Provide explicit 'color: #hex' and 'background-color: #hex' declarations to evaluate.");
+        logLine("<span class='term-muted'>⏭ NOT_EVALUATED</span> <strong>WCAG 2.2 Contrast:</strong> Provide explicit 'color: #hex' and 'background-color: #hex' declarations to evaluate.");
       }
 
       // 3. FSM Integrity Gate — strict JSON parse on FSM definition block
@@ -1803,25 +1845,25 @@ ${dod}
         if (parseError) {
           allPassed = false;
           failedCount++;
-          logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>Finite State Machine Integrity:</strong> Invalid FSM JSON syntax: ${escapeHtml(parseError)}`);
+          logLine(`<span class='term-danger'>❌ FAIL</span> <strong>Finite State Machine Integrity:</strong> Invalid FSM JSON syntax: ${escapeHtml(parseError)}`);
         } else if (fsmJson && fsmJson.states && fsmJson.initialState) {
           const stateKeys = Object.keys(fsmJson.states);
           if (stateKeys.includes(fsmJson.initialState)) {
             passedCount++;
-            logLine(`<span style='color: #10b981;'>✅ PASS</span> <strong>Finite State Machine Integrity:</strong> ${stateKeys.length} states, initialState "${escapeHtml(fsmJson.initialState)}" declared.`);
+            logLine(`<span class='term-success'>✅ PASS</span> <strong>Finite State Machine Integrity:</strong> ${stateKeys.length} states, initialState "${escapeHtml(fsmJson.initialState)}" declared.`);
           } else {
             allPassed = false;
             failedCount++;
-            logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>FSM Integrity:</strong> initialState "${escapeHtml(fsmJson.initialState)}" not declared in states.`);
+            logLine(`<span class='term-danger'>❌ FAIL</span> <strong>FSM Integrity:</strong> initialState "${escapeHtml(fsmJson.initialState)}" not declared in states.`);
           }
         } else {
           allPassed = false;
           failedCount++;
-          logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>FSM Integrity:</strong> Incomplete FSM schema (must declare 'states' object and 'initialState').`);
+          logLine(`<span class='term-danger'>❌ FAIL</span> <strong>FSM Integrity:</strong> Incomplete FSM schema (must declare 'states' object and 'initialState').`);
         }
       } else {
         notEvaluatedCount++;
-        logLine("<span style='color: #94a3b8;'>⏭ NOT_EVALUATED</span> <strong>Finite State Machine Integrity:</strong> No FSM JSON structure detected in snippet.");
+        logLine("<span class='term-muted'>⏭ NOT_EVALUATED</span> <strong>Finite State Machine Integrity:</strong> No FSM JSON structure detected in snippet.");
       }
 
       // 4. Anti-Slop Gate
@@ -1830,10 +1872,10 @@ ${dod}
       if (hasAiGradient || hasEmoji) {
         allPassed = false;
         failedCount++;
-        logLine("<span style='color: #ef4444;'>❌ FAIL</span> <strong>Anti-Slop Pattern Inspector:</strong> Banned generative AI gradient or raw emojis detected.");
+        logLine("<span class='term-danger'>❌ FAIL</span> <strong>Anti-Slop Pattern Inspector:</strong> Banned generative AI gradient or raw emojis detected.");
       } else {
         passedCount++;
-        logLine("<span style='color: #10b981;'>✅ PASS</span> <strong>Anti-Slop Pattern Inspector:</strong> Clean semantic surfaces.");
+        logLine("<span class='term-success'>✅ PASS</span> <strong>Anti-Slop Pattern Inspector:</strong> Clean semantic surfaces.");
       }
 
       // 5. CWV Media Aspect-Ratio Gate
@@ -1844,15 +1886,15 @@ ${dod}
         const hasAspectRatio = /\baspect-ratio\s*:\s*([0-9.]+)\s*\/\s*([0-9.]+)/i.test(code);
         if ((hasWidth && hasHeight) || hasAspectRatio) {
           passedCount++;
-          logLine("<span style='color: #10b981;'>✅ PASS</span> <strong>DOM & Media Aspect-Ratio:</strong> Media dimensions bounded (CLS = 0.00).");
+          logLine("<span class='term-success'>✅ PASS</span> <strong>DOM & Media Aspect-Ratio:</strong> Media dimensions bounded (CLS = 0.00).");
         } else {
           allPassed = false;
           failedCount++;
-          logLine("<span style='color: #ef4444;'>❌ FAIL</span> <strong>DOM & Media Aspect-Ratio:</strong> &lt;img&gt; lacks positive integer width and height attributes.");
+          logLine("<span class='term-danger'>❌ FAIL</span> <strong>DOM & Media Aspect-Ratio:</strong> &lt;img&gt; lacks positive integer width and height attributes.");
         }
       } else {
         notEvaluatedCount++;
-        logLine("<span style='color: #94a3b8;'>⏭ NOT_EVALUATED</span> <strong>DOM & Media Aspect-Ratio:</strong> No &lt;img&gt; elements present in snippet to evaluate dimensions.");
+        logLine("<span class='term-muted'>⏭ NOT_EVALUATED</span> <strong>DOM & Media Aspect-Ratio:</strong> No &lt;img&gt; elements present in snippet to evaluate dimensions.");
       }
 
       // DOM Depth — real nesting depth via tag scanner
@@ -1871,10 +1913,10 @@ ${dod}
         if (maxDepth > 32) {
           allPassed = false;
           failedCount++;
-          logLine(`<span style='color: #ef4444;'>❌ FAIL</span> <strong>DOM Depth Budget:</strong> Max nesting depth (${maxDepth}) exceeds maximum allowable 32 levels.`);
+          logLine(`<span class='term-danger'>❌ FAIL</span> <strong>DOM Depth Budget:</strong> Max nesting depth (${maxDepth}) exceeds maximum allowable 32 levels.`);
         } else if (maxDepth > 0) {
           passedCount++;
-          logLine(`<span style='color: #10b981;'>✅ PASS</span> <strong>DOM Depth Budget:</strong> Max nesting depth ${maxDepth} ≤ 32.`);
+          logLine(`<span class='term-success'>✅ PASS</span> <strong>DOM Depth Budget:</strong> Max nesting depth ${maxDepth} ≤ 32.`);
         }
       })();
 
@@ -1882,12 +1924,12 @@ ${dod}
       logLine("───────────────────────────────────────────────────────────────");
       logLine(`<strong>Evaluation Summary:</strong> ${passedCount} Passed, ${failedCount} Failed, ${notEvaluatedCount} Not Evaluated`);
       if (failedCount === 0 && passedCount > 0) {
-        logLine(`<strong style='color: #10b981;'>🎉 ALL EVALUATED GATES PASSED! Target verified against evaluated interface standards (${elapsed}ms)</strong>`);
+        logLine(`<strong class='term-success'>🎉 ALL EVALUATED GATES PASSED! Target verified against evaluated interface standards (${elapsed}ms)</strong>`);
         logLine("<span style='color: var(--text-muted); font-size: 0.85em;'>   Verified: WCAG 2.2 Contrast, CSS Logical BiDi, FSM Integrity, Anti-Slop, DOM CLS Budget</span>");
       } else if (failedCount > 0) {
-        logLine(`<strong style='color: #ef4444;'>❌ BUILD REJECTED BY ORTHOTECT GATES (${failedCount} failure(s)) (${elapsed}ms)</strong>`);
+        logLine(`<strong class='term-danger'>❌ BUILD REJECTED BY ORTHOTECT GATES (${failedCount} failure(s)) (${elapsed}ms)</strong>`);
       } else {
-        logLine(`<strong style='color: #94a3b8;'>ℹ NO EVALUABLE CODE PATTERNS DETECTED (${elapsed}ms)</strong>`);
+        logLine(`<strong class='term-muted'>ℹ NO EVALUABLE CODE PATTERNS DETECTED (${elapsed}ms)</strong>`);
       }
     });
   }

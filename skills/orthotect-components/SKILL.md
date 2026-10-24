@@ -14,13 +14,34 @@ Every component must implement:
 3. **Keyboard Map:** Tab traversal, Enter/Space activation, Esc dismissal, Arrow-key navigation where applicable.
 4. **Focus Boundary:** Visible 2px outline with 2px offset; never set `outline: none` without replacement.
 
-## Example: Accessible Modal Dialog
-- `role="dialog"` and `aria-modal="true"`.
-- Focus trapped inside dialog while open.
-- Esc key dismisses dialog and restores focus to trigger.
-- Background marked `inert` or `aria-hidden="true"`.
+## Core Component Contracts
+
+### 1. Action Button
+- **Element:** `<button type="button|submit">` (never a clickable `<div>`).
+- **States:** `disabled` attribute prevents click; `aria-busy="true"` during async action; spinner SVGs marked `aria-hidden="true"`.
+- **Contrast:** Focus ring with minimum 3:1 contrast against both component surface and canvas.
+
+### 2. Form Input Field
+- **Structure:** Explicit `<label for="id">` coupled with `<input id="id">`.
+- **Validation:** Error states link messages via `aria-describedby="err-id"` and set `aria-invalid="true"`.
+- **Touch Target:** Minimum 44×44px interactive tap target boundary.
+
+### 3. Accessible Modal Dialog
+- **Anatomy:** `role="dialog"` and `aria-modal="true"` with `aria-labelledby="title-id"`.
+- **Focus Management:** Focus trapped inside dialog while open; restored to trigger element upon close.
+- **Escape Key:** Pressing Escape triggers dismissal; background container set to `inert`.
+
+### 4. Tab Navigation (`role="tablist"`)
+- **Structure:** `<div role="tablist">` contains buttons with `role="tab"` and `aria-selected="true|false"`.
+- **Panels:** Associated panels declare `role="tabpanel"` and `aria-labelledby="tab-id"`.
+- **Keyboard:** Horizontal Arrow keys cycle active tabs with roving tabindex.
+
+### 5. Data Table
+- **Structure:** `<table>` with `<caption>`, `<th scope="col">`, `<th scope="row">`.
+- **Numerals:** Financial and metric cells use `font-variant-numeric: tabular-nums`.
 
 ## Verification
 ```bash
-python3 gates/gate_fsm_integrity.py
+python3 -m unittest tests/test_modal_browser.py
+python3 gates/gate_bidi_logical.py examples/golden-showcase
 ```

@@ -17,13 +17,17 @@
   <meta property="og:description" content="Power-user wholesale ordering matrix allowing B2B buyers to input dozens of product variations, sizes, and quantities via keyboard navigation with instant volume discount thresholds.">
   <meta property="og:url" content="https://seotarek.github.io/orthotect/templates/b2b-wholesale-bulk-order-grid.html">
   <meta property="og:site_name" content="Orthotect Interface Engineering">
-  <meta property="og:image" content="https://seotarek.github.io/orthotect/assets/brand/brand-guide.jpg">
+  <meta property="og:image" content="https://seotarek.github.io/orthotect/assets/brand/orthotect-social-preview.jpg">
+  <meta property="og:image:width" content="1376">
+  <meta property="og:image:height" content="768">
+  <meta property="og:image:alt" content="High-Density B2B Wholesale Matrix Order Pad — Orthotect Interface Engineering">
   
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="High-Density B2B Wholesale Matrix Order Pad">
   <meta name="twitter:description" content="Power-user wholesale ordering matrix allowing B2B buyers to input dozens of product variations, sizes, and quantities via keyboard navigation with instant volume discount thresholds.">
-  <meta name="twitter:image" content="https://seotarek.github.io/orthotect/assets/brand/brand-guide.jpg">
+  <meta name="twitter:image" content="https://seotarek.github.io/orthotect/assets/brand/orthotect-social-preview.jpg">
+  <meta name="twitter:image:alt" content="High-Density B2B Wholesale Matrix Order Pad">
   
   <link rel="icon" type="image/svg+xml" href="../assets/brand/favicon.svg">
   
@@ -54,7 +58,7 @@
       --tmpl-border: #CBD5E1;
       --tmpl-radius: 4px;
       --tmpl-border-width: 1px;
-      --tmpl-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+      --tmpl-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     html[data-theme="dark"] {
@@ -71,14 +75,21 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      background-color: var(--tmpl-bg-canvas);
+      background-color: var(--tmpl-bg-canvas) !important;
+      background-image: none !important;
+      background-size: auto !important;
+      background-attachment: fixed !important;
       color: var(--tmpl-text-primary);
       font-family: var(--tmpl-font-body);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+    }
+
+    button, .topbar-btn, .btn-ctrl, .btn-ctrl-accent, .btn-civic, .prod-badge, .style-badge, .civic-step-badge, .saas-pill, input, select, textarea {
+      border-radius: var(--tmpl-radius) !important;
     }
 
     h1, h2, h3, h4, h5, h6, .template-title, .chart-title, .table-title, .prod-title, .saas-hero-title, .civic-title {
@@ -1079,8 +1090,8 @@
 
           <div class="topbar-actions">
             <button id="themeToggleBtn" class="topbar-btn" aria-label="Toggle Light and Dark Mode" title="Toggle Theme">
-              <span class="theme-icon-dark" style="display:none;">🌙 Dark</span>
-              <span class="theme-icon-light" style="">☀️ Light</span>
+              <span class="theme-icon-dark" style="display:none;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-inline-end: 4px; vertical-align: middle;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>Dark</span>
+              <span class="theme-icon-light" style=""><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-inline-end: 4px; vertical-align: middle;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>Light</span>
             </button>
             <button id="dirToggleBtn" class="topbar-btn" aria-label="Toggle Text Direction LTR and RTL" title="Toggle BiDi Direction">
               <span class="dir-text">LTR ⇄ RTL</span>
@@ -1118,20 +1129,25 @@
           <div class="product-hero-panel">
             <div class="product-visual-box">
               <div class="product-schematic-bg">
-                <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
-                  <rect x="20" y="20" width="360" height="200" rx="12" stroke="var(--tmpl-border)" stroke-dasharray="6" fill="var(--tmpl-surface-1)"/>
-                  <circle cx="200" cy="120" r="60" stroke="#1E40AF" stroke-width="2"/>
-                  <circle cx="200" cy="120" r="20" fill="#1E40AF" fill-opacity="0.2" stroke="#1E40AF"/>
-                  <line x1="200" y1="30" x2="200" y2="210" stroke="var(--tmpl-border)"/>
-                  <line x1="40" y1="120" x2="360" y2="120" stroke="var(--tmpl-border)"/>
-                  <text x="215" y="70" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="11">R_TOL: ±0.005mm</text>
-                  <text x="215" y="170" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="11">SURF: Ra 0.4μm</text>
-                </svg>
+                
+        <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
+          <rect x="130" y="50" width="140" height="140" rx="8" stroke="#1E40AF" stroke-width="2" fill="var(--tmpl-surface-1)"/>
+          <rect x="155" y="75" width="90" height="90" rx="4" stroke="#1E40AF" stroke-width="1" fill="#1E40AF" fill-opacity="0.15"/>
+          <text x="200" y="125" text-anchor="middle" fill="#1E40AF" font-family="monospace" font-size="12" font-weight="bold">ARM Cortex-M4</text>
+          <text x="200" y="145" text-anchor="middle" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="9">120MHz · QFN-48</text>
+          <line x1="110" y1="80" x2="130" y2="80" stroke="#1E40AF" stroke-width="2"/>
+          <line x1="110" y1="105" x2="130" y2="105" stroke="#1E40AF" stroke-width="2"/>
+          <line x1="110" y1="130" x2="130" y2="130" stroke="#1E40AF" stroke-width="2"/>
+          <line x1="110" y1="155" x2="130" y2="155" stroke="#1E40AF" stroke-width="2"/>
+          <line x1="270" y1="80" x2="290" y2="80" stroke="#1E40AF" stroke-width="2"/>
+          <line x1="270" y1="105" x2="290" y2="105" stroke="#1E40AF" stroke-width="2"/>
+          <line x1="270" y1="130" x2="290" y2="130" stroke="#1E40AF" stroke-width="2"/>
+          <line x1="270" y1="155" x2="290" y2="155" stroke="#1E40AF" stroke-width="2"/>
+        </svg>
+        
               </div>
               <div class="product-badge-row">
-                <span class="prod-badge">DIN 912 / ISO 4762</span>
-                <span class="prod-badge">Certificate 3.1 Attached</span>
-                <span class="prod-badge highlight">In Stock: Dispatch 24h</span>
+                <span class="prod-badge ">ARM Cortex-M4 120MHz</span><span class="prod-badge ">Tape &amp; Reel Sealed</span><span class="prod-badge highlight">Automotive AEC-Q100</span>
               </div>
             </div>
 
@@ -1140,8 +1156,8 @@
               <p class="prod-desc">Power-user wholesale ordering matrix allowing B2B buyers to input dozens of product variations, sizes, and quantities via keyboard navigation with instant volume discount thresholds.</p>
               
               <div class="prod-pricing-row">
-                <div class="prod-price">$48.00 <span class="prod-unit">/ unit (lot of 100)</span></div>
-                <div class="prod-moq">MOQ: 1 Lot</div>
+                <div class="prod-price">$2.42 <span class="prod-unit">/ unit (Reel of 2,500)</span></div>
+                <div class="prod-moq">MOQ: 1 Reel (2,500 pcs)</div>
               </div>
 
               <div class="order-actions-grid">
@@ -1150,8 +1166,8 @@
                   <input type="number" value="1" min="1" max="500" class="qty-input">
                   <button type="button" class="btn-step" onclick="this.previousElementSibling.stepUp()">+</button>
                 </div>
-                <button type="button" class="btn-ctrl-accent" onclick="alert('Added to B2B procurement cart with inventory reservation lock')">
-                  Add to Procurement Cart
+                <button type="button" class="btn-ctrl-accent" onclick="alert('Order placed with deterministic FSM reservation lock')">
+                  Download Volume Tier Sheet
                 </button>
               </div>
             </div>

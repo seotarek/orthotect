@@ -43,6 +43,44 @@ class TestBidiScanner(unittest.TestCase):
         with open(fpath, "w") as f:
             f.write(physical_css)
         viols = scan_file(fpath)
+        self.assertGreater(len(viols), 0)
+        props_found = [v.name for v in viols]
+        self.assertIn("margin-left", props_found)
+        self.assertIn("padding-right", props_found)
+        self.assertIn("border-left", props_found)
+        self.assertIn("text-align", props_found)
+
+    def test_asymmetric_4_value_shorthand_rejected(self):
+        """Asymmetric 4-value shorthand (right != left) must be rejected because it breaks BiDi symmetry."""
+        shorthand_css = """
+        .panel {
+            margin: 10px 20px 10px 5px;
+            padding: 0 16px 0 8px;
+        }
+        """
+        fpath = os.path.join(self.temp_dir.name, "shorthand.css")
+        with open(fpath, "w") as f:
+            f.write(shorthand_css)
+        viols = scan_file(fpath)
+        self.assertEqual(len(viols), 2)
+        props_found = [v.name for v in viols]
+        self.assertTrue(any("margin" in p for p in props_found))
+        self.assertTrue(any("padding" in p for p in props_found))
+
+    def test_symmetric_4_value_shorthand_accepted(self):
+        """Symmetric 4-value shorthand (right == left) does not break horizontal symmetry and is accepted."""
+        symmetric_css = """
+        .panel {
+            margin: 10px 16px 10px 16px;
+            padding: 8px 12px 8px 12px;
+        }
+        """
+        fpath = os.path.join(self.temp_dir.name, "symmetric.css")
+        with open(fpath, "w") as f:
+            f.write(symmetric_css)
+        viols = scan_file(fpath)
+        self.assertEqual(len(viols), 0)
+
     def test_comments_with_prohibited_terms_ignored(self):
         """Comments containing physical property terms must be completely ignored by the AST parser."""
         css_with_comments = """
@@ -297,6 +335,9 @@ class TestBidiGateE2E(unittest.TestCase):
         with open(css_file, 'w') as f:
             f.write(".card { margin-inline: auto; padding-inline: 1.5rem; inset-inline-start: 0; }")
         res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("PASS", res.stdout)
+
     def test_jsx_inline_styles_camelcase_rejected(self):
         """Negative test: Gate must REJECT React JSX/TSX with camelCase physical properties like marginLeft."""
         jsx_file = os.path.join(self.temp_dir, 'Component.jsx')
