@@ -1,0 +1,52 @@
+{
+  "skill_name": "orthotect-schema",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Add Schema.org JSON-LD structured data to our SaaS website homepage. We are called DevGuard, a developer security tool. We need Organization and SoftwareApplication entities.",
+      "expected_output": "Provides valid JSON-LD script using @graph unifying Organization and SoftwareApplication entities. Includes name, url, logo for Organization, and name, operatingSystem, applicationCategory, and offers for SoftwareApplication.",
+      "assertions": [
+        "Uses JSON-LD format with @context https://schema.org",
+        "Uses @graph to combine multiple entities",
+        "Defines Organization with name and url",
+        "Defines SoftwareApplication with required properties",
+        "Recommends validating with Google Rich Results Test"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "We have an FAQ section with 3 common questions about pricing and cancelation. How do we mark this up for Google rich snippets?",
+      "expected_output": "Provides FAQPage JSON-LD schema with mainEntity array of Question items each containing acceptedAnswer with Answer text. Reminds that FAQ questions must be visibly present on the rendered web page.",
+      "assertions": [
+        "Uses @type FAQPage",
+        "Structures Question and Answer hierarchy correctly",
+        "Emphasizes visible content correspondence with rendered DOM",
+        "Recommends placing inside script type application/ld+json"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Our documentation has a 3-level breadcrumb path: Home > Docs > API Reference. Provide the schema markup.",
+      "expected_output": "Provides BreadcrumbList schema with itemListElement containing ListItem objects with position 1, 2, and 3, matching names and item URLs.",
+      "assertions": [
+        "Uses @type BreadcrumbList",
+        "Includes itemListElement array",
+        "Sets sequential position integers starting at 1",
+        "Includes name and item URL for each breadcrumb"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "How do I configure nginx reverse proxy for SSL termination?",
+      "expected_output": "Negative trigger test: This request is for web server administration and is unrelated to Schema.org structured data.",
+      "assertions": [
+        "Should not trigger orthotect-schema"
+      ],
+      "negative": true,
+      "files": []
+    }
+  ]
+}

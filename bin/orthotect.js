@@ -8,6 +8,7 @@ import { spawnSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { validateSkills } from '../scripts/validate-skills.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -606,25 +607,26 @@ switch (command) {
     }
 
     if (sub === 'validate') {
-      console.log("Validating all installed skills...\n");
-      const folders = fs.readdirSync(skillsDir).filter(f => fs.statSync(path.join(skillsDir, f)).isDirectory());
-      let valid = true;
-      for (const f of folders) {
-        const sPath = path.join(skillsDir, f, 'SKILL.md');
-        if (!fs.existsSync(sPath)) {
-          console.log(`  ❌ Missing SKILL.md in skills/${f}`);
-          valid = false;
+      console.log("Validating all installed skills against Agent Skills Specification...\n");
+      const res = validateSkills(skillsDir);
+      for (const r of res.details) {
+        if (r.errors.length > 0) {
+          console.error(`  ❌ ${r.name}`);
+          for (const err of r.errors) console.error(`     Error: ${err}`);
+        } else if (r.warnings.length > 0) {
+          console.warn(`  ⚠️  ${r.name}`);
+          for (const warn of r.warnings) console.warn(`     Warning: ${warn}`);
         } else {
-          console.log(`  ✅ skills/${f}/SKILL.md`);
+          console.log(`  ✅ ${r.name}`);
         }
       }
-      console.log(`\nValidation: ${valid ? '100% PASSED' : 'FAILED'}`);
-      if (!valid) process.exit(1);
+      console.log(`\nValidation: ${res.errors === 0 ? '100% PASSED' : 'FAILED'} (${res.passed} passed, ${res.warnings} warnings, ${res.errors} errors)`);
+      if (res.errors > 0) process.exit(1);
       break;
     }
 
     printBanner();
-    console.log("Available Orthotect Autonomous Agent Skills (16 Modular Disciplines):");
+    console.log("Available Orthotect Autonomous Agent Skills (18 Modular Disciplines):");
     console.log("  • orthotect-doctrine       : The 7 Non-Negotiable Laws of Interface Engineering");
     console.log("  • orthotect-uiux           : Master UI/UX Design Intelligence & Orchestrator");
     console.log("  • orthotect-design-systems : DTCG Token Hierarchy & Multi-Brand Themes");
@@ -641,6 +643,8 @@ switch (command) {
     console.log("  • orthotect-gates          : Deterministic Quality Gates Runner");
     console.log("  • orthotect-visual-qa      : Automated Browser Visual Regression & Contrast Gate");
     console.log("  • orthotect-context        : Token-Optimizer & Context Architecture Guard");
+    console.log("  • orthotect-cro            : Interface Conversion Rate Optimization & Form Ergonomics");
+    console.log("  • orthotect-schema         : Semantic Structured Data & Schema.org JSON-LD");
     break;
   }
 

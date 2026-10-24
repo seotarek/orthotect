@@ -1,6 +1,6 @@
 ---
 name: orthotect-motion
-description: Design physically grounded UI motion using Orthotect spring physics tokens, choreographed staggered reveals, and mandatory @media (prefers-reduced-motion) overrides. Ensures high-performance 60fps/120fps hardware-accelerated transitions.
+description: Design physically grounded UI motion using Orthotect spring physics tokens, choreographed staggered reveals, and mandatory @media (prefers-reduced-motion) overrides. Use when implementing high-performance animations.
 ---
 
 # Skill: Orthotect Spring Physics Motion & Animation

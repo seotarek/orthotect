@@ -1,6 +1,6 @@
 ---
 name: orthotect-bidi
-description: Engineer true bidirectional interfaces with flawless Arabic/English RTL/LTR symmetry using CSS logical properties and directional vector isolation.
+description: Engineer true bidirectional interfaces with flawless Arabic/English RTL/LTR symmetry using CSS logical properties and directional vector isolation. Use when building multi-directional or Arabic/Hebrew interfaces.
 ---
 
 # Skill: Orthotect True BiDi Engineering

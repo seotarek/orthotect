@@ -596,6 +596,34 @@ document.addEventListener("DOMContentLoaded", () => {
       gates: "gate_no_slop.py, test_context_optimizer.py",
       githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-context/SKILL.md",
       prompt: "Optimize agent context window using progressive disclosure and semantic chunking per skills/orthotect-context/SKILL.md."
+    },
+    {
+      id: "orthotect-cro",
+      name: "orthotect-cro",
+      category: "components",
+      title: "Interface Conversion Rate Optimization (CRO)",
+      purpose: "Engineers high-converting interfaces through primary CTA visual hierarchy, form friction elimination, 48px touch targets, and resilient FSM submission locks.",
+      problem: "Landing pages and checkout flows suffer abandonment due to competing buttons, excessive form fields, unhandled double-submits, and poor mobile tap ergonomics.",
+      when: "Activate when analyzing conversion barriers, redesigning sign-up/checkout forms, or optimizing CTA visual weight.",
+      inputs: "Landing page markup, form designs, CTA hierarchies, conversion objectives.",
+      outputs: "Conversion-optimized interface components with clear primary CTA tokens, inline validation, and FSM submission guards.",
+      gates: "gate_contrast_wcag.py, gate_fsm_integrity.py, gate_no_slop.py",
+      githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-cro/SKILL.md",
+      prompt: "Optimize interface for conversion rate and form completion per skills/orthotect-cro/SKILL.md."
+    },
+    {
+      id: "orthotect-schema",
+      name: "orthotect-schema",
+      category: "architecture",
+      title: "Semantic Structured Data & Schema.org JSON-LD",
+      purpose: "Engineers structured Schema.org data in JSON-LD format with multi-entity @graph architecture aligned with visible page content.",
+      problem: "AI-generated sites lack structured semantic entities or use legacy microdata with invalid properties, losing search rich results.",
+      when: "Activate when implementing or auditing Schema.org markup, SEO rich snippets, WebSite, SoftwareApplication, Organization, or FAQPage data.",
+      inputs: "Page metadata, organizational identity, software specs, FAQ items.",
+      outputs: "Valid JSON-LD script blocks using unified @graph architecture matching visible page content.",
+      gates: "gate_no_slop.py",
+      githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-schema/SKILL.md",
+      prompt: "Engineer structured data using Schema.org JSON-LD templates per skills/orthotect-schema/SKILL.md."
     }
   ];
 

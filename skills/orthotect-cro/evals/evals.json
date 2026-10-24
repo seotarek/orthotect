@@ -1,0 +1,53 @@
+{
+  "skill_name": "orthotect-cro",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Our SaaS landing page has a 1.1% conversion rate for signups. The hero section has three equal-sized buttons ('Learn More', 'Sign Up', 'Contact Sales') and the signup form asks for 8 fields. How can we optimize this interface for conversions?",
+      "expected_output": "Identifies lack of primary CTA hierarchy and form friction. Recommends establishing a single primary CTA with high contrast (--ot-color-primary), demoting secondary actions. Recommends reducing form fields from 8 to 2-3 (name, email) and using progressive disclosure for remaining fields. Advises adding reassuring microcopy under the CTA button.",
+      "assertions": [
+        "Identifies lack of CTA hierarchy",
+        "Recommends primary CTA token contrast",
+        "Recommends reducing form fields to 2-3 essential inputs",
+        "Suggests progressive disclosure or post-signup data collection",
+        "Suggests friction-reducing microcopy"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Users on mobile abandon our checkout form halfway through. What interface engineering adjustments will improve mobile completion rates?",
+      "expected_output": "Recommends single-column stacked inputs with 48px minimum touch targets, proper autocomplete and inputmode attributes, sticky mobile CTA bar, and inline validation on blur with explicit FSM submission locks.",
+      "assertions": [
+        "Recommends minimum 48px touch targets",
+        "Recommends single-column layout",
+        "Recommends proper inputmode and autocomplete",
+        "Suggests sticky mobile CTA bar",
+        "Recommends FSM submission locks to prevent duplicate submissions"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "We want to optimize our Arabic RTL landing page conversion rate. What should we verify regarding CTAs and visual direction?",
+      "expected_output": "Recommends verifying BiDi directional arrow mirroring on CTAs, logical margin/padding properties on form inputs, right-aligned text with left-aligned trust indicators, and high-contrast primary CTA buttons.",
+      "assertions": [
+        "Mentions BiDi icon/arrow mirroring",
+        "Enforces CSS logical properties",
+        "Ensures CTA button visual prominence",
+        "Validates form field accessibility in RTL"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Write a Python script to calculate Fibonacci numbers.",
+      "expected_output": "Negative trigger test: This request is unrelated to conversion rate optimization or interface engineering.",
+      "assertions": [
+        "Should not trigger orthotect-cro"
+      ],
+      "negative": true,
+      "files": []
+    }
+  ]
+}

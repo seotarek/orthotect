@@ -1,6 +1,6 @@
 ---
 name: orthotect-dashboard
-description: Build high-density, cognitive-ergonomic enterprise dashboards and consoles with inline SVG telemetry and zero layout shift.
+description: Build high-density, cognitive-ergonomic enterprise dashboards and consoles with inline SVG telemetry and zero layout shift. Use when designing monitoring views, telemetry screens, or trading consoles.
 ---
 
 # Skill: Orthotect Enterprise Dashboard Architecture

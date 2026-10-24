@@ -1,6 +1,6 @@
 ---
 name: orthotect-components
-description: Author production-grade, accessible UI components with full WAI-ARIA APG contracts, keyboard navigation, focus management, and 8 explicit states (idle, hover, active, focus, loading, disabled, error, success).
+description: Author production-grade, accessible UI components with full WAI-ARIA APG contracts, keyboard navigation, focus management, and 8 explicit states. Use when developing accessible component libraries.
 ---
 
 # Skill: Orthotect Accessible Component Engineering

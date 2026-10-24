@@ -52,11 +52,22 @@ class TestSkillsSync(unittest.TestCase):
         """Verify that bin/orthotect.js lists every skill installed in skills/."""
         skill_folders = [f for f in os.listdir(self.skills_dir) if os.path.isdir(os.path.join(self.skills_dir, f))]
 
-        with open(self.cli_js, 'r', encoding='utf-8') as f:
-            cli_content = f.read()
-
         for s in skill_folders:
+            with open(self.cli_js, 'r', encoding='utf-8') as f:
+                cli_content = f.read()
             self.assertIn(s, cli_content, f"Skill '{s}' missing from bin/orthotect.js skills listing")
+
+    def test_specification_validator_clean_run(self):
+        """Verify that scripts/validate-skills.mjs executes and finds 0 errors across all skills."""
+        import subprocess
+        result = subprocess.run(
+            ['node', os.path.join(self.root_dir, 'scripts', 'validate-skills.mjs')],
+            capture_output=True,
+            text=True
+        )
+        self.assertEqual(result.returncode, 0, f"Specification validator failed: {result.stderr or result.stdout}")
+        self.assertIn("18 passed", result.stdout)
+        self.assertIn("0 errors", result.stdout)
 
 if __name__ == '__main__':
     unittest.main()

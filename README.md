@@ -2,7 +2,7 @@
 
 ### The Deterministic Interface Engineering & Runtime Gate Architecture for AI Coding Agents
 
-[![Version](https://img.shields.io/badge/version-1.7.2-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.7.2)
+[![Version](https://img.shields.io/badge/version-1.7.3-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.7.3)
 [![Live Showcase](https://img.shields.io/badge/Live_Showcase-GitHub_Pages-0ea5e9?style=for-the-badge)](https://seotarek.github.io/orthotect/)
 [![CI Status](https://github.com/seotarek/orthotect/actions/workflows/ci.yml/badge.svg)](https://github.com/seotarek/orthotect/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)](LICENSE)
@@ -54,7 +54,7 @@ orthotect/
 ├── docs/                    # 7-View Skill Studio Platform & Interactive Showcase (GitHub Pages)
 │   ├── index.html           # 7-view bilingual (EN/AR) interactive workbench
 │   ├── styles.css           # 100% CSS Logical Properties & DTCG token variables
-│   └── app.js               # Client-side router, 16-skill catalog, playground, builder, and gate simulator
+│   └── app.js               # Client-side router, 18-skill catalog, playground, builder, and gate simulator
 ├── gates/                   # Objective Deterministic Checkers (Python & Node.js)
 │   ├── gate_contrast_wcag.py     # Mathematical Relative Luminance (WCAG 2.2 AAA/AA)
 │   ├── gate_bidi_logical.py      # Strict Enforcement of CSS Logical Properties
@@ -62,7 +62,7 @@ orthotect/
 │   ├── gate_no_slop.py           # Lexical & Pattern Slop Inspector
 │   ├── gate_cwv_budget.mjs       # WHATWG-Compliant DOM & Layout-Shift Budget
 │   └── run_all_gates.py          # Parallel Master Gate Orchestrator (ThreadPoolExecutor)
-├── skills/                  # 16 Agent Skills (Progressive Disclosure)
+├── skills/                  # 18 Agent Skills (Progressive Disclosure)
 │   ├── orthotect-doctrine        # The 7 Non-Negotiable Laws
 │   ├── orthotect-uiux            # Master UI/UX Design Intelligence & Orchestrator
 │   ├── orthotect-design-systems  # DTCG Token Hierarchy & Multi-Brand Themes
@@ -78,7 +78,9 @@ orthotect/
 │   ├── orthotect-tokens          # Token Management & Theme Compilation
 │   ├── orthotect-gates           # Gate Execution Workflows
 │   ├── orthotect-visual-qa       # Automated Browser Visual Regression Gate
-│   └── orthotect-context         # Token-Optimizer & Context Architecture Guard
+│   ├── orthotect-context         # Token-Optimizer & Context Architecture Guard
+│   ├── orthotect-cro             # Interface Conversion Rate Optimization & Form Ergonomics
+│   └── orthotect-schema          # Semantic Structured Data & Schema.org JSON-LD
 ├── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (247 Tests)
 │   ├── test_contrast.py          # Relative luminance & contrast threshold unit tests
 │   ├── test_bidi.py              # BiDi logical scanner positive/negative tests

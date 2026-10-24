@@ -1,6 +1,6 @@
 ---
 name: orthotect-fsm
-description: Architect interactive UI components as resilient Finite State Machines (FSM) with race condition guards, double-submission locks, and optimistic updates.
+description: Architect interactive UI components as resilient Finite State Machines (FSM) with race condition guards, double-submission locks, and optimistic updates. Use when managing complex UI states or async flows.
 ---
 
 # Skill: Orthotect FSM Engineering

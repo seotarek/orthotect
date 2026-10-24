@@ -1,6 +1,6 @@
 ---
 name: orthotect-responsive
-description: Engineer resilient responsive layouts using CSS Grid, container queries, fluid typography (clamp()), and adaptive bento layouts. Prevents horizontal overflows and layout shifts across viewports from 360px to 2560px.
+description: Engineer resilient responsive layouts using CSS Grid, container queries, fluid typography (clamp()), and adaptive bento layouts. Use when building responsive viewport architectures.
 ---
 
 # Skill: Orthotect Responsive & Adaptive Layouts

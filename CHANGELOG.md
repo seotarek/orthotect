@@ -4,6 +4,51 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.3] - 2026-10-23
+
+### Added
+- **Marketingskills Interface Engineering Capabilities Integration**:
+  - `skills/orthotect-cro`: Interface Conversion Rate Optimization (CRO) skill focusing on primary CTA visual hierarchy, form friction elimination, 48px minimum touch targets, sticky mobile bars, and FSM submit locks.
+  - `skills/orthotect-schema`: Semantic Structured Data & Schema.org JSON-LD engineering with unified `@graph` architecture, visible page content alignment, and rich snippet templates.
+  - `scripts/validate-skills.mjs`: Agent Skills Specification validator enforcing YAML frontmatter delimiters, directory/name match, trigger descriptions, 500-line progressive disclosure, and reference file integrity.
+  - `scripts/package_skills.py`: Deterministic cross-agent portable skill packager generating reproducible ZIP bundles with fixed epoch (1980-01-01), LICENSE inclusion, and SHA-256 manifests.
+  - `tests/test_skill_evals.py` & `evals/evals.json`: Evaluation fixtures verifying positive/negative trigger cases and deterministic assertions.
+  - `tests/test_skill_packaging.py`: Unit tests verifying reproducible byte-for-byte ZIP generation and manifest integrity.
+  - Catalog and CLI synchronization: Expanded Orthotect modular disciplines from 16 to 18 in `docs/app.js` and `bin/orthotect.js`, and hooked specification validation into `npx orthotect skills validate`.
+
+### Fixed
+- **Atomic Function Preservation in Semantic Chunking (`core/context_optimizer.py`)**:
+  - Eliminated arbitrary fallback splitting (`max_tokens * 1.5`) that severed functions mid-body, closures, or control-flow blocks.
+  - Implemented discrete semantic unit decomposition: atomic functions are preserved 100% whole under a soft ceiling factor (`max_tokens * 2.5`), tagged with `oversized_atomic: True`.
+  - Compound structures (classes with multiple methods) are partitioned strictly at member method boundaries, preserving method closures and local scopes.
+  - Giant functions exceeding the hard ceiling are partitioned strictly at root statements (`brace_depth == 1` / blank lines), tagging chunks with `is_severed: True` and capturing the full function signature in continuation breadcrumbs.
+- **Lexical Scanning & Ghost Declaration Elimination (`core/context_optimizer.py`)**:
+  - Implemented `mask_js_code()` state machine masking line/block comments, quotes, regex literals, and template strings outside `${...}`, eliminating ghost matches while preserving source coordinates.
+  - Implemented `_is_regex_start()` for JS/TS `/` token disambiguation against arithmetic division.
+  - Implemented collision-free symbol IDs (`{type}_{name}_L{line}_C{col}`) and scope hierarchy tracking.
+  - Fixed Python decorator chains (@decorator) staying attached across lines and consecutive functions.
+  - Pruned directory recursion with in-place `dirs[:] = []` in `generate_context_skeleton(max_depth)`.
+- **Evidence-Based Documentation**:
+  - Removed unbacked percentage claims (`95%+` in `skills/orthotect-context/SKILL.md` and `>85%` in `core/context_optimizer.py`).
+- **Lockfile Package Metadata Alignment (`package-lock.json`)**:
+  - Synchronized package name to `"@seotarek/orthotect"` in `package-lock.json` root and workspace specifier, resolving metadata drift against `package.json`.
+
+### CI & Package Guards
+- **Publish Concurrency & Fail-Closed Guards (`.github/workflows/publish-package.yml`)**:
+  - Added workflow concurrency group `concurrency: group: publish-package, cancel-in-progress: false` to prevent race conditions during concurrent release events.
+  - Restricted package publishing strictly to `github.event_name == 'release'`.
+  - Enhanced registry pre-check with fail-closed semantics (`exit 1` on ambiguous registry response) and `E409` conflict error recovery.
+- **Package Metadata Consistency Guard (`scripts/check-package-metadata.mjs`)**:
+  - Created automated pre-publish check enforcing version and package name alignment across `package.json` and `package-lock.json`.
+
+### Tests
+- **BiDi Adversarial Edge Cases (`tests/test_bidi.py`)**:
+  - Added adversarial regression tests for escaped slashes, regex character classes, division after calls/expressions, and trailing comment slashes.
+- **Context Optimizer Test Suite (`tests/test_context_optimizer.py`)**:
+  - Expanded test suite to 21 tests covering lexical masking, scope collisions, Python decorators with tabs, direct `os.walk` spy pruning, and boundary depths.
+- **Skills Parity & Sync Suite (`tests/test_skills_sync.py`)**:
+  - Expanded tests to verify 18 skills across disk, `docs/app.js`, `bin/orthotect.js`, and verified clean execution of `scripts/validate-skills.mjs`.
+
 ## [1.7.2] - 2026-10-23
 
 ### Added
