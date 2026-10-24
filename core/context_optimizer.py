@@ -274,23 +274,25 @@ def _build_scope_path(symbol: dict, symbol_by_id: dict) -> list:
     return list(reversed(path))
 
 
-def _split_oversized_range_by_lines(lines: list, range_start: int, range_end: int, max_tokens: int) -> list:
+def _split_oversized_range_by_lines(lines: list, range_start: int, range_end: int, max_tokens: int, reserved_tokens: int = 0) -> list:
     """
     Deterministic structural fallback for a single oversized declaration range.
-    Splits by accumulating lines strictly within the max_tokens budget.
+    Splits by accumulating lines strictly within the max_tokens budget (accounting for
+    reserved tokens such as continuation breadcrumbs).
     If an indivisible single line exceeds max_tokens on its own, it is allocated
     its own single-line chunk to preserve line structure.
     """
     spans = []
     chunk_start = range_start
     accumulated_lines = []
+    budget = max(1, max_tokens - reserved_tokens)
 
     for line_idx in range(range_start, range_end + 1):
         line_text = lines[line_idx - 1]
         test_lines = accumulated_lines + [line_text]
         test_tokens = estimate_tokens("\n".join(test_lines))
 
-        if test_tokens > max_tokens and accumulated_lines:
+        if test_tokens > budget and accumulated_lines:
             spans.append((chunk_start, line_idx - 1, 'line_window'))
             chunk_start = line_idx
             accumulated_lines = [line_text]
@@ -643,7 +645,8 @@ def semantic_chunk(filepath_or_content: str, max_tokens: int = 500, is_content: 
             continue
 
         if not symbol:
-            for sub_start, sub_end, strategy in _split_oversized_range_by_lines(lines, r_start, r_end, max_tokens):
+            breadcrumb_cost = estimate_tokens(f"{comment_prefix} [Context Continuation: file scope | chunk #999]\n")
+            for sub_start, sub_end, strategy in _split_oversized_range_by_lines(lines, r_start, r_end, max_tokens, reserved_tokens=breadcrumb_cost):
                 append_chunk(sub_start, sub_end, continuation_of='file scope', split_strategy=strategy, context_path=[])
             continue
 
@@ -674,7 +677,8 @@ def semantic_chunk(filepath_or_content: str, max_tokens: int = 500, is_content: 
             if cursor <= r_end:
                 sub_ranges.append((cursor, r_end, 'nested_boundary', current_sym))
         else:
-            for s_start, s_end, s_strat in _split_oversized_range_by_lines(lines, r_start, r_end, max_tokens):
+            breadcrumb_cost = estimate_tokens(f"{comment_prefix} [Context Continuation: {symbol_name} | chunk #999]\n")
+            for s_start, s_end, s_strat in _split_oversized_range_by_lines(lines, r_start, r_end, max_tokens, reserved_tokens=breadcrumb_cost):
                 sub_ranges.append((s_start, s_end, s_strat, None))
 
         oversized_meta = {
@@ -687,8 +691,10 @@ def semantic_chunk(filepath_or_content: str, max_tokens: int = 500, is_content: 
         for idx_sub, (sub_start, sub_end, strategy, sub_sym) in enumerate(sub_ranges):
             sub_text = "\n".join(lines[sub_start - 1:sub_end])
             sub_tokens = estimate_tokens(sub_text)
+            continuation = None if (idx_sub == 0 and sub_start == r_start) else symbol_name
+            breadcrumb_cost = estimate_tokens(f"{comment_prefix} [Context Continuation: {continuation or symbol_name} | chunk #999]\n") if continuation else 0
 
-            if sub_tokens > max_tokens and strategy != 'line_window':
+            if (sub_tokens + breadcrumb_cost) > max_tokens and strategy != 'line_window':
                 if sub_sym:
                     sub_sym_name = f"{sub_sym['type']} {sub_sym['name']}"
                     sub_context_path = _build_scope_path(sub_sym, symbol_by_id)
@@ -703,24 +709,24 @@ def semantic_chunk(filepath_or_content: str, max_tokens: int = 500, is_content: 
                     sub_context_path = context_path
                     sub_oversized_meta = oversized_meta
 
-                finer = _split_oversized_range_by_lines(lines, sub_start, sub_end, max_tokens)
+                split_breadcrumb_cost = estimate_tokens(f"{comment_prefix} [Context Continuation: {sub_sym_name} | chunk #999]\n")
+                finer = _split_oversized_range_by_lines(lines, sub_start, sub_end, max_tokens, reserved_tokens=split_breadcrumb_cost)
                 for j, (f_start, f_end, f_strategy) in enumerate(finer):
                     if idx_sub == 0 and j == 0 and f_start == r_start:
-                        continuation = None
+                        cont = None
                     elif j == 0:
-                        continuation = symbol_name
+                        cont = symbol_name
                     else:
-                        continuation = sub_sym_name
+                        cont = sub_sym_name
 
                     append_chunk(
                         f_start, f_end,
-                        continuation_of=continuation,
+                        continuation_of=cont,
                         split_strategy=f_strategy,
                         context_path=sub_context_path,
                         oversized_scope=sub_oversized_meta
                     )
             else:
-                continuation = None if (idx_sub == 0 and sub_start == r_start) else symbol_name
                 append_chunk(
                     sub_start, sub_end,
                     continuation_of=continuation,

@@ -548,15 +548,18 @@ class TestContextOptimizer(unittest.TestCase):
 
         for c in chunks:
             if c['lines_count'] > 1:
-                # Multi-line chunks must strictly respect the token ceiling
-                raw_lines = content.splitlines()[c['start_line'] - 1:c['end_line']]
-                raw_tokens = estimate_tokens("\n".join(raw_lines))
-                self.assertLessEqual(raw_tokens, 60, f"Chunk {c['chunk_index']} exceeded budget: {raw_tokens} > 60")
+                # Multi-line chunks must strictly respect the token ceiling on the FINAL chunk content
+                self.assertLessEqual(
+                    c['estimated_tokens'], 60,
+                    f"Chunk {c['chunk_index']} final tokens exceeded budget: {c['estimated_tokens']} > 60"
+                )
             else:
                 # Single line chunks are allowed to exceed only if that single line itself exceeds 60 tokens
                 single_line = content.splitlines()[c['start_line'] - 1]
                 if estimate_tokens(single_line) > 60:
                     self.assertEqual(c['start_line'], c['end_line'], "Oversized line must be an isolated single-line chunk")
+                else:
+                    self.assertLessEqual(c['estimated_tokens'], 60)
 
     def test_semantic_chunking_oversized_inner_function_tracks_inner_scope(self):
         """Verify that when a nested method itself is oversized and partitioned, metadata tracks the inner method."""

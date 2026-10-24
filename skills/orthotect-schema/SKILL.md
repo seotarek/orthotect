@@ -37,7 +37,7 @@ Load the matching reference before generating or auditing JSON-LD markup:
 |---|---|---|---|
 | `WebSite` | Homepage / Site Search | Required: `name`, `url` | `potentialAction` (SearchAction) |
 | `Organization` | Company / Brand Identity | Recommended: `name`, `url`, `logo` *(No mandatory properties required by Google for general organizations)* | `sameAs` (social profiles), `contactPoint` |
-| `SoftwareApplication` | SaaS / Web Tools | Required: `name` AND (`offers.price` or `aggregateRating`) | `applicationCategory`, `operatingSystem`, `description` |
+| `SoftwareApplication` | SaaS / Web Tools | Required: `name`, `offers` (`price`, `priceCurrency`), AND either `aggregateRating` or `review` *(only when genuine ratings/reviews are visibly displayed on the page)* | `applicationCategory`, `operatingSystem`, `description` |
 | `FAQPage` | Documentation / FAQ | Required: `mainEntity` *(Note: Since August 2023, Google SERP rich snippet accordions are restricted to authoritative health & government domains; general sites retain LLM/crawler understanding)* | `acceptedAnswer` with plain text or valid HTML |
 | `BreadcrumbList` | Navigation Trees | Required: `itemListElement` (`position`, `name`, `item`) | Nested item hierarchies |
 

@@ -140,7 +140,14 @@ export function validateSkills(skillsDirectory = SKILLS_DIR) {
     const licenseMatch = frontmatter.match(/^license:\s*(.+)$/m);
     if (licenseMatch) {
       const declaredLicense = licenseMatch[1].trim().replace(/^['"]|['"]$/g, '');
-      const validSpdx = new Set(['MIT', 'Apache-2.0', 'BSD-2-Clause', 'BSD-3-Clause', 'ISC', 'GPL-3.0', 'LGPL-3.0', 'MPL-2.0', 'Unlicense', 'CC0-1.0']);
+      const validSpdx = new Set([
+        'MIT', 'Apache-2.0', 'BSD-2-Clause', 'BSD-3-Clause', 'BSD-4-Clause', '0BSD',
+        'ISC', 'GPL-2.0', 'GPL-2.0-only', 'GPL-2.0-or-later', 'GPL-3.0', 'GPL-3.0-only', 'GPL-3.0-or-later',
+        'AGPL-3.0', 'AGPL-3.0-only', 'AGPL-3.0-or-later', 'LGPL-2.1', 'LGPL-2.1-only', 'LGPL-2.1-or-later',
+        'LGPL-3.0', 'LGPL-3.0-only', 'LGPL-3.0-or-later', 'MPL-2.0', 'Unlicense', 'CC0-1.0',
+        'CC-BY-4.0', 'CC-BY-SA-4.0', 'CC-BY-NC-4.0', 'CC-BY-ND-4.0', 'CC-BY-NC-SA-4.0', 'CC-BY-NC-ND-4.0',
+        'Artistic-2.0', 'BSL-1.0', 'EPL-2.0', 'EUPL-1.2', 'Zlib'
+      ]);
       if (!validSpdx.has(declaredLicense)) {
         skillReport.errors.push(`Invalid license SPDX identifier '${declaredLicense}' in frontmatter`);
       }
@@ -153,20 +160,39 @@ export function validateSkills(skillsDirectory = SKILLS_DIR) {
       skillReport.warnings.push(`SKILL.md is ${lines.length} lines (>500 lines); consider moving deep specs to references/`);
     }
 
-    // 5. Reference File Integrity
+    // Helper to recursively collect markdown files
+    const collectMarkdownFilesRecursively = (dir) => {
+      let results = [];
+      if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) return results;
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory() && !entry.name.startsWith('.')) {
+          results = results.concat(collectMarkdownFilesRecursively(fullPath));
+        } else if (entry.isFile() && entry.name.endsWith('.md')) {
+          results.push(fullPath);
+        }
+      }
+      return results;
+    };
+
+    // 5. Reference File Integrity (Recursive Walk)
     const refsDir = path.join(skillPath, 'references');
-    if (fs.existsSync(refsDir) && fs.statSync(refsDir).isDirectory()) {
-      const refFiles = fs.readdirSync(refsDir).filter(f => f.endsWith('.md'));
-      for (const rf of refFiles) {
+    const refFiles = collectMarkdownFilesRecursively(refsDir);
+    if (refFiles.length > 0) {
+      for (const rfPath of refFiles) {
+        const relFromRefs = path.relative(refsDir, rfPath).replace(/\\/g, '/');
+        const relFromSkill = path.relative(skillPath, rfPath).replace(/\\/g, '/');
+        const baseName = path.basename(rfPath);
+
         // Every reference file must be linked from SKILL.md or a sibling reference
-        const refRelative = `references/${rf}`;
-        const isLinkedFromSkill = content.includes(refRelative) || content.includes(rf);
+        const isLinkedFromSkill = content.includes(relFromSkill) || content.includes(relFromRefs) || content.includes(baseName);
         let isLinkedFromSibling = false;
 
-        for (const sibling of refFiles) {
-          if (sibling !== rf) {
-            const sibContent = fs.readFileSync(path.join(refsDir, sibling), 'utf8');
-            if (sibContent.includes(rf) || sibContent.includes(refRelative)) {
+        for (const siblingPath of refFiles) {
+          if (siblingPath !== rfPath) {
+            const sibContent = fs.readFileSync(siblingPath, 'utf8');
+            if (sibContent.includes(baseName) || sibContent.includes(relFromRefs) || sibContent.includes(relFromSkill)) {
               isLinkedFromSibling = true;
               break;
             }
@@ -174,12 +200,12 @@ export function validateSkills(skillsDirectory = SKILLS_DIR) {
         }
 
         if (!isLinkedFromSkill && !isLinkedFromSibling) {
-          skillReport.warnings.push(`Orphan reference file: 'references/${rf}' is not linked from SKILL.md or siblings`);
+          skillReport.warnings.push(`Orphan reference file: '${relFromSkill}' is not linked from SKILL.md or siblings`);
         }
       }
     }
 
-    // 6. Dead Relative Link and Anchor Verification (SKILL.md and references/*.md)
+    // 6. Dead Relative Link and Anchor Verification (SKILL.md and references/**/*.md)
     const checkLinks = (fileContent, baseDir, sourceFileDesc) => {
       const linkMatches = fileContent.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g);
       for (const match of linkMatches) {
@@ -225,13 +251,11 @@ export function validateSkills(skillsDirectory = SKILLS_DIR) {
 
     checkLinks(content, skillPath, 'SKILL.md');
 
-    if (fs.existsSync(refsDir) && fs.statSync(refsDir).isDirectory()) {
-      const refFiles = fs.readdirSync(refsDir).filter(f => f.endsWith('.md'));
-      for (const rf of refFiles) {
-        const rfPath = path.join(refsDir, rf);
-        const rfContent = fs.readFileSync(rfPath, 'utf8');
-        checkLinks(rfContent, refsDir, `references/${rf}`);
-      }
+    for (const rfPath of refFiles) {
+      const rfContent = fs.readFileSync(rfPath, 'utf8');
+      const rfDir = path.dirname(rfPath);
+      const relFromSkill = path.relative(skillPath, rfPath).replace(/\\/g, '/');
+      checkLinks(rfContent, rfDir, relFromSkill);
     }
 
     if (skillReport.errors.length > 0) {

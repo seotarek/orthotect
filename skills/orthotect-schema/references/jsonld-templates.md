@@ -2,6 +2,10 @@
 
 Production-grade, validated Schema.org templates in JSON-LD format with `@graph` support for interface engineering. Use customizable placeholders (`{{APP_NAME}}`, `{{WEBSITE_URL}}`, `{{PRICE}}`, `{{SUPPORT_URL}}`) when integrating into your application templates.
 
+> **Google Search Central Compliance Note:**
+> Every value declared in JSON-LD must visibly correspond to text rendered on the user-facing web page.
+> **Never** invent synthetic `aggregateRating` scores (such as fake 4.9/5 counts) or phantom testimonials. Doing so violates Google Search Essentials and leads to manual rich-result actions. Include `aggregateRating` or `review` ONLY when real user ratings are published on the page.
+
 ## 1. Unified SaaS Homepage (`@graph` Pattern)
 
 ```html
@@ -19,17 +23,13 @@ Production-grade, validated Schema.org templates in JSON-LD format with `@graph`
         "url": "{{WEBSITE_URL}}/logo.png",
         "width": 512,
         "height": 512
-      },
-      "sameAs": [
-        "https://github.com/example/{{APP_NAME}}",
-        "https://x.com/{{APP_NAME}}"
-      ]
+      }
     },
     {
       "@type": "WebSite",
       "@id": "{{WEBSITE_URL}}/#website",
       "url": "{{WEBSITE_URL}}/",
-      "name": "{{APP_NAME}} Interface Engineering",
+      "name": "{{APP_NAME}}",
       "publisher": {
         "@id": "{{WEBSITE_URL}}/#organization"
       },
@@ -48,17 +48,11 @@ Production-grade, validated Schema.org templates in JSON-LD format with `@graph`
       "name": "{{APP_NAME}}",
       "operatingSystem": "All",
       "applicationCategory": "DeveloperApplication",
-      "description": "Deterministic interface engineering and runtime gate architecture for autonomous AI agents.",
+      "description": "Deterministic interface engineering and runtime gate architecture.",
       "offers": {
         "@type": "Offer",
         "price": "{{PRICE}}",
         "priceCurrency": "USD"
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.9",
-        "ratingCount": "120",
-        "bestRating": "5"
       }
     }
   ]
@@ -66,9 +60,22 @@ Production-grade, validated Schema.org templates in JSON-LD format with `@graph`
 </script>
 ```
 
+### Optional: Genuine Rating Extension
+If (and only if) your application displays genuine, third-party verifiable user reviews or ratings on the page, append the `aggregateRating` block inside the `SoftwareApplication` entity:
+
+```json
+"aggregateRating": {
+  "@type": "AggregateRating",
+  "ratingValue": "{{RATING_VALUE}}",
+  "reviewCount": "{{REVIEW_COUNT}}",
+  "bestRating": "5",
+  "worstRating": "1"
+}
+```
+
 ## 2. FAQPage Schema
 
-Use for documentation, product FAQ sections, or support pages.
+Use for documentation, product FAQ sections, or support pages where question-answer pairs are visibly rendered.
 
 ```html
 <script type="application/ld+json">
@@ -78,18 +85,18 @@ Use for documentation, product FAQ sections, or support pages.
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What is {{APP_NAME}}?",
+      "name": "What platforms are supported by {{APP_NAME}}?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "{{APP_NAME}} is a deterministic interface engineering runtime that enforces WCAG accessibility, CSS logical properties, and finite state machine integrity."
+        "text": "{{APP_NAME}} runs in standard modern web browsers and runtime environments supporting Node.js and Python."
       }
     },
     {
       "@type": "Question",
-      "name": "How does {{APP_NAME}} handle customer support?",
+      "name": "Where can I find documentation and technical support for {{APP_NAME}}?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Support is available at {{SUPPORT_URL}} and via the community discussion forum."
+        "text": "Comprehensive technical documentation and support resources are accessible at {{SUPPORT_URL}}."
       }
     }
   ]

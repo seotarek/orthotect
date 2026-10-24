@@ -17,17 +17,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Catalog and CLI synchronization: Expanded Orthotect modular disciplines from 16 to 18 in `docs/app.js` and `bin/orthotect.js`, and hooked specification validation into `npx orthotect skills validate`.
 
 ### Fixed
-- **Atomic Function Preservation in Semantic Chunking (`core/context_optimizer.py`)**:
-  - Eliminated arbitrary fallback splitting (`max_tokens * 1.5`) that severed functions mid-body, closures, or control-flow blocks.
-  - Implemented discrete semantic unit decomposition: atomic functions are preserved 100% whole under a soft ceiling factor (`max_tokens * 2.5`), tagged with `oversized_atomic: True`.
+- **Semantic Chunking & Strict Token Budget Accounting (`core/context_optimizer.py`)**:
+  - Enforced strict `max_tokens` ceiling across all chunk outputs by calculating and reserving token overhead for continuation breadcrumbs (`// [Context Continuation: ... | chunk #N]`).
+  - Implemented single-line oversized isolation ensuring that only an indivisible single line can exceed `max_tokens`.
+  - Implemented hierarchical scope tracking with `context_path: [...]`, nested boundary decomposition (`split_strategy: 'nested_boundary' | 'line_window'`), and explicit `oversized_scope: {name, type, start_line, end_line}` metadata.
   - Compound structures (classes with multiple methods) are partitioned strictly at member method boundaries, preserving method closures and local scopes.
-  - Giant functions exceeding the hard ceiling are partitioned strictly at root statements (`brace_depth == 1` / blank lines), tagging chunks with `is_severed: True` and capturing the full function signature in continuation breadcrumbs.
+  - Preserved template literal expression `${...}` brace balance and nesting depth during lexical code masking in `mask_js_code()`.
 - **Lexical Scanning & Ghost Declaration Elimination (`core/context_optimizer.py`)**:
   - Implemented `mask_js_code()` state machine masking line/block comments, quotes, regex literals, and template strings outside `${...}`, eliminating ghost matches while preserving source coordinates.
   - Implemented `_is_regex_start()` for JS/TS `/` token disambiguation against arithmetic division.
   - Implemented collision-free symbol IDs (`{type}_{name}_L{line}_C{col}`) and scope hierarchy tracking.
   - Fixed Python decorator chains (@decorator) staying attached across lines and consecutive functions.
   - Pruned directory recursion with in-place `dirs[:] = []` in `generate_context_skeleton(max_depth)`.
+- **Search Central Compliance & Template Grounding (`skills/orthotect-schema`)**:
+  - Removed fabricated default ratings and review counts from `skills/orthotect-schema/references/jsonld-templates.md`.
+  - Reframed `aggregateRating` as an optional extension component to be added only when genuine, visibly rendered user ratings exist on the page.
+  - Aligned `skills/orthotect-schema/SKILL.md` SoftwareApplication requirements strictly with Google Search Central documentation.
+- **Skill Packager Security Hardening (`scripts/package_skills.py`)**:
+  - Added strict symlink boundary enforcement preventing path traversal and symlink escapes outside the skill root directory.
+  - Added byte-level secret scanning rejecting packages containing private keys, SSH keys, or high-entropy credentials (`ghp_`, `AKIA`, `sk-`).
+  - Refined sensitive filename regex to distinguish security credentials from legitimate design token files (`design-tokens.md`).
+- **Specification Validator Hardening (`scripts/validate-skills.mjs`)**:
+  - Expanded license validation to comprehensive standard SPDX license identifiers.
+  - Implemented recursive reference file discovery auditing all nested `references/**/*.md` files for dead relative links and broken `#fragment` anchors.
 - **Evidence-Based Documentation**:
   - Removed unbacked percentage claims (`95%+` in `skills/orthotect-context/SKILL.md` and `>85%` in `core/context_optimizer.py`).
 - **Lockfile Package Metadata Alignment (`package-lock.json`)**:

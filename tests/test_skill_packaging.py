@@ -126,6 +126,85 @@ class TestSkillPackaging(unittest.TestCase):
                     f"Forbidden file '{forbidden}' leaked into packaged ZIP bundle: {names}"
                 )
 
+    def test_symlink_escape_is_strictly_rejected(self):
+        """Test that symlinks pointing outside the skill directory are rejected as security violations."""
+        mock_repo = Path(self.temp_dir) / "symlink_repo"
+        mock_repo.mkdir(parents=True)
+        (mock_repo / "LICENSE").write_text("MIT License\n", encoding="utf-8")
+
+        mock_skill_dir = mock_repo / "skills" / "mock-symlink-skill"
+        (mock_skill_dir / "references").mkdir(parents=True)
+        (mock_skill_dir / "SKILL.md").write_text(
+            "---\nname: mock-symlink-skill\ndescription: Symlink security test\n---\n# Mock\n",
+            encoding="utf-8"
+        )
+        (mock_skill_dir / "references" / "valid.md").write_text("# Valid\n", encoding="utf-8")
+
+        outside_secret = Path(self.temp_dir) / "outside_secret.txt"
+        outside_secret.write_text("SUPER_SECRET_HOST_DATA\n", encoding="utf-8")
+
+        symlink_target = mock_skill_dir / "references" / "escaped_link.md"
+        symlink_target.symlink_to(outside_secret)
+
+        out = Path(self.temp_dir) / "symlink_out"
+        with self.assertRaises(ValueError) as ctx:
+            build_packages(repo_dir=mock_repo, output_dir=out, skills=["mock-symlink-skill"])
+        self.assertIn("Security violation", str(ctx.exception))
+        self.assertIn("points outside skill directory", str(ctx.exception))
+
+    def test_sensitive_content_is_strictly_rejected(self):
+        """Test that sensitive credentials or private keys in allowed files trigger a security violation."""
+        mock_repo = Path(self.temp_dir) / "content_sec_repo"
+        mock_repo.mkdir(parents=True)
+        (mock_repo / "LICENSE").write_text("MIT License\n", encoding="utf-8")
+
+        mock_skill_dir = mock_repo / "skills" / "mock-leak-skill"
+        (mock_skill_dir / "references").mkdir(parents=True)
+        (mock_skill_dir / "SKILL.md").write_text(
+            "---\nname: mock-leak-skill\ndescription: Secret leak test\n---\n# Mock\n",
+            encoding="utf-8"
+        )
+
+        # Plant a private key inside an allowed markdown file
+        (mock_skill_dir / "references" / "leaked.md").write_text(
+            "Here is the key:\n-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA0...\n-----END RSA PRIVATE KEY-----\n",
+            encoding="utf-8"
+        )
+
+        out = Path(self.temp_dir) / "leak_out"
+        with self.assertRaises(ValueError) as ctx:
+            build_packages(repo_dir=mock_repo, output_dir=out, skills=["mock-leak-skill"])
+        self.assertIn("Security violation", str(ctx.exception))
+        self.assertIn("Sensitive credential pattern detected", str(ctx.exception))
+
+    def test_design_tokens_file_is_allowed(self):
+        """Test that design-tokens.md is not falsely flagged by token filtering."""
+        mock_repo = Path(self.temp_dir) / "tokens_repo"
+        mock_repo.mkdir(parents=True)
+        (mock_repo / "LICENSE").write_text("MIT License\n", encoding="utf-8")
+
+        mock_skill_dir = mock_repo / "skills" / "mock-tokens-skill"
+        (mock_skill_dir / "references").mkdir(parents=True)
+        (mock_skill_dir / "SKILL.md").write_text(
+            "---\nname: mock-tokens-skill\ndescription: Design tokens test\n---\n# Mock\n",
+            encoding="utf-8"
+        )
+        (mock_skill_dir / "references" / "design-tokens.md").write_text(
+            "# Design Tokens\n--color-primary: #0070f3;\n",
+            encoding="utf-8"
+        )
+
+        out = Path(self.temp_dir) / "tokens_out"
+        manifest = build_packages(repo_dir=mock_repo, output_dir=out, skills=["mock-tokens-skill"])
+        self.assertEqual(manifest["bundle_count"], 1)
+
+        zip_path = out / "mock-tokens-skill.zip"
+        self.assertTrue(zip_path.is_file())
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            names = zf.namelist()
+            self.assertIn("mock-tokens-skill/references/design-tokens.md", names)
+
 
 if __name__ == '__main__':
     unittest.main()
+

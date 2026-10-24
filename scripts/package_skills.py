@@ -21,12 +21,22 @@ from pathlib import Path, PurePosixPath
 SKILL_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 EXCLUDED_PARTS = {"evals", "__pycache__", "node_modules", ".cache", ".DS_Store", ".git", ".env", ".github"}
 
-SENSITIVE_PATTERNS = [
+SENSITIVE_FILENAME_PATTERNS = [
     re.compile(r"^\.env(\..+)?$", re.I),
     re.compile(r".*\.(pem|key|pkcs12|p12|p8|crt|cer|der)$", re.I),
-    re.compile(r"id_rsa.*", re.I),
-    re.compile(r"id_ed25519.*", re.I),
-    re.compile(r".*(secret|credential|token).*", re.I),
+    re.compile(r"^id_rsa.*", re.I),
+    re.compile(r"^id_ed25519.*", re.I),
+    re.compile(r".*(?:api[_-]?(?:key|secret|token)|access[_-]?token|auth[_-]?token|secret[_-]?key|credentials?).*", re.I),
+    re.compile(r"^(token|secret|credentials|passwd|shadow)(\.[a-z0-9]+)?$", re.I),
+]
+
+SENSITIVE_CONTENT_PATTERNS = [
+    re.compile(rb"-----BEGIN (?:[A-Z0-9 ]+ )?PRIVATE KEY-----"),
+    re.compile(rb"-----BEGIN OPENSSH PRIVATE KEY-----"),
+    re.compile(rb"ghp_[A-Za-z0-9_]{36}"),
+    re.compile(rb"github_pat_[A-Za-z0-9_]{82}"),
+    re.compile(rb"AKIA[0-9A-Z]{16}"),
+    re.compile(rb"sk-[A-Za-z0-9]{32,}"),
 ]
 
 ALLOWED_EXTENSIONS_BY_DIR = {
@@ -75,7 +85,7 @@ def get_repo_revision(repo_dir: Path) -> str:
 
 
 def collect_skill_files_from_disk(repo_dir: Path, skill_name: str) -> dict:
-    skill_dir = repo_dir / "skills" / skill_name
+    skill_dir = (repo_dir / "skills" / skill_name).resolve()
     if not skill_dir.is_dir():
         raise ValueError(f"Skill directory not found: {skill_dir}")
 
@@ -87,7 +97,7 @@ def collect_skill_files_from_disk(repo_dir: Path, skill_name: str) -> dict:
             # Exclude dotfiles, excluded parts, and sensitive file patterns
             if fname in EXCLUDED_PARTS or fname.startswith("."):
                 continue
-            if any(pat.search(fname) for pat in SENSITIVE_PATTERNS):
+            if any(pat.search(fname) for pat in SENSITIVE_FILENAME_PATTERNS):
                 continue
 
             full_path = Path(root) / fname
@@ -97,9 +107,21 @@ def collect_skill_files_from_disk(repo_dir: Path, skill_name: str) -> dict:
             if any(p in EXCLUDED_PARTS or p.startswith(".") for p in parts):
                 continue
 
+            # Symlink defense: verify target resolves strictly within skill_dir
+            if full_path.is_symlink():
+                try:
+                    resolved = full_path.resolve(strict=True)
+                    if not resolved.is_relative_to(skill_dir):
+                        raise ValueError(f"Security violation: Symlink '{rel_path}' points outside skill directory ({resolved})")
+                except Exception as e:
+                    raise ValueError(f"Security violation: Unresolvable symlink '{rel_path}' ({e})")
+
             # SKILL.md is mandatory at the root
             if rel_path == "SKILL.md":
                 data = full_path.read_bytes()
+                for cpat in SENSITIVE_CONTENT_PATTERNS:
+                    if cpat.search(data):
+                        raise ValueError(f"Security violation: Sensitive credential pattern detected in '{rel_path}'")
                 files[rel_path] = (data, "100644", f"skills/{skill_name}/{rel_path}")
                 continue
 
@@ -113,6 +135,9 @@ def collect_skill_files_from_disk(repo_dir: Path, skill_name: str) -> dict:
                 continue
 
             data = full_path.read_bytes()
+            for cpat in SENSITIVE_CONTENT_PATTERNS:
+                if cpat.search(data):
+                    raise ValueError(f"Security violation: Sensitive credential pattern detected in '{rel_path}'")
             files[rel_path] = (data, "100644", f"skills/{skill_name}/{rel_path}")
 
     return files
