@@ -10,6 +10,10 @@
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero_Browser_UI-0ea5e9?style=for-the-badge)](#)
 [![License: MIT](https://img.shields.io/badge/license-MIT-64748b?style=for-the-badge)](LICENSE)
 
+<p align="center">
+  <img src="docs/assets/brand/orthotect-social-preview.jpg" alt="Orthotect — Deterministic Interface Engineering & Multi-Agent Architecture" width="100%">
+</p>
+
 > **Live Interactive Showcase & Playground:** [https://seotarek.github.io/orthotect/](https://seotarek.github.io/orthotect/)  
 > **Engineering Whitepapers:** [Competitor Teardown (COMPETITORS.md)](COMPETITORS.md) | [The 7 Laws Manifesto (MANIFESTO.md)](MANIFESTO.md) | [Changelog (CHANGELOG.md)](CHANGELOG.md)
 

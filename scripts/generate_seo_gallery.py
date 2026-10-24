@@ -2123,13 +2123,17 @@ def render_template_html(item):
   <meta property="og:description" content="{html.escape(item['desc'])}">
   <meta property="og:url" content="{BASE_URL}/templates/{item['id']}.html">
   <meta property="og:site_name" content="Orthotect Interface Engineering">
-  <meta property="og:image" content="{BASE_URL}/assets/brand/brand-guide.jpg">
+  <meta property="og:image" content="{BASE_URL}/assets/brand/orthotect-social-preview.jpg">
+  <meta property="og:image:width" content="1376">
+  <meta property="og:image:height" content="768">
+  <meta property="og:image:alt" content="{html.escape(item['title'])} — Orthotect Interface Engineering">
   
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{html.escape(item['title'])}">
   <meta name="twitter:description" content="{html.escape(item['desc'])}">
-  <meta name="twitter:image" content="{BASE_URL}/assets/brand/brand-guide.jpg">
+  <meta name="twitter:image" content="{BASE_URL}/assets/brand/orthotect-social-preview.jpg">
+  <meta name="twitter:image:alt" content="{html.escape(item['title'])}">
   
   <link rel="icon" type="image/svg+xml" href="../assets/brand/favicon.svg">
   
