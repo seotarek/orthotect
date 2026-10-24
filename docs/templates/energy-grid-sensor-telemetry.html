@@ -46,15 +46,15 @@
       --tmpl-surface-1: #0E1F16;
       --tmpl-surface-2: #163123;
       --tmpl-surface-3: #214733;
-      --tmpl-primary: #15803D;
-      --tmpl-primary-hover: #166534;
-      --tmpl-btn-text: #FFFFFF;
+      --tmpl-primary: #22C55E;
+      --tmpl-primary-hover: #16A34A;
+      --tmpl-btn-text: #041408;
       --tmpl-text-primary: #F0FDF4;
       --tmpl-text-secondary: #86EFAC;
-      --tmpl-border: rgba(22, 163, 74, 0.3);
+      --tmpl-border: rgba(34, 197, 94, 0.32);
       --tmpl-radius: 8px;
       --tmpl-border-width: 1px;
-      --tmpl-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+      --tmpl-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     }
 
     html[data-theme="light"] {
@@ -71,14 +71,21 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      background-color: var(--tmpl-bg-canvas);
+      background-color: var(--tmpl-bg-canvas) !important;
+      background-image: radial-gradient(circle at 50% 0%, rgba(34, 197, 94, 0.12) 0%, transparent 50%) !important;
+      background-size: 100% 100% !important;
+      background-attachment: fixed !important;
       color: var(--tmpl-text-primary);
       font-family: var(--tmpl-font-body);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+    }
+
+    button, .topbar-btn, .btn-ctrl, .btn-ctrl-accent, .btn-civic, .prod-badge, .style-badge, .civic-step-badge, .saas-pill, input, select, textarea {
+      border-radius: var(--tmpl-radius) !important;
     }
 
     h1, h2, h3, h4, h5, h6, .template-title, .chart-title, .table-title, .prod-title, .saas-hero-title, .civic-title {
@@ -1153,15 +1160,15 @@
             <svg width="100%" height="220" viewBox="0 0 800 220" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#15803D" stop-opacity="0.35"/>
-                  <stop offset="100%" stop-color="#15803D" stop-opacity="0.00"/>
+                  <stop offset="0%" stop-color="#22C55E" stop-opacity="0.35"/>
+                  <stop offset="100%" stop-color="#22C55E" stop-opacity="0.00"/>
                 </linearGradient>
               </defs>
               <line x1="0" y1="50" x2="800" y2="50" stroke="var(--tmpl-border)" stroke-dasharray="4"/>
               <line x1="0" y1="110" x2="800" y2="110" stroke="var(--tmpl-border)" stroke-dasharray="4"/>
               <line x1="0" y1="170" x2="800" y2="170" stroke="var(--tmpl-border)" stroke-dasharray="4"/>
               <polygon points="0,180 80,160 160,140 240,150 320,110 400,90 480,120 560,70 640,60 720,40 800,30 800,220 0,220" fill="url(#chartGrad)"/>
-              <polyline points="0,180 80,160 160,140 240,150 320,110 400,90 480,120 560,70 640,60 720,40 800,30" fill="none" stroke="#15803D" stroke-width="3" stroke-linecap="round"/>
+              <polyline points="0,180 80,160 160,140 240,150 320,110 400,90 480,120 560,70 640,60 720,40 800,30" fill="none" stroke="#22C55E" stroke-width="3" stroke-linecap="round"/>
             </svg>
           </div>
         </div>

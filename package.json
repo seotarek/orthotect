@@ -15,6 +15,7 @@
     "test:unit": "python3 -m unittest discover -s tests -p 'test_*.py'",
     "validate:skills": "node scripts/validate-skills.mjs",
     "check:package-metadata": "node scripts/check-package-metadata.mjs",
+    "check:release-sync": "node scripts/check-release-sync.mjs",
     "gate:all": "python3 gates/run_all_gates.py",
     "gate:bidi": "python3 gates/gate_bidi_logical.py",
     "gate:contrast": "python3 gates/gate_contrast_wcag.py",

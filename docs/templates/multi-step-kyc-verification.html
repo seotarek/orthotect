@@ -54,7 +54,7 @@
       --tmpl-border: #CBD5E1;
       --tmpl-radius: 8px;
       --tmpl-border-width: 1px;
-      --tmpl-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      --tmpl-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
     }
 
     html[data-theme="dark"] {
@@ -71,14 +71,21 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      background-color: var(--tmpl-bg-canvas);
+      background-color: var(--tmpl-bg-canvas) !important;
+      background-image: none !important;
+      background-size: auto !important;
+      background-attachment: fixed !important;
       color: var(--tmpl-text-primary);
       font-family: var(--tmpl-font-body);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+    }
+
+    button, .topbar-btn, .btn-ctrl, .btn-ctrl-accent, .btn-civic, .prod-badge, .style-badge, .civic-step-badge, .saas-pill, input, select, textarea {
+      border-radius: var(--tmpl-radius) !important;
     }
 
     h1, h2, h3, h4, h5, h6, .template-title, .chart-title, .table-title, .prod-title, .saas-hero-title, .civic-title {

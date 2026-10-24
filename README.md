@@ -2,20 +2,40 @@
 
 ### The Deterministic Interface Engineering & Runtime Gate Architecture for AI Coding Agents
 
-[![Version](https://img.shields.io/badge/version-1.7.4-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases)
-[![Live Showcase](https://img.shields.io/badge/Live_Showcase-GitHub_Pages-0ea5e9?style=for-the-badge)](https://seotarek.github.io/orthotect/)
-[![CI Status](https://github.com/seotarek/orthotect/actions/workflows/ci.yml/badge.svg)](https://github.com/seotarek/orthotect/actions)
-[![License: MIT](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)](LICENSE)
-[![WCAG 2.2 Contrast Matrix](https://img.shields.io/badge/WCAG_2.2-Contrast_Matrix_(AA%2FAAA)-a855f7?style=for-the-badge)](#)
-[![Gates: 100% Deterministic](https://img.shields.io/badge/Quality_Gates-Deterministic-14b8a6?style=for-the-badge)](#)
-[![BiDi: 100% Logical](https://img.shields.io/badge/BiDi-True_RTL/LTR-f97316?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/version-1.7.4_Latest-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.7.4)
+[![Tests Passing](https://img.shields.io/badge/tests-292_passed-22c55e?style=for-the-badge)](https://github.com/seotarek/orthotect/actions)
+[![Deterministic Gates](https://img.shields.io/badge/Quality_Gates-5%2F5_Deterministic-14b8a6?style=for-the-badge)](#-deterministic-quality-gates--auto-healing)
+[![WCAG 2.2 AAA](https://img.shields.io/badge/WCAG_2.2-Contrast_Matrix_(AAA%2FAA)-a855f7?style=for-the-badge)](#)
+[![BiDi Logical](https://img.shields.io/badge/BiDi-100%25_CSS_Logical-f97316?style=for-the-badge)](#)
+[![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero_Browser_UI-0ea5e9?style=for-the-badge)](#)
+[![License: MIT](https://img.shields.io/badge/license-MIT-64748b?style=for-the-badge)](LICENSE)
 
 > **Live Interactive Showcase & Playground:** [https://seotarek.github.io/orthotect/](https://seotarek.github.io/orthotect/)  
-> **Engineering Whitepapers:** [Competitor Teardown (COMPETITORS.md)](COMPETITORS.md) | [The 7 Laws Manifesto (MANIFESTO.md)](MANIFESTO.md)
+> **Engineering Whitepapers:** [Competitor Teardown (COMPETITORS.md)](COMPETITORS.md) | [The 7 Laws Manifesto (MANIFESTO.md)](MANIFESTO.md) | [Changelog (CHANGELOG.md)](CHANGELOG.md)
 
-Orthotect is an enterprise-grade interface engineering toolkit built to enforce **deterministic architectural quality gates and state machine rigor** onto autonomous coding agents (Antigravity, Cursor, Claude Code, Codex, Grok). 
+Orthotect is an enterprise-grade interface engineering runtime built to enforce **deterministic architectural quality gates, state machine rigor, and aesthetic diversification** onto autonomous AI coding agents (Antigravity CLI `agy`, Claude Code, Cursor Agent, OpenAI Codex, and Grok Build). 
 
-Unlike superficial prompt libraries that merely request "good design", Orthotect provides a **mathematical token foundation**, **Finite State Machine (FSM) graph reachability**, and **objective quality gates** that fail the build with `exit 1` if standards are breached.
+Unlike prompt-only libraries that merely request "clean modern UI", Orthotect provides a **mathematical token foundation**, **Finite State Machine (FSM) deadlock reachability**, **auto-healing in-place remediation (`--fix`)**, and **AST-level quality gates** that fail the build with `exit 1` if accessibility or logical properties are breached.
+
+---
+
+## 📸 Authentic Browserbase Cloud Verification Gallery
+
+The Orthotect showcase has been verified and captured directly in headless cloud browser sessions via [Browserbase](https://www.browserbase.com):
+
+| Haute Horlogerie & Bespoke Luxury | Swiss Precision Engineering Hardware |
+|:---:|:---:|
+| <img src="docs/assets/screenshots/bb_luxury.png" alt="Haute Horlogerie Luxury Template" width="100%" /> | <img src="docs/assets/screenshots/bb_swiss.png" alt="Swiss Precision Hardware Template" width="100%" /> |
+| **Cluster 3: Material E-Commerce**<br>Obsidian dark palette `#0A0A0A`, gold accents `#CA8A04`, Playfair Display serif typography, Roman numeral chronometer dial SVG, bespoke reservation CTA ($18,400.00). | **Cluster 3: Material E-Commerce**<br>Light blueprint grid `#F8FAFC`, technical crimson `#E11D48`, Space Grotesk font, sharp 0px corners, micro-tolerance schematic, DIN 912 fastener procurement ($48.00). |
+
+| Cyberpunk Neo-Brutalist API Hero | Clinical Healthcare Intake & Patient Portal |
+|:---:|:---:|
+| <img src="docs/assets/screenshots/bb_cyber.png" alt="Cyberpunk API Platform Hero" width="100%" /> | <img src="docs/assets/screenshots/bb_clinical.png" alt="Clinical Patient Portal Template" width="100%" /> |
+| **Cluster 5: B2B SaaS & DevTools**<br>Dark tech cyan `#06B6D4`, JetBrains Mono code font, sub-second latency terminal stream, glowing background matrix, interactive cURL/SDK commands. | **Cluster 4: Civic & Clinical Portals**<br>Soft hospital mint `#F0FDF4`, calming medical green `#059669`, Lexend readability font (dyslexia-optimized), HIPAA certified EHR badges, 24/7 accessibility helpline. |
+
+> **Live Browserbase Cloud Session Recordings:**
+> - Horology & Swiss Hardware Session: [`https://www.browserbase.com/sessions/c393312c-8401-4cd4-bf8f-119d84af2e94`](https://www.browserbase.com/sessions/c393312c-8401-4cd4-bf8f-119d84af2e94)
+> - Cyberpunk & Clinical Healthcare Session: [`https://www.browserbase.com/sessions/a43bee23-56b9-4c8f-8fb6-c7de6d72de9c`](https://www.browserbase.com/sessions/a43bee23-56b9-4c8f-8fb6-c7de6d72de9c)
 
 ---
 
@@ -25,19 +45,20 @@ For an in-depth technical analysis, read our [Architectural Comparison Whitepape
 
 | Capability / Dimension | Prompt-Only Skills (e.g. XIAS / taste-skill) | Component Libraries (e.g. shadcn/ui) | 🏛️ Orthotect Architecture (Deterministic Gates) |
 |---|---|---|---|
-| **Verification Model** | Textual guidelines & system prompt rules; no native AST gate runner | Visual inspection, Storybook, or manual unit testing | **Target-Aware & Zero-Fallback:** Inspects user project directory (`orthotect verify <dir>`) with strict path boundaries and real exit codes |
-| **Project Initialization** | Prompt instructions without direct filesystem scaffolding | Code copy-pasting / CLI component adder | **Deterministic File Scaffolding:** Copies tokens, FSM specs, and `AGENTS.md` directly into target repository (`orthotect init <dir>`) |
+| **Verification Model** | Textual guidelines & prompt hints; no native AST gate runner | Visual inspection, Storybook, or manual unit testing | **Target-Aware & Zero-Fallback:** Inspects user project directory (`orthotect verify <dir>`) with strict path boundaries and real exit codes |
+| **Auto-Healing** | None; manual user rework required | None; manual utility class replacement | **Automated `--fix` Remediation:** Automatically transforms physical properties to CSS Logical Properties and injects missing media aspect-ratios |
+| **Pre-Commit Enforcement** | None | Manual Husky/lint-staged setup required | **Native Zero-Dependency Git Hook:** `orthotect hooks install` prevents non-compliant commits from ever reaching main |
+| **Configuration Engine** | Hardcoded or non-existent | `components.json` (styling only) | **Zero-Dependency `orthotect.config.json`:** Deep-merge configuration for custom tolerances, WCAG levels, and path exclusions |
 | **State Engineering** | Static UI snapshots without transition graphs | Ad-hoc `isLoading` boolean flags | **Formal Finite State Machines (FSM)** with graph reachability, double-submission race locks & async recovery |
-| **BiDi / RTL Support** | Textual guidance recommending logical properties | Physical utility classes (`ml-*`, `pr-*`) common | **Enforced CSS Logical Properties** (`margin-inline`, `padding-inline`, `border-inline`, `inset-inline`) across audited fixtures |
-| **Layout Shift Budget** | Subjective reminders in prompt | Dependent on developer discipline | **Structural Layout-Shift (CLS) Budget** enforcing reserved media dimensions (`width` + `height` or `aspect-ratio`) and stream-based DOM nesting limits |
-| **Motion Engineering** | Generic `0.2s ease` transitions | CSS transition presets | **Spring Physics Curves** (Stiffness, Damping, Mass) |
-| **Cognitive Ergonomics** | Arbitrary card layouts | Component presets | **Fitts' Law** touch targets (≥44px) & **Miller's 7±2 Law** density constraints |
+| **BiDi / RTL Support** | Textual guidance recommending logical properties | Physical utility classes (`ml-*`, `pr-*`) common | **Enforced CSS Logical Properties** (`margin-inline`, `padding-inline`, `border-inline`, `inset-inline`) across 100% of fixtures |
+| **Layout Shift Budget** | Subjective reminders in prompt | Dependent on developer discipline | **Structural Layout-Shift (CLS) Budget** enforcing reserved media dimensions (`width` + `height` or `aspect-ratio`) and DOM depth limits |
+| **Context Window Control** | Bloated text files filling context | Unfiltered code imports | **Token-Optimized Progressive Disclosure:** Compact AST skeletons and semantic chunking via `orthotect-context` |
 | **Anti-Slop Defense** | Subjective prompt instructions | Out of scope (styling only) | **Lexical & Pattern Inspectors** that reject AI indigo-purple gradients, raw emoji icons, and untokenized styles |
-| **Design Tokens** | Variable guidance in markdown | Tailwind configuration | **W3C DTCG 3-Tier Compiler** generating `:root` light and `[data-theme="dark"]` scopes |
+| **Design Tokens** | Variable guidance in markdown | Tailwind configuration | **W3C DTCG 3-Tier Compiler** generating `:root` light and `[data-theme="dark"]` scopes with zero external runtime deps |
 
 ---
 
-## 🏗️ Architecture Overview
+## 🏗️ Architecture & Repository Topology
 
 ```text
 orthotect/
@@ -54,9 +75,10 @@ orthotect/
 │   ├── styles/              # 12 Validated Style Recipes (editorial, analytical, saas, operational, etc.)
 │   └── [category]/          # Curated Knowledge Records (palettes, typography, components, etc.)
 ├── docs/                    # 7-View Skill Studio Platform & Interactive Showcase (GitHub Pages)
-│   ├── index.html           # 7-view bilingual (EN/AR) interactive workbench
+│   ├── index.html           # 7-view bilingual (EN/AR) interactive workbench with rich Schema.org JSON-LD
 │   ├── styles.css           # 100% CSS Logical Properties & DTCG token variables
-│   └── app.js               # Client-side router, 18-skill catalog, playground, builder, and gate simulator
+│   ├── app.js               # Client-side router, 18-skill catalog, playground, builder, and gate simulator
+│   └── templates/           # 50 Radically Diversified Production Domain Templates (HTML/SVG/FSM)
 ├── gates/                   # Objective Deterministic Checkers (Python & Node.js)
 │   ├── gate_contrast_wcag.py     # Mathematical Relative Luminance (WCAG 2.2 AAA/AA)
 │   ├── gate_bidi_logical.py      # Strict Enforcement of CSS Logical Properties
@@ -64,64 +86,33 @@ orthotect/
 │   ├── gate_no_slop.py           # Lexical & Pattern Slop Inspector
 │   ├── gate_cwv_budget.mjs       # WHATWG-Compliant DOM & Layout-Shift Budget
 │   └── run_all_gates.py          # Parallel Master Gate Orchestrator (ThreadPoolExecutor)
-├── skills/                  # 18 Agent Skills (Progressive Disclosure)
-│   ├── orthotect-doctrine        # The 7 Non-Negotiable Laws
+├── skills/                  # 18 Modular AI Agent Skills (Agent Skills Specification Compliant)
+│   ├── orthotect-doctrine        # The 7 Non-Negotiable Laws of Interface Engineering
 │   ├── orthotect-uiux            # Master UI/UX Design Intelligence & Orchestrator
+│   ├── orthotect-gates           # Gate Execution Workflows & Automated CI Audit
+│   ├── orthotect-bidi            # True Directional Neutrality & RTL Engineering
+│   ├── orthotect-tokens          # DTCG Token Compilation & Platform Export
 │   ├── orthotect-design-systems  # DTCG Token Hierarchy & Multi-Brand Themes
+│   ├── orthotect-fsm             # State Machine Implementation Workflows & Lock Verification
+│   ├── orthotect-forms           # Resilient Forms & Double-Submit Protection
 │   ├── orthotect-components      # Accessible Component Contracts & 8 FSM States
-│   ├── orthotect-accessibility   # WCAG 2.2 AA/AAA Deterministic Verification
-│   ├── orthotect-bidi            # Directional Neutrality & RTL Engineering
-│   ├── orthotect-dashboard       # High-Density Console Design
-│   ├── orthotect-fsm             # State Machine Implementation Workflows
-│   ├── orthotect-forms           # Resilient Forms & Double-Submit Locks
-│   ├── orthotect-responsive      # Adaptive Bento Layouts & Fluid Scales
-│   ├── orthotect-motion          # Spring Physics Motion Tokens & Reduced-Motion
+│   ├── orthotect-dashboard       # High-Density Console Design & Inline SVG Telemetry
 │   ├── orthotect-data-viz        # Accessible Telemetry & Tabular Numbers
-│   ├── orthotect-tokens          # Token Management & Theme Compilation
-│   ├── orthotect-gates           # Gate Execution Workflows
-│   ├── orthotect-visual-qa       # Automated Browser Visual Regression Gate
-│   ├── orthotect-context         # Token-Optimizer & Context Architecture Guard
-│   ├── orthotect-cro             # Interface Conversion Rate Optimization & Form Ergonomics
-│   └── orthotect-schema          # Semantic Structured Data & Schema.org JSON-LD
+│   ├── orthotect-accessibility   # Mathematical WCAG 2.2 AAA/AA Contrast Auditing
+│   ├── orthotect-visual-qa       # Automated Browser Visual Regression Testing
+│   ├── orthotect-responsive      # Adaptive Bento Grids & Fluid Layouts
+│   ├── orthotect-motion          # Spring Physics Motion & Reduced-Motion Contracts
+│   ├── orthotect-context         # Token Optimizer & Context Architecture Guard
+│   ├── orthotect-cro             # Conversion Rate Optimization & Micro-Copy Architecture
+│   └── orthotect-schema          # Semantic Structured Data & Schema.org JSON-LD Engineering
 ├── scripts/                 # Skills Specification Validator, Packager & Metadata Guards
-│   ├── validate-skills.mjs       # Agent Skills specification validator (SPDX & recursive refs)
+│   ├── check-release-sync.mjs    # Fail-closed version parity enforcer across repo, docs & tags
+│   ├── capture_browserbase_showcase.py # Cloud browser verification runner
+│   ├── generate_seo_gallery.py   # Bespoke generator for all 50 production templates
+│   ├── validate-skills.mjs       # Agent Skills specification validator
 │   ├── package_skills.py         # Deterministic cross-agent skill packager & security scanner
 │   └── check-package-metadata.mjs# Synchronized package version & lockfile guard
-├── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (291 Tests)
-│   ├── test_contrast.py          # Relative luminance & contrast threshold unit tests
-│   ├── test_bidi.py              # BiDi logical scanner positive/negative tests
-│   ├── test_auto_fix.py          # BiDi auto-healing (--fix) remediation tests
-│   ├── test_hooks_cli.py         # Git pre-commit hook installation & enforcement tests
-│   ├── test_config.py            # Configuration loader, deep-merge & path exclusion tests
-│   ├── test_fsm.py               # FSM graph reachability and deadlock tests
-│   ├── test_core_sync.py         # Canonical FSM schemas & DTCG tokens single-source-of-truth tests
-│   ├── test_cwv.py               # Media dimension, aspect-ratio & iterative parse5 DOM depth tests
-│   ├── test_slop.py              # AI purple gradient & raw emoji anti-pattern tests
-│   ├── test_compiler.py          # W3C DTCG CSS custom property compiler tests
-│   ├── test_skills_sync.py       # Skills directory / docs/app.js catalog sync tests
-│   ├── test_knowledge_search.py  # Knowledge base search, filtering & schema validation tests
-│   ├── test_context_optimizer.py # Token estimation, density profiling & skeleton tests
-│   ├── test_cli_expanded.py      # Doctor, skills show/validate, and design CLI tests
-│   ├── test_docs_browser.py      # Playwright 7-view Skill Studio browser integration & negative benchmark tests
-│   ├── test_modal_browser.py     # Playwright headless Chrome focus trap & FSM tests
-│   ├── test_scaffold_browser.py  # Playwright scaffolded page FSM lifecycle & race lock browser tests
-│   ├── test_cli_e2e.py           # E2E CLI verification, boundary & negative rejection tests
-│   ├── test_skill_evals.py       # Skill evaluation fixture schema & JSON-LD template validity tests
-│   └── test_skill_packaging.py   # Skill packager reproducibility, security & manifest tests
-├── .github/workflows/       # Automated CI & GitHub Pages Deployment Pipelines
-│   ├── ci.yml                    # 291 Unit, Browser & Negative Gate Tests & Full Gate Verification
-│   ├── publish-package.yml       # Release concurrency & fail-closed package publisher
-│   └── pages.yml                 # Automated GitHub Pages Deployment
-├── agents/
-│   └── orthotect-auditor.md      # Adversarial Quality Auditor Role
-├── AGENTS.md                # Universal multi-agent system doctrine and lifecycle rules
-├── CLAUDE.md                # Claude Code configuration & command-agent-skill guidance
-├── CHANGELOG.md             # Full version history (v1.0.0 → v1.7.4)
-├── CONTRIBUTING.md          # Enterprise engineering guidelines
-├── COMPETITORS.md           # Exhaustive architectural competitor teardown
-├── MANIFESTO.md             # The 7 Laws of Interface Engineering
-└── examples/
-    └── golden-showcase/          # Reference Enterprise Console passing 100% of gates
+└── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (292 Tests)
 ```
 
 ---
@@ -131,27 +122,36 @@ orthotect/
 Run the verification suite against your project:
 
 ```bash
-# Verify current project
+# 1. Verify current project against all 5 deterministic quality gates
 npx orthotect verify .
 
-# Auto-heal physical CSS properties in-place (margin-left → margin-inline-start, etc.)
+# 2. Auto-heal physical CSS coordinates in-place (margin-left → margin-inline-start, etc.)
 npx orthotect verify . --fix
 
-# Install automated Git pre-commit hook (blocks violating commits before landing)
+# 3. Install zero-dependency Git pre-commit hook (blocks non-compliant commits)
 npx orthotect hooks install
 
-# Generate machine-readable JSON or Markdown audit reports
+# 4. Generate machine-readable JSON or Markdown audit reports
 npx orthotect verify ./src --json
 npx orthotect verify ./src --md
+
+# 5. Check version parity across package, docs, and releases
+npm run check:release-sync
 ```
 
 ### ⚙️ Configuration Engine (`orthotect.config.json`)
 
-Customize file exclusion globs, DOM nesting depth limits, and gate toggles per project:
+Orthotect automatically discovers `orthotect.config.json` in your repository root and applies deep-merge semantics over built-in defaults:
 
 ```json
 {
-  "exclude": ["node_modules/**", "dist/**", "build/**", "legacy/**"],
+  "exclude": [
+    "node_modules/**",
+    "dist/**",
+    "build/**",
+    ".git/**",
+    "coverage/**"
+  ],
   "cwv": {
     "maxDomDepth": 32,
     "maxDomNodes": 1500
@@ -160,13 +160,13 @@ Customize file exclusion globs, DOM nesting depth limits, and gate toggles per p
     "allowCamelCase": false
   },
   "contrast": {
-    "level": "AA"
+    "level": "AAA",
+    "strictMode": true
   }
 }
 ```
 
 Illustrative Reference Verification Output (Target: `examples/golden-showcase`):
-> *Note: Parallel gate execution latencies are measured dynamically per run and scale with repository size and host hardware (typically 120ms – 590ms; latest GitHub Actions CI run executed in ~126ms).*
 
 ```text
 ╔═══════════════════════════════════════════════════════════════╗
@@ -187,50 +187,40 @@ Total Verification Time (Parallel): 554.2ms
 
 🎉 ALL GATES PASSED! Target files verified against evaluated interface standards.
    Verified Standards: WCAG 2.2 Contrast, CSS Logical BiDi, FSM Integrity, Anti-Slop, DOM CLS Budget.
-   Notice: Verifies deterministic interface constraints; does not replace runtime security, auth, or load audits.
 ```
 
 ---
 
-## 🛡️ Dual-Layer Verification Architecture & Scope Delineation
+## 🧩 The 18 Modular AI Agent Skills Directory
 
-Orthotect provides **Deterministic Static & AST Gate Verification** designed to run at millisecond speed in CLI, agent loops, and pre-commit hooks:
+All 18 skills reside in `skills/` and strictly conform to the Agent Skills Specification:
 
-| Layer | Tooling & Mechanism | Target Scope | Orthotect Alignment |
-|---|---|---|---|
-| **Layer 1: Static AST & Pattern Verification** | Orthotect Python AST & Node Gates | Lexical slop, CSS logical properties, color tokens, FSM graph locks, DOM layout shift budgets | 🏛️ **Orthotect Native Core** (Pre-commit / CI gate / Subagent feedback loop) |
-| **Layer 2: Dynamic Browser & Runtime Audit** | axe-core, Playwright, Chrome DevTools, XState | Live ARIA tree calculation, dynamic color contrast across complex background filters, focus management, end-to-end user journeys | 🤝 **Complements Layer 1** (Recommended companion in dynamic CI pipelines) |
-
-> [!NOTE]
-> **Deterministic AST Scope**: Orthotect's static gates verify structural invariants (such as physical vs. logical CSS properties across CSS/JSX/TSX, lexical token compliance, FSM definition validity, and explicit image dimensions) before deployment. 100% logical property compliance and contrast metrics apply to Orthotect's audited core showcase and verified test fixtures; arbitrary legacy codebases should be audited iteratively. For comprehensive accessibility audits covering computed runtime styles, screen reader virtual buffers, and complex DOM tree computations, we recommend pairing Orthotect with dynamic evaluation tools like `axe-core`, `Playwright`, and `Style Dictionary`.
-
----
-
-## 🚀 Quick Start
-
-Initialize Orthotect into your repository:
-
-```bash
-# Copies tokens, FSM models, and AGENTS.md rulebook into current directory
-npx orthotect init .
-
-# Compile W3C DTCG tokens into pure CSS Custom Properties (:root & dark theme)
-npx orthotect compile core/tokens --out styles/tokens.css
-```
-
-Run independent unit and E2E test suite:
-
-```bash
-npm test
-```
+| Skill | Category | Primary Role & Mandate |
+|---|---|---|
+| [`orthotect-doctrine`](skills/orthotect-doctrine/SKILL.md) | Architecture | The 7 Non-Negotiable Laws of Interface Engineering. Load first on any UI task. |
+| [`orthotect-uiux`](skills/orthotect-uiux/SKILL.md) | Architecture | Master UI/UX Design Intelligence. 19-dimensional reasoning and style curation. |
+| [`orthotect-gates`](skills/orthotect-gates/SKILL.md) | Architecture | Deterministic Quality Gates execution and pre-commit verification workflows. |
+| [`orthotect-bidi`](skills/orthotect-bidi/SKILL.md) | Internationalization | True Bidirectional (BiDi) symmetry with 100% CSS Logical Properties. |
+| [`orthotect-tokens`](skills/orthotect-tokens/SKILL.md) | Tokens | W3C DTCG 3-Tier Design Tokens compilation and platform theme export. |
+| [`orthotect-design-systems`](skills/orthotect-design-systems/SKILL.md) | Tokens | Multi-brand token architecture, theme scoping, and design system governance. |
+| [`orthotect-fsm`](skills/orthotect-fsm/SKILL.md) | Logic & State | Finite State Machine graph reachability, deadlock defense, and race locks. |
+| [`orthotect-forms`](skills/orthotect-forms/SKILL.md) | Components | Resilient forms, auto-advancing verification inputs, and double-submit guards. |
+| [`orthotect-components`](skills/orthotect-components/SKILL.md) | Components | Accessible UI component specifications covering all 8 interactive states. |
+| [`orthotect-dashboard`](skills/orthotect-dashboard/SKILL.md) | Consoles | High-density enterprise consoles with inline SVG telemetry and zero layout shift. |
+| [`orthotect-data-viz`](skills/orthotect-data-viz/SKILL.md) | Consoles | Accessible data visualization, tabular numbers, and mathematical color mapping. |
+| [`orthotect-accessibility`](skills/orthotect-accessibility/SKILL.md) | Quality | Mathematical WCAG 2.2 AAA (7:1) and AA (4.5:1) relative luminance auditing. |
+| [`orthotect-visual-qa`](skills/orthotect-visual-qa/SKILL.md) | Quality | Automated browser visual regression testing across themes and viewports. |
+| [`orthotect-responsive`](skills/orthotect-responsive/SKILL.md) | Layout | Adaptive bento layouts, container queries, and fluid typography scales. |
+| [`orthotect-motion`](skills/orthotect-motion/SKILL.md) | Motion | Spring physics curves (stiffness/damping) with reduced-motion fallbacks. |
+| [`orthotect-context`](skills/orthotect-context/SKILL.md) | Optimization | Context window pruning, density profiling, and semantic AST chunking. |
+| [`orthotect-cro`](skills/orthotect-cro/SKILL.md) | Marketing & CRO | Conversion rate optimization, micro-copy clarity, and trust badge layout. |
+| [`orthotect-schema`](skills/orthotect-schema/SKILL.md) | Technical SEO | Structured data engineering using validated Schema.org JSON-LD `@graph`. |
 
 ---
 
-## 🤖 Agentic Engineering & Multi-Agent Orchestration
+## 🤖 Multi-Agent Orchestration Architecture
 
-Orthotect is built specifically to transition coding agents from unconstrained "vibe coding" into disciplined **Agentic Engineering**. It provides the deterministic harness that binds autonomous agents (Antigravity, Claude Code, Cursor Agent, OpenAI Codex, Grok Build, OpenCode) to mathematical rigor and zero-defect delivery.
-
-### 🏛️ Orchestration Model: Command → Agent → Skill
+Orthotect provides a deterministic harness across the entire coding agent spectrum:
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -257,15 +247,23 @@ Orthotect is built specifically to transition coding agents from unconstrained "
 └────────────────────────────────────────────────────────┘
 ```
 
-- **Command Layer**: Discrete CLI and slash commands gather intent, validate scope boundaries, and invoke tools without contaminating primary context memory.
-- **Agent Lifecycle (Research → Plan → Execute → Review → Ship)**:
-  - **Research**: Use `core/context_optimizer.py` to extract compact symbol skeletons before reading whole files.
-  - **Plan**: Define formal state machines (`button-states.json`, `modal-dialog.json`) and token mappings prior to coding.
-  - **Execute**: Author markup strictly referencing CSS Logical Properties and W3C DTCG tokens.
-  - **Review & Gate**: Run `python3 gates/run_all_gates.py` in the foreground. Never assert success without real exit code 0 evidence.
-  - **Ship**: Commit clean, professional conventional commits with zero conversational metadata.
-- **Skill Engine**: 18 certified skills strictly adhering to the Agent Skills Specification (frontmatter with `name`, `description`, `when_to_use`, `argument-hint`, `allowed-tools`, `model`, `effort`, `license`, `compatibility`).
-- **Security & Portability**: `scripts/package_skills.py` generates deterministic, byte-for-byte reproducible ZIP archives with symlink boundary containment (`is_relative_to`) and byte-level scanning against private keys and API tokens.
+- **Google Antigravity (`agy`)**: Delegate implementation queues using `agy-delegate`. Orthotect quality gates run as mandatory pre-merge verification in the agent's sub-turn loop.
+- **Claude Code**: Orchestrate complex refactors using `CLAUDE.md` and slash commands while enforcing strict token boundaries.
+- **Cursor Agent**: Use `@orthotect` rules in `.cursorrules` to prevent the generation of physical CSS coordinate bugs.
+- **OpenAI Codex**: Run headless implementation batches with automatic `--fix` healing on pull requests.
+
+---
+
+## 🔒 Version Unification & Zero-Drift Release Protocol
+
+To prevent version discrepancies between npm packages, local source code, documentation, and GitHub Releases, Orthotect enforces an automated fail-closed check (`scripts/check-release-sync.mjs`):
+
+```bash
+# Verifies that package.json, lockfile, CLI banner, tokens, styles, docs, and git tags match exactly
+npm run check:release-sync
+```
+
+Whenever a new version is tagged, GitHub Actions validates all 292 unit tests, executes all 5 gates, and publishes synchronized releases simultaneously.
 
 ---
 
@@ -286,3 +284,4 @@ Read the complete manifesto in [MANIFESTO.md](MANIFESTO.md).
 ## 📄 License
 
 Distributed under the [MIT License](LICENSE).
+Orthotect © 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, and Grok.

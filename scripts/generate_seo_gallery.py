@@ -1204,6 +1204,490 @@ TEMPLATES_SPEC = [
     }
 ]
 
+ECOMMERCE_PRODUCTS = {
+    "hardware-spec-sheet-store": {
+        "price": "$48.00", "unit": "/ unit (lot of 100)", "moq": "MOQ: 1 Lot",
+        "badges": ["DIN 912 / ISO 4762", "AMS 4928 Grade 5", "In Stock: Dispatch 24h"],
+        "cta": "Add to Procurement Cart", "visual": "bolt"
+    },
+    "luxury-mechanical-goods-gallery": {
+        "price": "$18,400.00", "unit": "/ timepiece (Bespoke)", "moq": "Limited Edition: 1 of 50",
+        "badges": ["COSC Chronometer Certified", "Manufacture Caliber OR-904", "Bespoke Concierge Allocation"],
+        "cta": "Request Private Allocation", "visual": "watch"
+    },
+    "industrial-equipment-procurement": {
+        "price": "$3,450.00", "unit": "/ valve manifold", "moq": "Heavy Equipment MOQ: 2",
+        "badges": ["SAE J518 Flange", "350 Bar Operating Pressure", "ISO 4406 Cleanliness Certified"],
+        "cta": "Request Enterprise Quote", "visual": "valve"
+    },
+    "architectural-materials-catalog": {
+        "price": "$84.50", "unit": "/ m² (Honed Slab)", "moq": "Min Order: 25 m²",
+        "badges": ["Italian Calacatta Oro", "Greenguard Gold Certified", "Slip Resistance R10"],
+        "cta": "Order Architect Swatch Box", "visual": "marble"
+    },
+    "dtc-electronics-product-detail": {
+        "price": "$699.00", "unit": "/ unit (Planar Studio)", "moq": "Free Worldwide Express",
+        "badges": ["5Hz–55kHz Frequency Range", "Balanced 4.4mm Pentaconn", "CNC Aircraft Aluminum"],
+        "cta": "Add to Studio Cart", "visual": "headphone"
+    },
+    "b2b-wholesale-bulk-order-grid": {
+        "price": "$2.42", "unit": "/ unit (Reel of 2,500)", "moq": "MOQ: 1 Reel (2,500 pcs)",
+        "badges": ["ARM Cortex-M4 120MHz", "Tape & Reel Sealed", "Automotive AEC-Q100"],
+        "cta": "Download Volume Tier Sheet", "visual": "chip"
+    },
+    "digital-software-tier-pricing": {
+        "price": "$1,499.00", "unit": "/ month (Enterprise Gateway)", "moq": "Annual Billing (20% Off)",
+        "badges": ["Unlimited RPS Bounds", "99.999% SLA Bound", "Dedicated Private VPC"],
+        "cta": "Provision Enterprise Gateway", "visual": "cloud"
+    },
+    "dynamic-product-filtering-rail": {
+        "price": "$580.00", "unit": "/ alpine shell", "moq": "In Stock: 4 Colorways",
+        "badges": ["3-Layer GORE-TEX Pro", "28,000mm Waterproof", "RECCO Avalanche Reflector"],
+        "cta": "Select Size & Add", "visual": "apparel"
+    },
+    "cart-drawer-optimistic-update": {
+        "price": "$24.00", "unit": "/ 250g bag (Whole Bean)", "moq": "Roast-to-Order",
+        "badges": ["Geisha Direct Trade", "Altitude 1,850m", "Nitro-Flushed Freshness"],
+        "cta": "Add to Roastery Cart", "visual": "coffee"
+    },
+    "customer-reviews-rating-matrix": {
+        "price": "$1,190.00", "unit": "/ pair (Active Mastering)", "moq": "Pair Matched ±0.25dB",
+        "badges": ["DSP Linear-Phase", "Beryllium Tweeter", "Room Calibration Mic Included"],
+        "cta": "Reserve Studio Monitors", "visual": "speaker"
+    }
+}
+
+CIVIC_SERVICES = {
+    "civic-voter-registration-portal": {
+        "badge": "WCAG 2.2 AAA Accessible Public Infrastructure Service",
+        "title": "Need Multilingual or Assistive Telecommunications Support?",
+        "phone": "1-800-555-VOTE (TTY 711)",
+        "desc": "Call the 24/7 Accessible Voter Helpline or activate screen reader high-contrast audio mode."
+    },
+    "clinical-patient-intake-records": {
+        "badge": "HIPAA Certified Electronic Health Records Intake",
+        "title": "Need Medical Interpretation or Accessible Clinical Support?",
+        "phone": "1-800-888-CARE (Ext. 4)",
+        "desc": "Certified medical interpreters available in 60+ languages. Wheelchair-accessible exam accommodations provided upon request."
+    },
+    "emergency-crisis-alert-broadcast": {
+        "badge": "FEMA Integrated Public Alert & Warning System (IPAWS)",
+        "title": "Emergency Evacuation & Dispatch Command Center",
+        "phone": "1-800-911-FEMA / Local 911",
+        "desc": "Priority emergency communication channel. TDD/TTY telecommunications emergency relay active 24/7."
+    },
+    "public-transit-accessible-schedule": {
+        "badge": "ADA Paratransit & Metro Rail Real-Time Transit Board",
+        "title": "Accessible Transit Operations & Elevator Hotline",
+        "phone": "1-800-555-RIDE (Option 2)",
+        "desc": "Check real-time elevator outages across all metro stations, request ramp assistance, or book paratransit vans."
+    },
+    "universal-banking-statement-view": {
+        "badge": "Consumer Financial Protection Bureau (CFPB) Compliant",
+        "title": "Accessible Banking Services & Statement Formats",
+        "phone": "1-800-444-BANK",
+        "desc": "Request Braille statements, large-print 18pt font documents, or audio CD statements with zero account fees."
+    },
+    "utility-service-outage-reporter": {
+        "badge": "Public Utility Commission Critical Outage Telemetry",
+        "title": "Downed Powerlines & Hazardous Gas Emergency Hotline",
+        "phone": "1-800-999-GRID (Emergency 24/7)",
+        "desc": "Never touch downed power lines. Immediate automated dispatch for life-support medical device households."
+    },
+    "government-benefits-eligibility": {
+        "badge": "Social Security & Healthcare Benefits Screener",
+        "title": "Public Benefits Caseworker Assistance Line",
+        "phone": "1-800-772-1213",
+        "desc": "Connect directly with certified caseworkers for SNAP, Medicaid, and Supplemental Security Income eligibility."
+    },
+    "accessible-telehealth-consultation": {
+        "badge": "WCAG 2.2 AAA Real-Time Encrypted Telehealth Portal",
+        "title": "ASL Sign Language & Real-Time Captioning Desk",
+        "phone": "1-800-333-HEAL",
+        "desc": "Instant connection with certified American Sign Language (ASL) interpreters and automated real-time medical CART captions."
+    },
+    "educational-course-curriculum": {
+        "badge": "Higher Education Section 508 & ADA Academic Hub",
+        "title": "University Academic Accommodation & Assistive Tech Liaison",
+        "phone": "1-800-ACAD-ADA",
+        "desc": "Access OCR-scanned textbooks, alternate format exams, and peer-reviewed lecture audio transcriptions."
+    },
+    "legal-statute-document-reader": {
+        "badge": "Open Judicial Records & Equal Justice Legal Monograph",
+        "title": "Public Law Library & Court Accessibility Coordinator",
+        "phone": "1-800-LEX-COURT",
+        "desc": "Plain language legal summaries, screen-reader verified court precedent filings, and hearing room accommodations."
+    }
+}
+
+def render_ecommerce_visual(visual_type, aes):
+    p = aes['primary_color']
+    if visual_type == 'watch':
+        return f"""
+        <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
+          <circle cx="200" cy="120" r="95" stroke="{p}" stroke-width="3" fill="var(--tmpl-surface-1)"/>
+          <circle cx="200" cy="120" r="88" stroke="var(--tmpl-border)" stroke-width="1" stroke-dasharray="2 4"/>
+          <circle cx="200" cy="120" r="70" stroke="{p}" stroke-width="0.5" stroke-opacity="0.5"/>
+          <text x="200" y="60" text-anchor="middle" fill="{p}" font-family="serif" font-size="14" font-weight="bold">XII</text>
+          <text x="200" y="190" text-anchor="middle" fill="{p}" font-family="serif" font-size="14" font-weight="bold">VI</text>
+          <text x="135" y="125" text-anchor="middle" fill="{p}" font-family="serif" font-size="14" font-weight="bold">IX</text>
+          <text x="265" y="125" text-anchor="middle" fill="{p}" font-family="serif" font-size="14" font-weight="bold">III</text>
+          <line x1="200" y1="120" x2="200" y2="75" stroke="{p}" stroke-width="3" stroke-linecap="round"/>
+          <line x1="200" y1="120" x2="235" y2="120" stroke="{p}" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="200" cy="120" r="5" fill="{p}"/>
+          <text x="200" y="150" text-anchor="middle" fill="var(--tmpl-text-secondary)" font-family="sans-serif" font-size="9" letter-spacing="2">CHRONOMETER 28,800 VPH</text>
+        </svg>
+        """
+    elif visual_type == 'valve':
+        return f"""
+        <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
+          <rect x="60" y="50" width="280" height="140" rx="6" stroke="var(--tmpl-border)" stroke-width="2" fill="var(--tmpl-surface-1)"/>
+          <rect x="110" y="70" width="80" height="100" rx="4" stroke="{p}" stroke-width="2" fill="{p}" fill-opacity="0.1"/>
+          <rect x="210" y="70" width="80" height="100" rx="4" stroke="{p}" stroke-width="2" fill="{p}" fill-opacity="0.1"/>
+          <circle cx="150" cy="120" r="22" stroke="{p}" stroke-width="2"/>
+          <circle cx="250" cy="120" r="22" stroke="{p}" stroke-width="2"/>
+          <line x1="150" y1="50" x2="150" y2="70" stroke="{p}" stroke-width="3"/>
+          <line x1="250" y1="50" x2="250" y2="70" stroke="{p}" stroke-width="3"/>
+          <text x="200" y="215" text-anchor="middle" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="10">HYDRAULIC MANIFOLD: 350 BAR ISO 4406</text>
+        </svg>
+        """
+    elif visual_type == 'marble':
+        return f"""
+        <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
+          <rect x="40" y="30" width="320" height="180" rx="4" stroke="{p}" stroke-width="1.5" fill="var(--tmpl-surface-1)"/>
+          <path d="M50 180 Q120 140 180 150 T310 90 T350 40" stroke="{p}" stroke-width="1.5" stroke-opacity="0.6" fill="none"/>
+          <path d="M70 200 Q150 160 210 170 T330 110" stroke="{p}" stroke-width="0.8" stroke-opacity="0.4" fill="none"/>
+          <path d="M120 50 Q180 80 240 60 T340 120" stroke="{p}" stroke-width="1.2" stroke-opacity="0.5" fill="none"/>
+          <text x="200" y="195" text-anchor="middle" fill="var(--tmpl-text-secondary)" font-family="serif" font-size="11" font-style="italic">Calacatta Oro Honed Porcelain Slabs 1200x600mm</text>
+        </svg>
+        """
+    elif visual_type == 'headphone':
+        return f"""
+        <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
+          <path d="M110 150 C110 80 290 80 290 150" stroke="{p}" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <rect x="85" y="130" width="45" height="75" rx="14" stroke="{p}" stroke-width="2" fill="var(--tmpl-surface-1)"/>
+          <rect x="270" y="130" width="45" height="75" rx="14" stroke="{p}" stroke-width="2" fill="var(--tmpl-surface-1)"/>
+          <line x1="140" y1="180" x2="260" y2="180" stroke="var(--tmpl-border)" stroke-dasharray="4"/>
+          <path d="M140 180 Q170 140 200 160 T260 180" stroke="{p}" stroke-width="2" fill="none"/>
+          <text x="200" y="225" text-anchor="middle" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="10">ACOUSTIC CURVE: 5Hz–55kHz ±1.2dB</text>
+        </svg>
+        """
+    elif visual_type == 'chip':
+        return f"""
+        <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
+          <rect x="130" y="50" width="140" height="140" rx="8" stroke="{p}" stroke-width="2" fill="var(--tmpl-surface-1)"/>
+          <rect x="155" y="75" width="90" height="90" rx="4" stroke="{p}" stroke-width="1" fill="{p}" fill-opacity="0.15"/>
+          <text x="200" y="125" text-anchor="middle" fill="{p}" font-family="monospace" font-size="12" font-weight="bold">ARM Cortex-M4</text>
+          <text x="200" y="145" text-anchor="middle" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="9">120MHz · QFN-48</text>
+          <line x1="110" y1="80" x2="130" y2="80" stroke="{p}" stroke-width="2"/>
+          <line x1="110" y1="105" x2="130" y2="105" stroke="{p}" stroke-width="2"/>
+          <line x1="110" y1="130" x2="130" y2="130" stroke="{p}" stroke-width="2"/>
+          <line x1="110" y1="155" x2="130" y2="155" stroke="{p}" stroke-width="2"/>
+          <line x1="270" y1="80" x2="290" y2="80" stroke="{p}" stroke-width="2"/>
+          <line x1="270" y1="105" x2="290" y2="105" stroke="{p}" stroke-width="2"/>
+          <line x1="270" y1="130" x2="290" y2="130" stroke="{p}" stroke-width="2"/>
+          <line x1="270" y1="155" x2="290" y2="155" stroke="{p}" stroke-width="2"/>
+        </svg>
+        """
+    elif visual_type == 'cloud':
+        return f"""
+        <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
+          <rect x="50" y="40" width="300" height="160" rx="12" stroke="{p}" stroke-width="2" fill="var(--tmpl-surface-1)"/>
+          <circle cx="120" cy="110" r="28" stroke="{p}" stroke-width="2" fill="{p}" fill-opacity="0.15"/>
+          <circle cx="200" cy="100" r="38" stroke="{p}" stroke-width="2" fill="{p}" fill-opacity="0.2"/>
+          <circle cx="280" cy="110" r="28" stroke="{p}" stroke-width="2" fill="{p}" fill-opacity="0.15"/>
+          <line x1="148" y1="110" x2="162" y2="105" stroke="{p}" stroke-width="2"/>
+          <line x1="238" y1="105" x2="252" y2="110" stroke="{p}" stroke-width="2"/>
+          <text x="200" y="175" text-anchor="middle" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="11">DEDICATED VPC MESH: 99.999% SLA</text>
+        </svg>
+        """
+    elif visual_type == 'apparel':
+        return f"""
+        <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
+          <path d="M160 40 L200 65 L240 40 L310 90 L270 130 L250 115 L250 200 L150 200 L150 115 L130 130 L90 90 Z" stroke="{p}" stroke-width="2.5" fill="var(--tmpl-surface-1)"/>
+          <line x1="200" y1="65" x2="200" y2="200" stroke="{p}" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <text x="200" y="225" text-anchor="middle" fill="var(--tmpl-text-secondary)" font-family="sans-serif" font-size="10">3-LAYER GORE-TEX PRO · 28,000mm SEAM-TAPED</text>
+        </svg>
+        """
+    elif visual_type == 'coffee':
+        return f"""
+        <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
+          <path d="M140 60 L260 60 L245 200 L155 200 Z" stroke="{p}" stroke-width="2" fill="var(--tmpl-surface-1)"/>
+          <line x1="140" y1="85" x2="260" y2="85" stroke="{p}" stroke-width="2"/>
+          <circle cx="200" cy="140" r="28" stroke="{p}" stroke-width="1.5" fill="{p}" fill-opacity="0.12"/>
+          <text x="200" y="145" text-anchor="middle" fill="{p}" font-family="serif" font-size="14" font-weight="bold">GEISHA</text>
+          <text x="200" y="225" text-anchor="middle" fill="var(--tmpl-text-secondary)" font-family="sans-serif" font-size="10">DIRECT TRADE · 1,850m ALTITUDE · WHOLE BEAN</text>
+        </svg>
+        """
+    elif visual_type == 'speaker':
+        return f"""
+        <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
+          <rect x="130" y="30" width="140" height="180" rx="8" stroke="{p}" stroke-width="2" fill="var(--tmpl-surface-1)"/>
+          <circle cx="200" cy="80" r="22" stroke="{p}" stroke-width="1.5" fill="{p}" fill-opacity="0.2"/>
+          <circle cx="200" cy="150" r="42" stroke="{p}" stroke-width="2" fill="{p}" fill-opacity="0.15"/>
+          <circle cx="200" cy="150" r="16" fill="{p}"/>
+          <text x="200" y="225" text-anchor="middle" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="10">BERYLLIUM TWEETER · LINEAR PHASE DSP</text>
+        </svg>
+        """
+    else:  # bolt
+        return f"""
+        <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
+          <rect x="20" y="20" width="360" height="200" rx="12" stroke="var(--tmpl-border)" stroke-dasharray="6" fill="var(--tmpl-surface-1)"/>
+          <circle cx="200" cy="120" r="60" stroke="{p}" stroke-width="2"/>
+          <circle cx="200" cy="120" r="20" fill="{p}" fill-opacity="0.2" stroke="{p}"/>
+          <line x1="200" y1="30" x2="200" y2="210" stroke="var(--tmpl-border)"/>
+          <line x1="40" y1="120" x2="360" y2="120" stroke="var(--tmpl-border)"/>
+          <text x="215" y="70" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="11">R_TOL: ±0.005mm</text>
+          <text x="215" y="170" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="11">SURF: Ra 0.4μm</text>
+        </svg>
+        """
+
+SAAS_TERMINALS = {
+    "developer-api-platform-hero": {
+        "title": "bash — orthotect cli v1.7.4",
+        "cmd": "npx orthotect doctor",
+        "lines": [
+            ("✔ Node.js runtime: v20.19.0 (Supported)", False),
+            ("✔ Python gate engine: v3.12 (Supported)", False),
+            ("✔ Design tokens: 96 palettes, 57 styles compiled", False),
+            ("✔ Deterministic quality gates: 5/5 operational (703ms)", False),
+            ("Status: System healthy. Ready to enforce deterministic UI engineering.", True)
+        ]
+    },
+    "enterprise-security-landing": {
+        "title": "ortho-sec-audit — fips-140-3",
+        "cmd": "orthotect audit --compliance=wcag-aaa,soc2",
+        "lines": [
+            ("✔ FIPS 140-3 Cryptographic tokens: Validated", False),
+            ("✔ WCAG 2.2 AAA Contrast Matrix: 100% Passed (4.5:1 / 7:1)", False),
+            ("✔ BiDi Logical Symmetry: 0 physical property violations", False),
+            ("✔ Content Security Policy (CSP): Strict nonces verified", False),
+            ("AUDIT RESULT: 0 Vulnerabilities, Enterprise Compliance Grade A+", True)
+        ]
+    },
+    "ai-agent-orchestrator-showcase": {
+        "title": "agent-mesh — autonomous fleet",
+        "cmd": "orthotect delegate --fleet=claude,codex,agy --task='refactor-fsm'",
+        "lines": [
+            ("✔ Orchestrator: Claude 3.7 Sonnet (Planning mode)", False),
+            ("✔ Implementer: Google Antigravity agy (CLI runner)", False),
+            ("✔ Quality Gate: 5 deterministic gates executing in sandbox...", False),
+            ("✔ FSM Verification: 4 states, 8 transitions proven deadlock-free", False),
+            ("TASK LANDED: 100% test pass rate. Zero regressions detected.", True)
+        ]
+    },
+    "open-source-framework-documentation": {
+        "title": "bash — quickstart",
+        "cmd": "git clone https://github.com/seotarek/orthotect.git && cd orthotect && npm test",
+        "lines": [
+            ("Cloning into 'orthotect'...", False),
+            ("Checking out files: 100% (428/428), done.", False),
+            ("Running 292 unit tests across 14 test suites...", False),
+            ("....................................................................", False),
+            ("OK: 292 tests passed in 0.942s (Quality Score: 100.0/100)", True)
+        ]
+    },
+    "b2b-cloud-infrastructure-platform": {
+        "title": "terraform — multi-cloud-mesh",
+        "cmd": "orthotect infra validate --topology=multi-region-mesh",
+        "lines": [
+            ("✔ AWS us-east-1 VPC Mesh: Configured", False),
+            ("✔ GCP europe-west3 Gateway: Synced", False),
+            ("✔ WireGuard Zero-Trust Tunnel: MTU 1420 verified", False),
+            ("✔ Sub-15ms Cross-Region Latency Budget: Passed (11.4ms)", False),
+            ("INFRASTRUCTURE VERIFIED: Zero drift across 12 zones.", True)
+        ]
+    },
+    "realtime-collaboration-workspace": {
+        "title": "crdt-sync — yjs-webrtc",
+        "cmd": "orthotect crdt benchmark --peers=5000",
+        "lines": [
+            ("✔ Yjs CRDT Vector Clock: Synchronized", False),
+            ("✔ WebRTC DataChannel Mesh: Connected (5,000 concurrent peers)", False),
+            ("✔ Convergence Time: 8.2ms (Deterministic state consistency)", False),
+            ("✔ Conflict Resolution: 0 dropped mutations", False),
+            ("CRDT STATE: Converged. Memory footprint: 4.8MB.", True)
+        ]
+    },
+    "developer-tooling-sdk-portal": {
+        "title": "ortho-sdk — generator",
+        "cmd": "orthotect generate sdk --target=typescript,python,go",
+        "lines": [
+            ("✔ TypeScript SDK: Types generated with full JSDoc comments", False),
+            ("✔ Python SDK: Pydantic v2 schemas and strict typing compiled", False),
+            ("✔ Go SDK: Struct tags and JSON unmarshaling generated", False),
+            ("✔ Tree-shaking verification: < 1.8KB gzipped bundle", False),
+            ("GENERATION COMPLETE: All SDKs verified with zero dependencies.", True)
+        ]
+    },
+    "high-conversion-checkout-flow": {
+        "title": "ortho-cro — funnel-analyzer",
+        "cmd": "orthotect cro audit --page=checkout --locale=ar,en",
+        "lines": [
+            ("✔ Form field friction score: 12/100 (Optimal)", False),
+            ("✔ Micro-copy clarity rating: 98/100", False),
+            ("✔ BiDi RTL visual flow: Verified (No logical misalignment)", False),
+            ("✔ Trust badges & Social proof: Placed above the fold", False),
+            ("CRO PREDICTION: +18.4% conversion uplift with FSM double-lock.", True)
+        ]
+    },
+    "interactive-design-system-spec": {
+        "title": "token-compiler — dtcg-v1",
+        "cmd": "orthotect tokens build --format=css,tailwind,json",
+        "lines": [
+            ("✔ Primitives: 96 color scales, 16 typography steps, 12 radii", False),
+            ("✔ Semantics: 57 UI tokens mapped for Light & Dark modes", False),
+            ("✔ Tailwind v4 @theme: tokens/theme.css exported", False),
+            ("✔ WCAG 2.2 AAA Contrast Matrix: 100% Validated (Zero failures)", False),
+            ("BUILD SUCCESS: Platform artifacts ready for deployment.", True)
+        ]
+    },
+    "analytics-event-pipeline-monitor": {
+        "title": "pipeline-stream — clickhouse-kafka",
+        "cmd": "orthotect telemetry status --cluster=prod-kafka-01",
+        "lines": [
+            ("✔ Kafka Ingestion Rate: 485,000 events/sec", False),
+            ("✔ ClickHouse Ingest Lag: 12ms", False),
+            ("✔ Dropped Messages: 0 (Dead-letter queue empty)", False),
+            ("✔ Memory Usage: 34.2% across 8 worker pods", False),
+            ("PIPELINE OPERATIONAL: Zero dropped records in last 30 days.", True)
+        ]
+    }
+}
+
+def render_dashboard_chart(item, aes):
+    p = aes['primary_color']
+    cid = item['id']
+    
+    if any(k in cid for k in ['query', 'metrics', 'pod', 'database']):
+        # Bar Histogram Chart
+        return f"""
+        <div class="dashboard-chart-box">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Query Latency Distribution (Histogram)</h3>
+              <p class="chart-desc">P50, P90, P99 execution time percentiles across 1M telemetry samples</p>
+            </div>
+            <div class="chart-badge">Samples: 1,024,800</div>
+          </div>
+          <div class="chart-viewport">
+            <svg width="100%" height="220" viewBox="0 0 800 220">
+              <line x1="40" y1="30" x2="760" y2="30" stroke="var(--tmpl-border)" stroke-dasharray="4"/>
+              <line x1="40" y1="90" x2="760" y2="90" stroke="var(--tmpl-border)" stroke-dasharray="4"/>
+              <line x1="40" y1="150" x2="760" y2="150" stroke="var(--tmpl-border)" stroke-dasharray="4"/>
+              <line x1="40" y1="190" x2="760" y2="190" stroke="var(--tmpl-border)"/>
+              
+              <rect x="60" y="140" width="45" height="50" rx="3" fill="{p}" fill-opacity="0.5"/>
+              <rect x="125" y="110" width="45" height="80" rx="3" fill="{p}" fill-opacity="0.6"/>
+              <rect x="190" y="70" width="45" height="120" rx="3" fill="{p}" fill-opacity="0.8"/>
+              <rect x="255" y="40" width="45" height="150" rx="3" fill="{p}"/>
+              <rect x="320" y="55" width="45" height="135" rx="3" fill="{p}" fill-opacity="0.9"/>
+              <rect x="385" y="85" width="45" height="105" rx="3" fill="{p}" fill-opacity="0.75"/>
+              <rect x="450" y="120" width="45" height="70" rx="3" fill="{p}" fill-opacity="0.6"/>
+              <rect x="515" y="145" width="45" height="45" rx="3" fill="{p}" fill-opacity="0.5"/>
+              <rect x="580" y="165" width="45" height="25" rx="3" fill="{p}" fill-opacity="0.4"/>
+              <rect x="645" y="175" width="45" height="15" rx="3" fill="{p}" fill-opacity="0.3"/>
+              
+              <text x="82" y="208" text-anchor="middle" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="10">&lt;1ms</text>
+              <text x="277" y="208" text-anchor="middle" fill="{p}" font-family="monospace" font-size="10" font-weight="bold">4.2ms (P50)</text>
+              <text x="472" y="208" text-anchor="middle" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="10">12ms (P90)</text>
+              <text x="667" y="208" text-anchor="middle" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="10">45ms (P99)</text>
+            </svg>
+          </div>
+        </div>
+        """
+    elif any(k in cid for k in ['cache', 'iot', 'fraud']):
+        # Radial Donut Gauge Telemetry
+        return f"""
+        <div class="dashboard-chart-box">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Edge Fleet Distribution & Cache Health</h3>
+              <p class="chart-desc">Real-time status breakdown and cache hit ratio across global edge POPs</p>
+            </div>
+            <div class="chart-badge">Active Nodes: 4,892</div>
+          </div>
+          <div class="chart-viewport" style="display:flex; justify-content:center; align-items:center;">
+            <svg width="400" height="220" viewBox="0 0 400 220">
+              <circle cx="200" cy="110" r="75" stroke="var(--tmpl-surface-2)" stroke-width="22" fill="none"/>
+              <circle cx="200" cy="110" r="75" stroke="{p}" stroke-width="22" stroke-dasharray="471" stroke-dashoffset="52" stroke-linecap="round" fill="none"/>
+              <circle cx="200" cy="110" r="75" stroke="#10b981" stroke-width="22" stroke-dasharray="471" stroke-dashoffset="380" stroke-linecap="round" fill="none"/>
+              <text x="200" y="105" text-anchor="middle" fill="var(--tmpl-text-primary)" font-family="sans-serif" font-size="28" font-weight="800">98.4%</text>
+              <text x="200" y="125" text-anchor="middle" fill="{p}" font-family="monospace" font-size="11" font-weight="600">CACHE HIT RATIO</text>
+              
+              <text x="60" y="200" fill="#10b981" font-family="sans-serif" font-size="11" font-weight="600">● 4,812 Healthy</text>
+              <text x="200" y="200" text-anchor="middle" fill="{p}" font-family="sans-serif" font-size="11" font-weight="600">● 76 Warming</text>
+              <text x="340" y="200" text-anchor="end" fill="var(--tmpl-text-secondary)" font-family="sans-serif" font-size="11">● 4 Syncing</text>
+            </svg>
+          </div>
+        </div>
+        """
+    elif any(k in cid for k in ['order-book', 'siem', 'traffic']):
+        # Depth Curve / Multi-line Chart
+        return f"""
+        <div class="dashboard-chart-box">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Market Depth & Microsecond Telemetry</h3>
+              <p class="chart-desc">Bid/Ask cumulative liquidity curves and execution velocity</p>
+            </div>
+            <div class="chart-badge">Tick Frequency: 1μs</div>
+          </div>
+          <div class="chart-viewport">
+            <svg width="100%" height="220" viewBox="0 0 800 220" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="bidGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"/>
+                  <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
+                </linearGradient>
+                <linearGradient id="askGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="{p}" stop-opacity="0.3"/>
+                  <stop offset="100%" stop-color="{p}" stop-opacity="0.0"/>
+                </linearGradient>
+              </defs>
+              <line x1="400" y1="10" x2="400" y2="210" stroke="var(--tmpl-border)" stroke-dasharray="2 4"/>
+              
+              <polygon points="40,210 40,180 120,170 180,150 250,130 320,100 370,60 395,40 395,210" fill="url(#bidGrad)"/>
+              <polyline points="40,180 120,170 180,150 250,130 320,100 370,60 395,40" fill="none" stroke="#10b981" stroke-width="2.5"/>
+              
+              <polygon points="405,210 405,40 430,60 480,100 550,130 620,150 680,170 760,180 760,210" fill="url(#askGrad)"/>
+              <polyline points="405,40 430,60 480,100 550,130 620,150 680,170 760,180" fill="none" stroke="{p}" stroke-width="2.5"/>
+              
+              <text x="200" y="200" text-anchor="middle" fill="#10b981" font-family="monospace" font-size="11" font-weight="bold">BIDS: $18,420,500</text>
+              <text x="600" y="200" text-anchor="middle" fill="{p}" font-family="monospace" font-size="11" font-weight="bold">ASKS: $19,105,200</text>
+            </svg>
+          </div>
+        </div>
+        """
+    else:
+        # High-Fidelity Area Stream Chart
+        return f"""
+        <div class="dashboard-chart-box">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Real-Time Telemetry Stream</h3>
+              <p class="chart-desc">Sub-second telemetry samples plotted with zero layout shift</p>
+            </div>
+            <div class="chart-badge">Active Sampling: 100ms</div>
+          </div>
+          <div class="chart-viewport">
+            <svg width="100%" height="220" viewBox="0 0 800 220" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="{p}" stop-opacity="0.35"/>
+                  <stop offset="100%" stop-color="{p}" stop-opacity="0.00"/>
+                </linearGradient>
+              </defs>
+              <line x1="0" y1="50" x2="800" y2="50" stroke="var(--tmpl-border)" stroke-dasharray="4"/>
+              <line x1="0" y1="110" x2="800" y2="110" stroke="var(--tmpl-border)" stroke-dasharray="4"/>
+              <line x1="0" y1="170" x2="800" y2="170" stroke="var(--tmpl-border)" stroke-dasharray="4"/>
+              <polygon points="0,180 80,160 160,140 240,150 320,110 400,90 480,120 560,70 640,60 720,40 800,30 800,220 0,220" fill="url(#chartGrad)"/>
+              <polyline points="0,180 80,160 160,140 240,150 320,110 400,90 480,120 560,70 640,60 720,40 800,30" fill="none" stroke="{p}" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+        """
+
 def render_top_bar(item, aes):
     dark_style = "" if aes["theme"] == "dark" else "display:none;"
     light_style = "" if aes["theme"] == "light" else "display:none;"
@@ -1291,32 +1775,7 @@ def render_template_html(item):
           </div>
         """ for s in item.get('stats', [])])
 
-        chart_svg = f"""
-        <div class="dashboard-chart-box">
-          <div class="chart-header">
-            <div>
-              <h3 class="chart-title">Real-Time Telemetry Stream</h3>
-              <p class="chart-desc">Sub-second telemetry samples plotted with zero layout shift</p>
-            </div>
-            <div class="chart-badge">Active Sampling: 100ms</div>
-          </div>
-          <div class="chart-viewport">
-            <svg width="100%" height="220" viewBox="0 0 800 220" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="{aes['primary_color']}" stop-opacity="0.35"/>
-                  <stop offset="100%" stop-color="{aes['primary_color']}" stop-opacity="0.00"/>
-                </linearGradient>
-              </defs>
-              <line x1="0" y1="50" x2="800" y2="50" stroke="var(--tmpl-border)" stroke-dasharray="4"/>
-              <line x1="0" y1="110" x2="800" y2="110" stroke="var(--tmpl-border)" stroke-dasharray="4"/>
-              <line x1="0" y1="170" x2="800" y2="170" stroke="var(--tmpl-border)" stroke-dasharray="4"/>
-              <polygon points="0,180 80,160 160,140 240,150 320,110 400,90 480,120 560,70 640,60 720,40 800,30 800,220 0,220" fill="url(#chartGrad)"/>
-              <polyline points="0,180 80,160 160,140 240,150 320,110 400,90 480,120 560,70 640,60 720,40 800,30" fill="none" stroke="{aes['primary_color']}" stroke-width="3" stroke-linecap="round"/>
-            </svg>
-          </div>
-        </div>
-        """
+        chart_svg = render_dashboard_chart(item, aes)
 
         headers_markup = "".join([f"<th>{html.escape(h)}</th>" for h in item.get('table_headers', [])])
         rows_markup = "".join([
@@ -1427,35 +1886,39 @@ def render_template_html(item):
           </tr>
         """ for sp in item.get('spec_table', [])])
 
+        prod = ECOMMERCE_PRODUCTS.get(item['id'], {
+            "title": item['title'],
+            "desc": item['desc'],
+            "price": "$48.00",
+            "unit": "/ unit (lot of 100)",
+            "moq": "MOQ: 1 Lot",
+            "badges": ["DIN 912 / ISO 4762", "Certificate 3.1 Attached", "In Stock: Dispatch 24h"],
+            "cta": "Add to Procurement Cart",
+            "visual": "bolt"
+        })
+        prod_visual_svg = render_ecommerce_visual(prod.get('visual', 'bolt'), aes)
+        prod_badges = prod.get('badges', ['In Stock: Dispatch 24h'])
+        badges_markup = "".join([f'<span class="prod-badge {"highlight" if i==len(prod_badges)-1 else ""}">{html.escape(b)}</span>' for i, b in enumerate(prod_badges)])
+
         content_markup = f"""
         <div class="ecommerce-layout">
           <div class="product-hero-panel">
             <div class="product-visual-box">
               <div class="product-schematic-bg">
-                <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
-                  <rect x="20" y="20" width="360" height="200" rx="12" stroke="var(--tmpl-border)" stroke-dasharray="6" fill="var(--tmpl-surface-1)"/>
-                  <circle cx="200" cy="120" r="60" stroke="{aes['primary_color']}" stroke-width="2"/>
-                  <circle cx="200" cy="120" r="20" fill="{aes['primary_color']}" fill-opacity="0.2" stroke="{aes['primary_color']}"/>
-                  <line x1="200" y1="30" x2="200" y2="210" stroke="var(--tmpl-border)"/>
-                  <line x1="40" y1="120" x2="360" y2="120" stroke="var(--tmpl-border)"/>
-                  <text x="215" y="70" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="11">R_TOL: ±0.005mm</text>
-                  <text x="215" y="170" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="11">SURF: Ra 0.4μm</text>
-                </svg>
+                {prod_visual_svg}
               </div>
               <div class="product-badge-row">
-                <span class="prod-badge">DIN 912 / ISO 4762</span>
-                <span class="prod-badge">Certificate 3.1 Attached</span>
-                <span class="prod-badge highlight">In Stock: Dispatch 24h</span>
+                {badges_markup}
               </div>
             </div>
 
             <div class="product-order-box">
-              <h3 class="prod-title">{html.escape(item['title'])}</h3>
-              <p class="prod-desc">{html.escape(item['desc'])}</p>
+              <h3 class="prod-title">{html.escape(prod.get('title', item['title']))}</h3>
+              <p class="prod-desc">{html.escape(prod.get('desc', item['desc']))}</p>
               
               <div class="prod-pricing-row">
-                <div class="prod-price">$48.00 <span class="prod-unit">/ unit (lot of 100)</span></div>
-                <div class="prod-moq">MOQ: 1 Lot</div>
+                <div class="prod-price">{html.escape(prod.get('price', '$48.00'))} <span class="prod-unit">{html.escape(prod.get('unit', '/ unit'))}</span></div>
+                <div class="prod-moq">{html.escape(prod.get('moq', 'MOQ: 1 Unit'))}</div>
               </div>
 
               <div class="order-actions-grid">
@@ -1464,8 +1927,8 @@ def render_template_html(item):
                   <input type="number" value="1" min="1" max="500" class="qty-input">
                   <button type="button" class="btn-step" onclick="this.previousElementSibling.stepUp()">+</button>
                 </div>
-                <button type="button" class="btn-ctrl-accent" onclick="alert('Added to B2B procurement cart with inventory reservation lock')">
-                  Add to Procurement Cart
+                <button type="button" class="btn-ctrl-accent" onclick="alert('Order placed with deterministic FSM reservation lock')">
+                  {html.escape(prod.get('cta', 'Add to Procurement Cart'))}
                 </button>
               </div>
             </div>
@@ -1506,6 +1969,13 @@ def render_template_html(item):
           </div>
         """ for ci in item.get('civic_steps', [])])
 
+        cs = CIVIC_SERVICES.get(item['id'], {
+            "badge": "WCAG 2.2 AAA Accessible Public Infrastructure Service",
+            "title": "Accessible Public Infrastructure Service",
+            "phone": "1-800-555-0199",
+            "desc": item['desc']
+        })
+
         content_markup = f"""
         <div class="civic-container">
           <div class="civic-hero-banner">
@@ -1513,7 +1983,7 @@ def render_template_html(item):
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               </svg>
-              <span>WCAG 2.2 AAA Accessible Public Infrastructure Service</span>
+              <span>{html.escape(cs['badge'])}</span>
             </div>
             <h3 class="civic-title">{html.escape(item['title'])}</h3>
             <p class="civic-desc">{html.escape(item['desc'])}</p>
@@ -1529,8 +1999,8 @@ def render_template_html(item):
               </svg>
             </div>
             <div class="assist-text">
-              <strong>Need Multilingual or Assistive Telecommunications Support?</strong>
-              <p>Call the 24/7 Accessible Voter Helpline at <strong>1-800-555-VOTE</strong> (TTY 711) or activate screen reader high-contrast audio mode.</p>
+              <strong>{html.escape(cs['title'])}: Dedicated Accessibility Line</strong>
+              <p>Call the 24/7 Accessible Hotline at <strong>{html.escape(cs['phone'])}</strong> (TTY 711) or activate screen reader high-contrast audio mode.</p>
             </div>
           </div>
         </div>
@@ -1545,6 +2015,21 @@ def render_template_html(item):
           </div>
         """ for ft in item.get('saas_features', [])])
 
+        term = SAAS_TERMINALS.get(item['id'], {
+            "title": "bash — orthotect cli v1.7.4",
+            "cmd": "npx orthotect doctor",
+            "lines": [
+                ("✔ Node.js runtime: v20.19.0 (Supported)", False),
+                ("✔ Python gate engine: v3.12 (Supported)", False),
+                ("✔ Design tokens: 96 palettes, 57 styles compiled", False),
+                ("Status: System healthy. Ready to enforce deterministic UI engineering.", True)
+            ]
+        })
+        term_lines = "".join([
+            f'<div class="term-line {"highlight" if is_hl else "output"}">{html.escape(line)}</div>'
+            for line, is_hl in term['lines']
+        ])
+
         content_markup = f"""
         <div class="saas-hero-container">
           <div class="saas-header-center">
@@ -1553,7 +2038,7 @@ def render_template_html(item):
             <p class="saas-hero-desc">{html.escape(item['desc'])}</p>
             
             <div class="saas-cta-group">
-              <button type="button" class="btn-ctrl-accent" onclick="alert('CLI initialized: npx orthotect design init')">
+              <button type="button" class="btn-ctrl-accent" onclick="alert('CLI initialized: {html.escape(term['cmd'])}')">
                 <span>Start Building Now</span>
               </button>
               <button type="button" class="btn-ctrl" onclick="alert('Viewing comprehensive technical documentation')">
@@ -1569,16 +2054,12 @@ def render_template_html(item):
                 <span class="dot dot-yellow"></span>
                 <span class="dot dot-green"></span>
               </div>
-              <span class="terminal-title">bash — orthotect cli v1.7.4</span>
+              <span class="terminal-title">{html.escape(term['title'])}</span>
               <span class="terminal-badge">Latency: 14ms</span>
             </div>
             <div class="terminal-content">
-              <div class="term-line"><span class="term-prompt">$</span> npx orthotect doctor</div>
-              <div class="term-line output">✔ Node.js runtime: v20.19.0 (Supported)</div>
-              <div class="term-line output">✔ Python gate engine: v3.12 (Supported)</div>
-              <div class="term-line output">✔ Design tokens: 96 palettes, 57 styles compiled</div>
-              <div class="term-line output">✔ Deterministic quality gates: 5/5 operational (703ms)</div>
-              <div class="term-line output highlight">Status: System healthy. Ready to enforce deterministic UI engineering.</div>
+              <div class="term-line"><span class="term-prompt">$</span> {html.escape(term['cmd'])}</div>
+              {term_lines}
             </div>
           </div>
 
@@ -1696,14 +2177,21 @@ def render_template_html(item):
       box-sizing: border-box;
     }}
 
-    body {{
+    html, body {{
       margin: 0;
       padding: 0;
-      background-color: var(--tmpl-bg-canvas);
+      background-color: var(--tmpl-bg-canvas) !important;
+      background-image: {aes.get('bg_pattern', 'none')} !important;
+      background-size: {aes.get('bg_size', 'auto')} !important;
+      background-attachment: fixed !important;
       color: var(--tmpl-text-primary);
       font-family: var(--tmpl-font-body);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+    }}
+
+    button, .topbar-btn, .btn-ctrl, .btn-ctrl-accent, .btn-civic, .prod-badge, .style-badge, .civic-step-badge, .saas-pill, input, select, textarea {{
+      border-radius: var(--tmpl-radius) !important;
     }}
 
     h1, h2, h3, h4, h5, h6, .template-title, .chart-title, .table-title, .prod-title, .saas-hero-title, .civic-title {{

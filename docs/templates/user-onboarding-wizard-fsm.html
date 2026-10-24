@@ -46,15 +46,15 @@
       --tmpl-surface-1: #FFFFFF;
       --tmpl-surface-2: #F3E8FF;
       --tmpl-surface-3: #E9D5FF;
-      --tmpl-primary: #6D28D9;
-      --tmpl-primary-hover: #5B21B6;
+      --tmpl-primary: #7C3AED;
+      --tmpl-primary-hover: #6D28D9;
       --tmpl-btn-text: #FFFFFF;
       --tmpl-text-primary: #1E1B4B;
-      --tmpl-text-secondary: #5B21B6;
+      --tmpl-text-secondary: #6B21A8;
       --tmpl-border: #D8B4FE;
-      --tmpl-radius: 18px;
+      --tmpl-radius: 20px;
       --tmpl-border-width: 2px;
-      --tmpl-shadow: 0 8px 24px rgba(109, 40, 217, 0.12);
+      --tmpl-shadow: 0 12px 30px rgba(124, 58, 237, 0.15), inset 0 2px 0 rgba(255, 255, 255, 0.8);
     }
 
     html[data-theme="dark"] {
@@ -71,14 +71,21 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      background-color: var(--tmpl-bg-canvas);
+      background-color: var(--tmpl-bg-canvas) !important;
+      background-image: radial-gradient(circle at 10% 20%, rgba(192, 132, 252, 0.25) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(244, 114, 182, 0.2) 0%, transparent 40%) !important;
+      background-size: 100% 100%, 100% 100% !important;
+      background-attachment: fixed !important;
       color: var(--tmpl-text-primary);
       font-family: var(--tmpl-font-body);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+    }
+
+    button, .topbar-btn, .btn-ctrl, .btn-ctrl-accent, .btn-civic, .prod-badge, .style-badge, .civic-step-badge, .saas-pill, input, select, textarea {
+      border-radius: var(--tmpl-radius) !important;
     }
 
     h1, h2, h3, h4, h5, h6, .template-title, .chart-title, .table-title, .prod-title, .saas-hero-title, .civic-title {
@@ -1173,7 +1180,7 @@
               </button>
             </div>
             <div class="form-security-note">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               </svg>
               <span>Cryptographic idempotency token bound. Double-submission prevention active.</span>

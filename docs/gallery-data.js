@@ -15,7 +15,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Modern Bento SaaS",
     "theme": "dark",
     "font_name": "Plus Jakarta Sans",
-    "primary_color": "#4F46E5",
+    "primary_color": "#6366F1",
     "thumbnail": "assets/thumbnails/saas-metric-console.webp",
     "template_url": "templates/saas-metric-console.html"
   },
@@ -34,7 +34,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Kubernetes Console & Cloud Ops",
     "theme": "dark",
     "font_name": "JetBrains Mono & Inter",
-    "primary_color": "#0369A1",
+    "primary_color": "#0284C7",
     "thumbnail": "assets/thumbnails/cloud-infrastructure-monitor.webp",
     "template_url": "templates/cloud-infrastructure-monitor.html"
   },
@@ -52,7 +52,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "icon": "trending-up",
     "ui_style": "High-Frequency Algorithmic Matrix",
     "theme": "dark",
-    "font_name": "Space Mono & DM Sans",
+    "font_name": "Space Mono",
     "primary_color": "#10B981",
     "thumbnail": "assets/thumbnails/fintech-trading-terminal.webp",
     "template_url": "templates/fintech-trading-terminal.html"
@@ -71,8 +71,8 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "icon": "cpu",
     "ui_style": "Industrial Edge Telematics",
     "theme": "dark",
-    "font_name": "IBM Plex Sans",
-    "primary_color": "#65A30D",
+    "font_name": "IBM Plex Mono & IBM Plex Sans",
+    "primary_color": "#84CC16",
     "thumbnail": "assets/thumbnails/iot-device-fleet-telemetry.webp",
     "template_url": "templates/iot-device-fleet-telemetry.html"
   },
@@ -91,7 +91,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "SOC Threat Matrix & SIEM",
     "theme": "dark",
     "font_name": "Space Mono",
-    "primary_color": "#E11D48",
+    "primary_color": "#F43F5E",
     "thumbnail": "assets/thumbnails/soc-cybersecurity-event-feed.webp",
     "template_url": "templates/soc-cybersecurity-event-feed.html"
   },
@@ -129,7 +129,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Logistics Dispatch Telematics",
     "theme": "dark",
     "font_name": "Outfit & Work Sans",
-    "primary_color": "#D97706",
+    "primary_color": "#F59E0B",
     "thumbnail": "assets/thumbnails/logistics-fleet-dispatch-tracker.webp",
     "template_url": "templates/logistics-fleet-dispatch-tracker.html"
   },
@@ -148,7 +148,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Clean Energy Grid Sensor",
     "theme": "dark",
     "font_name": "DM Sans",
-    "primary_color": "#15803D",
+    "primary_color": "#22C55E",
     "thumbnail": "assets/thumbnails/energy-grid-sensor-telemetry.webp",
     "template_url": "templates/energy-grid-sensor-telemetry.html"
   },
@@ -186,7 +186,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Cognitive AI Spatial Studio",
     "theme": "dark",
     "font_name": "Syne & Manrope",
-    "primary_color": "#7C3AED",
+    "primary_color": "#A855F7",
     "thumbnail": "assets/thumbnails/ai-model-inference-telemetry.webp",
     "template_url": "templates/ai-model-inference-telemetry.html"
   },
@@ -224,7 +224,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Corporate Enterprise Procurement",
     "theme": "light",
     "font_name": "Inter",
-    "primary_color": "#047857",
+    "primary_color": "#059669",
     "thumbnail": "assets/thumbnails/enterprise-b2b-checkout-flow.webp",
     "template_url": "templates/enterprise-b2b-checkout-flow.html"
   },
@@ -243,7 +243,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Tactile Claymorphic Onboarding",
     "theme": "light",
     "font_name": "Fredoka & Nunito",
-    "primary_color": "#6D28D9",
+    "primary_color": "#7C3AED",
     "thumbnail": "assets/thumbnails/user-onboarding-wizard-fsm.webp",
     "template_url": "templates/user-onboarding-wizard-fsm.html"
   },
@@ -262,7 +262,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Modern Clean Subscription Hub",
     "theme": "light",
     "font_name": "Plus Jakarta Sans",
-    "primary_color": "#1D4ED8",
+    "primary_color": "#2563EB",
     "thumbnail": "assets/thumbnails/billing-subscription-manager.webp",
     "template_url": "templates/billing-subscription-manager.html"
   },
@@ -281,7 +281,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Zero-Trust Cryptographic Delegation",
     "theme": "dark",
     "font_name": "JetBrains Mono & Inter",
-    "primary_color": "#D97706",
+    "primary_color": "#F59E0B",
     "thumbnail": "assets/thumbnails/api-key-permission-delegation.webp",
     "template_url": "templates/api-key-permission-delegation.html"
   },
@@ -319,7 +319,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Cloud Architecture Form Wizard",
     "theme": "dark",
     "font_name": "Space Grotesk & DM Sans",
-    "primary_color": "#7C3AED",
+    "primary_color": "#8B5CF6",
     "thumbnail": "assets/thumbnails/cloud-database-provisioning-form.webp",
     "template_url": "templates/cloud-database-provisioning-form.html"
   },
@@ -338,7 +338,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Customer Support Dispatch Desk",
     "theme": "light",
     "font_name": "Poppins & Open Sans",
-    "primary_color": "#C2410C",
+    "primary_color": "#EA580C",
     "thumbnail": "assets/thumbnails/support-ticket-escalation-wizard.webp",
     "template_url": "templates/support-ticket-escalation-wizard.html"
   },
@@ -376,7 +376,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Forensic SIEM Compliance Builder",
     "theme": "dark",
     "font_name": "IBM Plex Mono & IBM Plex Sans",
-    "primary_color": "#1D4ED8",
+    "primary_color": "#2563EB",
     "thumbnail": "assets/thumbnails/audit-log-export-configuration.webp",
     "template_url": "templates/audit-log-export-configuration.html"
   },
@@ -395,7 +395,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Swiss Precision Engineering Store",
     "theme": "light",
     "font_name": "Space Grotesk & Inter",
-    "primary_color": "#C2410C",
+    "primary_color": "#DC2626",
     "thumbnail": "assets/thumbnails/hardware-spec-sheet-store.webp",
     "template_url": "templates/hardware-spec-sheet-store.html"
   },
@@ -414,7 +414,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Haute Horlogerie & Bespoke Luxury",
     "theme": "dark",
     "font_name": "Playfair Display & Inter",
-    "primary_color": "#CA8A04",
+    "primary_color": "#D4AF37",
     "thumbnail": "assets/thumbnails/luxury-mechanical-goods-gallery.webp",
     "template_url": "templates/luxury-mechanical-goods-gallery.html"
   },
@@ -433,7 +433,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Heavy Machinery Procurement",
     "theme": "light",
     "font_name": "Barlow & Roboto",
-    "primary_color": "#B45309",
+    "primary_color": "#D97706",
     "thumbnail": "assets/thumbnails/industrial-equipment-procurement.webp",
     "template_url": "templates/industrial-equipment-procurement.html"
   },
@@ -471,7 +471,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Minimalist Electronics Showcase",
     "theme": "dark",
     "font_name": "Inter",
-    "primary_color": "#0369A1",
+    "primary_color": "#0284C7",
     "thumbnail": "assets/thumbnails/dtc-electronics-product-detail.webp",
     "template_url": "templates/dtc-electronics-product-detail.html"
   },
@@ -509,7 +509,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "SaaS Bento Tier Matrix",
     "theme": "dark",
     "font_name": "Space Grotesk & DM Sans",
-    "primary_color": "#7E22CE",
+    "primary_color": "#9333EA",
     "thumbnail": "assets/thumbnails/digital-software-tier-pricing.webp",
     "template_url": "templates/digital-software-tier-pricing.html"
   },
@@ -525,10 +525,10 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/data-table-loader.json",
     "badge": "Zero Shift Filter",
     "icon": "sliders",
-    "ui_style": "Faceted E-Commerce Product Rail",
+    "ui_style": "Faceted Technical Apparel Rail",
     "theme": "light",
-    "font_name": "Poppins & Open Sans",
-    "primary_color": "#0F766E",
+    "font_name": "Outfit & Inter",
+    "primary_color": "#0D9488",
     "thumbnail": "assets/thumbnails/dynamic-product-filtering-rail.webp",
     "template_url": "templates/dynamic-product-filtering-rail.html"
   },
@@ -547,7 +547,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Tactile Modern Retail Drawer",
     "theme": "light",
     "font_name": "Plus Jakarta Sans",
-    "primary_color": "#047857",
+    "primary_color": "#059669",
     "thumbnail": "assets/thumbnails/cart-drawer-optimistic-update.webp",
     "template_url": "templates/cart-drawer-optimistic-update.html"
   },
@@ -563,9 +563,9 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "fsm": "core/fsm/modal-dialog.json",
     "badge": "Cryptographic Reviews",
     "icon": "star",
-    "ui_style": "Editorial Social Proof Monograph",
+    "ui_style": "Editorial Audio Proof Monograph",
     "theme": "light",
-    "font_name": "Lora & Raleway",
+    "font_name": "Lora & Inter",
     "primary_color": "#B45309",
     "thumbnail": "assets/thumbnails/customer-reviews-rating-matrix.webp",
     "template_url": "templates/customer-reviews-rating-matrix.html"
@@ -584,7 +584,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "icon": "check-square",
     "ui_style": "Accessible Civic Public Infrastructure",
     "theme": "light",
-    "font_name": "Source Sans 3 & Inter",
+    "font_name": "Source Sans 3",
     "primary_color": "#1E3A8A",
     "thumbnail": "assets/thumbnails/civic-voter-registration-portal.webp",
     "template_url": "templates/civic-voter-registration-portal.html"
@@ -623,7 +623,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "High-Visibility Emergency Dispatch",
     "theme": "dark",
     "font_name": "Bebas Neue & Source Sans 3",
-    "primary_color": "#D97706",
+    "primary_color": "#F59E0B",
     "thumbnail": "assets/thumbnails/emergency-crisis-alert-broadcast.webp",
     "template_url": "templates/emergency-crisis-alert-broadcast.html"
   },
@@ -640,9 +640,9 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "badge": "ADA & WCAG AAA",
     "icon": "map-pin",
     "ui_style": "High-Contrast Metro Transit Board",
-    "theme": "light",
+    "theme": "dark",
     "font_name": "Inter",
-    "primary_color": "#1D4ED8",
+    "primary_color": "#FBBF24",
     "thumbnail": "assets/thumbnails/public-transit-accessible-schedule.webp",
     "template_url": "templates/public-transit-accessible-schedule.html"
   },
@@ -661,7 +661,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Accessible Universal Banking Ledger",
     "theme": "light",
     "font_name": "IBM Plex Sans",
-    "primary_color": "#3730A3",
+    "primary_color": "#312E81",
     "thumbnail": "assets/thumbnails/universal-banking-statement-view.webp",
     "template_url": "templates/universal-banking-statement-view.html"
   },
@@ -699,7 +699,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Plain Language Civic Eligibility",
     "theme": "light",
     "font_name": "Source Sans 3",
-    "primary_color": "#15803D",
+    "primary_color": "#16A34A",
     "thumbnail": "assets/thumbnails/government-benefits-eligibility.webp",
     "template_url": "templates/government-benefits-eligibility.html"
   },
@@ -718,7 +718,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Comfort Healthcare Telehealth",
     "theme": "light",
     "font_name": "Lora & Open Sans",
-    "primary_color": "#0369A1",
+    "primary_color": "#0284C7",
     "thumbnail": "assets/thumbnails/accessible-telehealth-consultation.webp",
     "template_url": "templates/accessible-telehealth-consultation.html"
   },
@@ -794,7 +794,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Linear-Style Precision SaaS Pricing",
     "theme": "dark",
     "font_name": "Inter",
-    "primary_color": "#4F46E5",
+    "primary_color": "#6366F1",
     "thumbnail": "assets/thumbnails/modern-b2b-saas-pricing-matrix.webp",
     "template_url": "templates/modern-b2b-saas-pricing-matrix.html"
   },
@@ -813,7 +813,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Aurora Glass Bento Showcase",
     "theme": "dark",
     "font_name": "Syne & Manrope",
-    "primary_color": "#7C3AED",
+    "primary_color": "#8B5CF6",
     "thumbnail": "assets/thumbnails/feature-bento-grid-showcase.webp",
     "template_url": "templates/feature-bento-grid-showcase.html"
   },
@@ -851,7 +851,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Stripe-Class Tri-Pane Doc Hub",
     "theme": "dark",
     "font_name": "Inter & JetBrains Mono",
-    "primary_color": "#0369A1",
+    "primary_color": "#0284C7",
     "thumbnail": "assets/thumbnails/developer-documentation-hub.webp",
     "template_url": "templates/developer-documentation-hub.html"
   },
@@ -870,7 +870,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Operational Status & Telemetry",
     "theme": "light",
     "font_name": "DM Sans & Inter",
-    "primary_color": "#15803D",
+    "primary_color": "#16A34A",
     "thumbnail": "assets/thumbnails/status-uptime-incident-page.webp",
     "template_url": "templates/status-uptime-incident-page.html"
   },
@@ -889,7 +889,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "Modern Ecosystem Marketplace",
     "theme": "light",
     "font_name": "Outfit & Work Sans",
-    "primary_color": "#6D28D9",
+    "primary_color": "#7C3AED",
     "thumbnail": "assets/thumbnails/integrations-marketplace-directory.webp",
     "template_url": "templates/integrations-marketplace-directory.html"
   },
@@ -927,7 +927,7 @@ window.ORTHOTECT_GALLERY_TEMPLATES = [
     "ui_style": "High-Density Technical Community",
     "theme": "dark",
     "font_name": "IBM Plex Sans",
-    "primary_color": "#238636",
+    "primary_color": "#2EA043",
     "thumbnail": "assets/thumbnails/community-forum-discussion-thread.webp",
     "template_url": "templates/community-forum-discussion-thread.html"
   },

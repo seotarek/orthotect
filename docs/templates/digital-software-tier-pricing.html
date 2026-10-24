@@ -46,15 +46,15 @@
       --tmpl-surface-1: #13182C;
       --tmpl-surface-2: #1C2442;
       --tmpl-surface-3: #2A3763;
-      --tmpl-primary: #7E22CE;
-      --tmpl-primary-hover: #6B21A8;
+      --tmpl-primary: #9333EA;
+      --tmpl-primary-hover: #7E22CE;
       --tmpl-btn-text: #FFFFFF;
       --tmpl-text-primary: #F8FAFC;
       --tmpl-text-secondary: #D8B4FE;
-      --tmpl-border: rgba(147, 51, 234, 0.3);
-      --tmpl-radius: 12px;
+      --tmpl-border: rgba(147, 51, 234, 0.35);
+      --tmpl-radius: 14px;
       --tmpl-border-width: 1px;
-      --tmpl-shadow: 0 4px 20px rgba(147, 51, 234, 0.15);
+      --tmpl-shadow: 0 8px 30px rgba(147, 51, 234, 0.18);
     }
 
     html[data-theme="light"] {
@@ -71,14 +71,21 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      background-color: var(--tmpl-bg-canvas);
+      background-color: var(--tmpl-bg-canvas) !important;
+      background-image: radial-gradient(circle at 50% 10%, rgba(147, 51, 234, 0.18) 0%, transparent 60%) !important;
+      background-size: 100% 100% !important;
+      background-attachment: fixed !important;
       color: var(--tmpl-text-primary);
       font-family: var(--tmpl-font-body);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+    }
+
+    button, .topbar-btn, .btn-ctrl, .btn-ctrl-accent, .btn-civic, .prod-badge, .style-badge, .civic-step-badge, .saas-pill, input, select, textarea {
+      border-radius: var(--tmpl-radius) !important;
     }
 
     h1, h2, h3, h4, h5, h6, .template-title, .chart-title, .table-title, .prod-title, .saas-hero-title, .civic-title {
@@ -1118,20 +1125,20 @@
           <div class="product-hero-panel">
             <div class="product-visual-box">
               <div class="product-schematic-bg">
-                <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
-                  <rect x="20" y="20" width="360" height="200" rx="12" stroke="var(--tmpl-border)" stroke-dasharray="6" fill="var(--tmpl-surface-1)"/>
-                  <circle cx="200" cy="120" r="60" stroke="#7E22CE" stroke-width="2"/>
-                  <circle cx="200" cy="120" r="20" fill="#7E22CE" fill-opacity="0.2" stroke="#7E22CE"/>
-                  <line x1="200" y1="30" x2="200" y2="210" stroke="var(--tmpl-border)"/>
-                  <line x1="40" y1="120" x2="360" y2="120" stroke="var(--tmpl-border)"/>
-                  <text x="215" y="70" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="11">R_TOL: ±0.005mm</text>
-                  <text x="215" y="170" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="11">SURF: Ra 0.4μm</text>
-                </svg>
+                
+        <svg width="100%" height="240" viewBox="0 0 400 240" fill="none">
+          <rect x="50" y="40" width="300" height="160" rx="12" stroke="#9333EA" stroke-width="2" fill="var(--tmpl-surface-1)"/>
+          <circle cx="120" cy="110" r="28" stroke="#9333EA" stroke-width="2" fill="#9333EA" fill-opacity="0.15"/>
+          <circle cx="200" cy="100" r="38" stroke="#9333EA" stroke-width="2" fill="#9333EA" fill-opacity="0.2"/>
+          <circle cx="280" cy="110" r="28" stroke="#9333EA" stroke-width="2" fill="#9333EA" fill-opacity="0.15"/>
+          <line x1="148" y1="110" x2="162" y2="105" stroke="#9333EA" stroke-width="2"/>
+          <line x1="238" y1="105" x2="252" y2="110" stroke="#9333EA" stroke-width="2"/>
+          <text x="200" y="175" text-anchor="middle" fill="var(--tmpl-text-secondary)" font-family="monospace" font-size="11">DEDICATED VPC MESH: 99.999% SLA</text>
+        </svg>
+        
               </div>
               <div class="product-badge-row">
-                <span class="prod-badge">DIN 912 / ISO 4762</span>
-                <span class="prod-badge">Certificate 3.1 Attached</span>
-                <span class="prod-badge highlight">In Stock: Dispatch 24h</span>
+                <span class="prod-badge ">Unlimited RPS Bounds</span><span class="prod-badge ">99.999% SLA Bound</span><span class="prod-badge highlight">Dedicated Private VPC</span>
               </div>
             </div>
 
@@ -1140,8 +1147,8 @@
               <p class="prod-desc">Transparent SaaS software tier pricing matrix featuring interactive developer seat sliders, feature comparison checklist, SOC2/GDPR compliance inclusion, and instant checkout triggers.</p>
               
               <div class="prod-pricing-row">
-                <div class="prod-price">$48.00 <span class="prod-unit">/ unit (lot of 100)</span></div>
-                <div class="prod-moq">MOQ: 1 Lot</div>
+                <div class="prod-price">$1,499.00 <span class="prod-unit">/ month (Enterprise Gateway)</span></div>
+                <div class="prod-moq">Annual Billing (20% Off)</div>
               </div>
 
               <div class="order-actions-grid">
@@ -1150,8 +1157,8 @@
                   <input type="number" value="1" min="1" max="500" class="qty-input">
                   <button type="button" class="btn-step" onclick="this.previousElementSibling.stepUp()">+</button>
                 </div>
-                <button type="button" class="btn-ctrl-accent" onclick="alert('Added to B2B procurement cart with inventory reservation lock')">
-                  Add to Procurement Cart
+                <button type="button" class="btn-ctrl-accent" onclick="alert('Order placed with deterministic FSM reservation lock')">
+                  Provision Enterprise Gateway
                 </button>
               </div>
             </div>

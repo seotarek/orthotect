@@ -46,15 +46,15 @@
       --tmpl-surface-1: #FFFFFF;
       --tmpl-surface-2: #F1F5F9;
       --tmpl-surface-3: #E2E8F0;
-      --tmpl-primary: #6D28D9;
-      --tmpl-primary-hover: #5B21B6;
+      --tmpl-primary: #7C3AED;
+      --tmpl-primary-hover: #6D28D9;
       --tmpl-btn-text: #FFFFFF;
       --tmpl-text-primary: #0F172A;
       --tmpl-text-secondary: #475569;
       --tmpl-border: #CBD5E1;
-      --tmpl-radius: 12px;
+      --tmpl-radius: 14px;
       --tmpl-border-width: 1px;
-      --tmpl-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      --tmpl-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
     }
 
     html[data-theme="dark"] {
@@ -71,14 +71,21 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      background-color: var(--tmpl-bg-canvas);
+      background-color: var(--tmpl-bg-canvas) !important;
+      background-image: none !important;
+      background-size: auto !important;
+      background-attachment: fixed !important;
       color: var(--tmpl-text-primary);
       font-family: var(--tmpl-font-body);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+    }
+
+    button, .topbar-btn, .btn-ctrl, .btn-ctrl-accent, .btn-civic, .prod-badge, .style-badge, .civic-step-badge, .saas-pill, input, select, textarea {
+      border-radius: var(--tmpl-radius) !important;
     }
 
     h1, h2, h3, h4, h5, h6, .template-title, .chart-title, .table-title, .prod-title, .saas-hero-title, .civic-title {
@@ -1121,7 +1128,7 @@
             <p class="saas-hero-desc">Directory of official ecosystem integrations for GitHub Actions, GitLab CI, Claude Code, Cursor, Antigravity, Slack notifications, and Datadog observability with instant setup guides.</p>
             
             <div class="saas-cta-group">
-              <button type="button" class="btn-ctrl-accent" onclick="alert('CLI initialized: npx orthotect design init')">
+              <button type="button" class="btn-ctrl-accent" onclick="alert('CLI initialized: npx orthotect doctor')">
                 <span>Start Building Now</span>
               </button>
               <button type="button" class="btn-ctrl" onclick="alert('Viewing comprehensive technical documentation')">
@@ -1142,11 +1149,7 @@
             </div>
             <div class="terminal-content">
               <div class="term-line"><span class="term-prompt">$</span> npx orthotect doctor</div>
-              <div class="term-line output">✔ Node.js runtime: v20.19.0 (Supported)</div>
-              <div class="term-line output">✔ Python gate engine: v3.12 (Supported)</div>
-              <div class="term-line output">✔ Design tokens: 96 palettes, 57 styles compiled</div>
-              <div class="term-line output">✔ Deterministic quality gates: 5/5 operational (703ms)</div>
-              <div class="term-line output highlight">Status: System healthy. Ready to enforce deterministic UI engineering.</div>
+              <div class="term-line output">✔ Node.js runtime: v20.19.0 (Supported)</div><div class="term-line output">✔ Python gate engine: v3.12 (Supported)</div><div class="term-line output">✔ Design tokens: 96 palettes, 57 styles compiled</div><div class="term-line highlight">Status: System healthy. Ready to enforce deterministic UI engineering.</div>
             </div>
           </div>
 

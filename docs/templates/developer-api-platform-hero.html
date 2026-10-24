@@ -42,10 +42,10 @@
       --tmpl-max-width: 1200px;
       --tmpl-font-heading: 'Space Grotesk', sans-serif;
       --tmpl-font-body: 'JetBrains Mono', monospace;
-      --tmpl-bg-canvas: #070A10;
-      --tmpl-surface-1: #0F141F;
-      --tmpl-surface-2: #192233;
-      --tmpl-surface-3: #25324A;
+      --tmpl-bg-canvas: #04060A;
+      --tmpl-surface-1: #0A0F1A;
+      --tmpl-surface-2: #121A2D;
+      --tmpl-surface-3: #1D2845;
       --tmpl-primary: #00FFFF;
       --tmpl-primary-hover: #38BDF8;
       --tmpl-btn-text: #000000;
@@ -71,14 +71,21 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      background-color: var(--tmpl-bg-canvas);
+      background-color: var(--tmpl-bg-canvas) !important;
+      background-image: radial-gradient(circle at 50% 0%, rgba(0, 255, 255, 0.15) 0%, transparent 60%), linear-gradient(rgba(0, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 255, 0.04) 1px, transparent 1px) !important;
+      background-size: 100% 100%, 30px 30px, 30px 30px !important;
+      background-attachment: fixed !important;
       color: var(--tmpl-text-primary);
       font-family: var(--tmpl-font-body);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+    }
+
+    button, .topbar-btn, .btn-ctrl, .btn-ctrl-accent, .btn-civic, .prod-badge, .style-badge, .civic-step-badge, .saas-pill, input, select, textarea {
+      border-radius: var(--tmpl-radius) !important;
     }
 
     h1, h2, h3, h4, h5, h6, .template-title, .chart-title, .table-title, .prod-title, .saas-hero-title, .civic-title {
@@ -346,7 +353,7 @@
       border-block-start: max(3px, var(--tmpl-border-width)) solid var(--tmpl-primary);
       padding: 1.25rem;
       text-align: start;
-      
+      border: 2px solid #00FFFF; box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
     }
 
     .metric-label {
@@ -375,7 +382,7 @@
       border-radius: var(--tmpl-radius);
       box-shadow: var(--tmpl-shadow);
       padding: 1.5rem;
-      
+      border: 2px solid #00FFFF; box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
     }
 
     .chart-header, .table-header-bar {
@@ -445,7 +452,7 @@
       padding: 2rem;
       max-width: 800px;
       margin-inline: auto;
-      
+      border: 2px solid #00FFFF; box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
     }
 
     .fsm-progress-bar {
@@ -598,7 +605,7 @@
       border-radius: var(--tmpl-radius);
       box-shadow: var(--tmpl-shadow);
       padding: 2rem;
-      
+      border: 2px solid #00FFFF; box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
     }
 
     .product-visual-box {
@@ -715,7 +722,7 @@
       border-radius: var(--tmpl-radius);
       box-shadow: var(--tmpl-shadow);
       padding: 1.5rem;
-      
+      border: 2px solid #00FFFF; box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
     }
 
     .specs-title {
@@ -762,7 +769,7 @@
       box-shadow: var(--tmpl-shadow);
       padding: 2rem;
       text-align: start;
-      
+      border: 2px solid #00FFFF; box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
     }
 
     .civic-cert-stamp {
@@ -806,7 +813,7 @@
       flex-direction: column;
       justify-content: space-between;
       text-align: start;
-      
+      border: 2px solid #00FFFF; box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
     }
 
     .civic-step-badge {
@@ -911,7 +918,7 @@
       margin-inline: auto;
       width: 100%;
       text-align: start;
-      
+      border: 2px solid #00FFFF; box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
     }
 
     .terminal-bar {
@@ -986,7 +993,7 @@
       border-radius: var(--tmpl-radius);
       box-shadow: var(--tmpl-shadow);
       padding: 1.5rem;
-      
+      border: 2px solid #00FFFF; box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
     }
 
     .feat-icon-bullet {
@@ -1121,7 +1128,7 @@
             <p class="saas-hero-desc">High-conversion developer platform hero section with interactive request/response sandbox, live API endpoint latency badge (12ms), and zero-friction one-click terminal commands.</p>
             
             <div class="saas-cta-group">
-              <button type="button" class="btn-ctrl-accent" onclick="alert('CLI initialized: npx orthotect design init')">
+              <button type="button" class="btn-ctrl-accent" onclick="alert('CLI initialized: npx orthotect doctor')">
                 <span>Start Building Now</span>
               </button>
               <button type="button" class="btn-ctrl" onclick="alert('Viewing comprehensive technical documentation')">
@@ -1142,11 +1149,7 @@
             </div>
             <div class="terminal-content">
               <div class="term-line"><span class="term-prompt">$</span> npx orthotect doctor</div>
-              <div class="term-line output">✔ Node.js runtime: v20.19.0 (Supported)</div>
-              <div class="term-line output">✔ Python gate engine: v3.12 (Supported)</div>
-              <div class="term-line output">✔ Design tokens: 96 palettes, 57 styles compiled</div>
-              <div class="term-line output">✔ Deterministic quality gates: 5/5 operational (703ms)</div>
-              <div class="term-line output highlight">Status: System healthy. Ready to enforce deterministic UI engineering.</div>
+              <div class="term-line output">✔ Node.js runtime: v20.19.0 (Supported)</div><div class="term-line output">✔ Python gate engine: v3.12 (Supported)</div><div class="term-line output">✔ Design tokens: 96 palettes, 57 styles compiled</div><div class="term-line output">✔ Deterministic quality gates: 5/5 operational (703ms)</div><div class="term-line highlight">Status: System healthy. Ready to enforce deterministic UI engineering.</div>
             </div>
           </div>
 

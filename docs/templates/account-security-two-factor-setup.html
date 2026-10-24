@@ -51,10 +51,10 @@
       --tmpl-btn-text: #040810;
       --tmpl-text-primary: #F8FAFC;
       --tmpl-text-secondary: #94A3B8;
-      --tmpl-border: rgba(6, 182, 212, 0.25);
+      --tmpl-border: rgba(6, 182, 212, 0.3);
       --tmpl-radius: 8px;
       --tmpl-border-width: 1px;
-      --tmpl-shadow: 0 4px 16px rgba(6, 182, 212, 0.1);
+      --tmpl-shadow: 0 4px 18px rgba(6, 182, 212, 0.12);
     }
 
     html[data-theme="light"] {
@@ -71,14 +71,21 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      background-color: var(--tmpl-bg-canvas);
+      background-color: var(--tmpl-bg-canvas) !important;
+      background-image: radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.15) 0%, transparent 40%) !important;
+      background-size: 100% 100% !important;
+      background-attachment: fixed !important;
       color: var(--tmpl-text-primary);
       font-family: var(--tmpl-font-body);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+    }
+
+    button, .topbar-btn, .btn-ctrl, .btn-ctrl-accent, .btn-civic, .prod-badge, .style-badge, .civic-step-badge, .saas-pill, input, select, textarea {
+      border-radius: var(--tmpl-radius) !important;
     }
 
     h1, h2, h3, h4, h5, h6, .template-title, .chart-title, .table-title, .prod-title, .saas-hero-title, .civic-title {
