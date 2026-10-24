@@ -150,7 +150,7 @@ class TestOrthotectE2E(unittest.TestCase):
         self.assertNotEqual(json_start, -1)
         data = json.loads(res.stdout[json_start:])
         self.assertTrue(data['allPassed'])
-        self.assertEqual(len(data['gates']), 5)
+        self.assertEqual(len(data['gates']), 6)
 
     def test_e2e_verify_markdown_format(self):
         """Positive test: 'orthotect verify --md' produces clean Markdown report."""

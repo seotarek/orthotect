@@ -5,7 +5,7 @@
 
 [![Version](https://img.shields.io/badge/version-1.7.4_Latest-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.7.4)
 [![Tests Passing](https://img.shields.io/badge/tests-296_passed-22c55e?style=for-the-badge)](https://github.com/seotarek/orthotect/actions)
-[![Deterministic Gates](https://img.shields.io/badge/Quality_Gates-5%2F5_Deterministic-14b8a6?style=for-the-badge)](#-installation-quickstart--deterministic-quality-gates)
+[![Deterministic Gates](https://img.shields.io/badge/Quality_Gates-6%2F6_Deterministic-14b8a6?style=for-the-badge)](#-installation-quickstart--deterministic-quality-gates)
 [![WCAG 2.2 AAA](https://img.shields.io/badge/WCAG_2.2-Contrast_Matrix_(AAA%2FAA)-a855f7?style=for-the-badge)](#)
 [![BiDi Logical](https://img.shields.io/badge/BiDi-100%25_CSS_Logical-f97316?style=for-the-badge)](#)
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero_Browser_UI-0ea5e9?style=for-the-badge)](#)
@@ -86,8 +86,9 @@ orthotect/
 │   ├── gate_fsm_integrity.py     # State Machine Graph Reachability & Lock Integrity
 │   ├── gate_no_slop.py           # Lexical & Pattern Slop Inspector
 │   ├── gate_cwv_budget.mjs       # WHATWG-Compliant DOM & Layout-Shift Budget
+│   ├── gate_security_audit.py    # Enterprise SAST & OWASP/CWE Threat Defense Engine
 │   └── run_all_gates.py          # Parallel Master Gate Orchestrator (ThreadPoolExecutor)
-├── skills/                  # 18 Modular AI Agent Skills (Agent Skills Specification Compliant)
+├── skills/                  # 22 Modular AI Agent Skills (Agent Skills Specification Compliant)
 │   ├── orthotect-doctrine        # The 7 Non-Negotiable Laws of Interface Engineering
 │   ├── orthotect-uiux            # Master UI/UX Design Intelligence & Orchestrator
 │   ├── orthotect-gates           # Gate Execution Workflows & Automated CI Audit
@@ -105,14 +106,18 @@ orthotect/
 │   ├── orthotect-motion          # Spring Physics Motion & Reduced-Motion Contracts
 │   ├── orthotect-context         # Token Optimizer & Context Architecture Guard
 │   ├── orthotect-cro             # Conversion Rate Optimization & Micro-Copy Architecture
-│   └── orthotect-schema          # Semantic Structured Data & Schema.org JSON-LD Engineering
+│   ├── orthotect-schema          # Semantic Structured Data & Schema.org JSON-LD Engineering
+│   ├── orthotect-auto-fix        # In-Place Auto-Healing & Remediation Engine (--fix)
+│   ├── orthotect-hooks           # Git Pre-Commit Hooks & Fail-Closed CI Enforcement
+│   ├── orthotect-typography      # Accessible & Fluid Typography Systems
+│   └── orthotect-security        # Full-Stack Enterprise Cybersecurity & Vulnerability Audit
 ├── scripts/                 # Skills Specification Validator, Packager & Metadata Guards
 │   ├── check-release-sync.mjs    # Fail-closed version parity enforcer across repo, docs & tags
 │   ├── generate_seo_gallery.py   # Bespoke generator for all 50 production templates
 │   ├── validate-skills.mjs       # Agent Skills specification validator
 │   ├── package_skills.py         # Deterministic cross-agent skill packager & security scanner
 │   └── check-package-metadata.mjs# Synchronized package version & lockfile guard
-└── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (296 Tests)
+└── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (313 Tests)
 ```
 
 ---
@@ -122,12 +127,13 @@ orthotect/
 Run the verification suite against your target project:
 
 ```bash
-npx orthotect verify .                # 1. Verify target project against all 5 deterministic quality gates
+npx orthotect verify .                # 1. Verify target project against all 6 deterministic quality gates
 npx orthotect verify . --fix          # 2. Auto-heal physical CSS coordinates in-place (margin-left → margin-inline-start)
-npx orthotect hooks install           # 3. Install zero-dependency Git pre-commit hook (blocks non-compliant commits)
-npx orthotect verify ./src --json     # 4. Generate machine-readable JSON audit report
-npx orthotect verify ./src --md       # 5. Generate Markdown audit report
-npm run check:release-sync            # 6. Check version parity across package, docs, and releases
+npx orthotect security .              # 3. Run enterprise cybersecurity & vulnerability audit gate
+npx orthotect hooks install           # 4. Install zero-dependency Git pre-commit hook (blocks non-compliant commits)
+npx orthotect verify ./src --json     # 5. Generate machine-readable JSON audit report
+npx orthotect verify ./src --md       # 6. Generate Markdown audit report
+npm run check:release-sync            # 7. Check version parity across package, docs, and releases
 ```
 
 ### ⚙️ Configuration Engine (`orthotect.config.json`)
@@ -173,18 +179,19 @@ True BiDi & Logical Properties         ✅ PASS        118.7ms
 Finite State Machine Integrity         ✅ PASS        120.9ms
 Anti-Slop Pattern Inspector            ✅ PASS        124.9ms
 DOM & Layout-Shift Budget              ✅ PASS        551.4ms
+Enterprise Security & Threat Audit     ✅ PASS        180.2ms
 ───────────────────────────────────────────────────────────────
 Total Verification Time (Parallel): 554.2ms
 
 🎉 ALL GATES PASSED! Target files verified against evaluated interface standards.
-   Verified Standards: WCAG 2.2 Contrast, CSS Logical BiDi, FSM Integrity, Anti-Slop, DOM CLS Budget.
+   Verified Standards: WCAG 2.2 Contrast, CSS Logical BiDi, FSM Integrity, Anti-Slop, DOM CLS Budget, Enterprise Security Audit.
 ```
 
 ---
 
-## 🧩 The 21 Modular AI Agent Skills Directory
+## 🧩 The 22 Modular AI Agent Skills Directory
 
-All 21 skills reside in `skills/` and strictly conform to the Agent Skills Specification:
+All 22 skills reside in `skills/` and strictly conform to the Agent Skills Specification:
 
 | Skill | Category | Primary Role & Mandate |
 |---|---|---|
@@ -209,6 +216,7 @@ All 21 skills reside in `skills/` and strictly conform to the Agent Skills Speci
 | [`orthotect-auto-fix`](skills/orthotect-auto-fix/SKILL.md) | Remediation | Automated in-place AST repair for physical CSS properties and layout shifts. |
 | [`orthotect-hooks`](skills/orthotect-hooks/SKILL.md) | Architecture | Zero-dependency Git pre-commit hooks and fail-closed CI enforcement. |
 | [`orthotect-typography`](skills/orthotect-typography/SKILL.md) | Typography | Accessible fluid clamp() scales, dyslexia optimization, and tabular numerals. |
+| [`orthotect-security`](skills/orthotect-security/SKILL.md) | Security | Full-Stack Enterprise Cybersecurity & SAST Defense (OWASP Top 10, CWE Top 25). |
 
 ---
 
@@ -230,7 +238,7 @@ Orthotect provides a deterministic harness across the entire coding agent spectr
                            ▼
 ┌────────────────────────────────────────────────────────┐
 │  3. SKILLS (Domain Knowledge & State Machines)         │
-│  18 Modular Skills in skills/*/SKILL.md                │
+│  22 Modular Skills in skills/*/SKILL.md                │
 │  DTCG Tokens · FSM Schemas · Logical Properties · CRO  │
 └──────────────────────────┬─────────────────────────────┘
                            ▼

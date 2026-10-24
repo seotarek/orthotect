@@ -50,7 +50,8 @@ def main():
         ("True BiDi & Logical Properties", bidi_cmd),
         ("Finite State Machine Integrity", ["python3", os.path.join(root_dir, "gates", "gate_fsm_integrity.py"), target_dir]),
         ("Anti-Slop Pattern Inspector", ["python3", os.path.join(root_dir, "gates", "gate_no_slop.py"), target_dir]),
-        ("DOM & Layout-Shift Budget", ["node", os.path.join(root_dir, "gates", "gate_cwv_budget.mjs"), target_dir])
+        ("DOM & Layout-Shift Budget", ["node", os.path.join(root_dir, "gates", "gate_cwv_budget.mjs"), target_dir]),
+        ("Enterprise Security & Threat Audit", ["python3", os.path.join(root_dir, "gates", "gate_security_audit.py"), target_dir])
     ]
 
     overall_start = time.time()
@@ -109,8 +110,8 @@ def main():
 
     if all_passed:
         print("🎉 ALL GATES PASSED! Target files verified against evaluated interface standards.\n")
-        print("   Verified Standards: WCAG 2.2 Contrast, CSS Logical BiDi, FSM Integrity, Anti-Slop, DOM CLS Budget.")
-        print("   Notice: Verifies deterministic interface constraints; does not replace runtime security, auth, or load audits.\n")
+        print("   Verified Standards: WCAG 2.2 Contrast, CSS Logical BiDi, FSM Integrity, Anti-Slop, DOM CLS Budget, Enterprise Security Audit.")
+        print("   Notice: Verifies deterministic interface and SAST constraints; does not replace production runtime penetration testing or load audits.\n")
         sys.exit(0)
     else:
         print("🚨 BUILD FAILED! One or more objective quality gates failed.\n")

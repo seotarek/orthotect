@@ -520,6 +520,36 @@ fi
     break;
   }
 
+  case 'security':
+  case 'audit:security': {
+    const targetDir = path.resolve(process.cwd(), targetArg || '.');
+    if (!fs.existsSync(targetDir)) {
+      console.error(`❌ Error: Target directory does not exist: ${targetDir}`);
+      process.exit(1);
+    }
+
+    const secPath = path.join(rootDir, 'gates', 'gate_security_audit.py');
+    const secArgs = [secPath, targetDir];
+
+    if (args.includes('--json')) secArgs.push('--json');
+    if (args.includes('--md')) secArgs.push('--md');
+
+    if (!args.includes('--json') && !args.includes('--md')) {
+      printBanner();
+      console.log(`Executing Enterprise Cybersecurity & Threat Audit on: ${targetDir}\n`);
+    }
+
+    const result = spawnSync('python3', secArgs, {
+      stdio: 'inherit',
+      cwd: rootDir
+    });
+
+    if (result.status !== 0) {
+      process.exit(result.status || 1);
+    }
+    break;
+  }
+
   case 'compile':
   case 'build:tokens': {
     printBanner();
@@ -717,7 +747,7 @@ fi
     }
 
     printBanner();
-    console.log("Available Orthotect Autonomous Agent Skills (21 Modular Disciplines):");
+    console.log("Available Orthotect Autonomous Agent Skills (22 Modular Disciplines):");
     console.log("  • orthotect-doctrine       : The 7 Non-Negotiable Laws of Interface Engineering");
     console.log("  • orthotect-uiux           : Master UI/UX Design Intelligence & Orchestrator");
     console.log("  • orthotect-design-systems : DTCG Token Hierarchy & Multi-Brand Themes");
@@ -739,6 +769,7 @@ fi
     console.log("  • orthotect-auto-fix       : In-Place Auto-Healing & Remediation Engine (--fix)");
     console.log("  • orthotect-hooks          : Git Pre-Commit Hooks & Fail-Closed CI Enforcement");
     console.log("  • orthotect-typography     : Accessible & Fluid Typography Systems");
+    console.log("  • orthotect-security       : Full-Stack Enterprise Cybersecurity & Vulnerability Audit");
     break;
   }
 
@@ -747,7 +778,8 @@ fi
     console.log("Usage: npx orthotect <command> [target_directory] [options]");
     console.log("\nCore Commands:");
     console.log("  doctor                                 Check environment, gates, skills, and knowledge health");
-    console.log("  verify | audit [path] [--fix] [--json] Run all deterministic quality gates (with auto-healing --fix)");
+    console.log("  verify | audit [path] [--fix] [--json] Run all 6 deterministic quality gates (with auto-healing --fix)");
+    console.log("  security [path] [--json] [--md]        Run enterprise cybersecurity & vulnerability audit gate");
     console.log("  hooks <install|uninstall> [path]       Install or safely remove Git pre-commit quality gate hook");
     console.log("  init [path] [--force]                  Scaffold tokens, FSM specs, and AGENTS.md in target directory");
     console.log("  compile [tokens_path] [--out <file>]   Compile W3C DTCG tokens into production CSS variables");

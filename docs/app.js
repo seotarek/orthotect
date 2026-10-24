@@ -666,6 +666,20 @@ document.addEventListener("DOMContentLoaded", () => {
       gates: "gate_contrast_wcag.py, gate_no_slop.py",
       githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-typography/SKILL.md",
       prompt: "Engineer fluid typography and font pairings per skills/orthotect-typography/SKILL.md."
+    },
+    {
+      id: "orthotect-security",
+      name: "orthotect-security",
+      category: "gates",
+      title: "Enterprise Cybersecurity & Vulnerability Defense",
+      purpose: "Executes deterministic full-stack static analysis (SAST) to detect and remediate OWASP Top 10, CWE Top 25, SQLi, Command Injection, DOM XSS, SSRF, prototype pollution, and hardcoded secrets.",
+      problem: "Full-stack codebases frequently leak API credentials or introduce injection vulnerabilities and insecure client sinks that escape functional testing.",
+      when: "Activate when auditing backend or frontend code for vulnerabilities, hardening APIs, preventing secret leakage, or running pre-deployment security gates.",
+      inputs: "Source code files (.py, .js, .ts, .jsx, .tsx, .php, .sql, .html), environment configs.",
+      outputs: "Remediated code adhering to parameterized queries, sanitized DOM sinks, safe subprocesses, and zero secret leakage.",
+      gates: "gate_security_audit.py, run_all_gates.py",
+      githubUrl: "https://github.com/seotarek/orthotect/blob/main/skills/orthotect-security/SKILL.md",
+      prompt: "Audit and remediate full-stack codebase against OWASP Top 10 and CWE Top 25 vulnerabilities per skills/orthotect-security/SKILL.md."
     }
   ];
 
