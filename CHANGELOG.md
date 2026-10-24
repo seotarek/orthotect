@@ -15,6 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `tests/test_skill_evals.py` & `evals/evals.json`: Evaluation fixtures verifying positive/negative trigger cases and deterministic assertions.
   - `tests/test_skill_packaging.py`: Unit tests verifying reproducible byte-for-byte ZIP generation and manifest integrity.
   - Catalog and CLI synchronization: Expanded Orthotect modular disciplines from 16 to 18 in `docs/app.js` and `bin/orthotect.js`, and hooked specification validation into `npx orthotect skills validate`.
+- **Multi-Agent Orchestration & Agentic Engineering Integration**:
+  - Formalized the **Command → Agent → Skill** architecture across `AGENTS.md`, `CLAUDE.md`, and `README.md`, binding autonomous coding agents (Antigravity, Claude Code, Cursor, Codex, Grok) to deterministic engineering.
+  - Defined the 5-phase agent lifecycle: **Research → Plan → Execute → Review → Ship**, with strict foreground verification gates and zero unbacked metric assertions.
+  - Enforced strict Git Hygiene and privacy policies prohibiting conversational disclosures, chat history, or personal commentary in repository commits.
+- **Universal Release Version Synchronization**:
+  - Synchronized CLI package fallback in `bin/orthotect.js` to `1.7.3`.
+  - Synchronized canonical contrast matrix specifications (`core/tokens/contrast-matrix.json` and `examples/golden-showcase/...`) to `1.7.3`.
+  - Synchronized verification revision tags across all 12 UI/UX style recipes in `knowledge/styles/*.json` to `v1.7.3`.
+  - Updated SEO gallery generator (`scripts/generate_seo_gallery.py`) and regenerated all 50 standalone production HTML templates (`docs/templates/*.html`) with `v1.7.3` terminal bars and changelog entries.
 
 ### Fixed
 - **Semantic Chunking & Strict Token Budget Accounting (`core/context_optimizer.py`)**:
