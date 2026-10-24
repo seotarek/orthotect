@@ -1068,7 +1068,7 @@ TEMPLATES_SPEC = [
         "badge": "SemVer 2.0",
         "icon": "git-commit",
         "saas_features": [
-            {"title": "Version 1.7.0 (Latest Release)", "desc": "Integrated UI/UX design intelligence: 57 UI styles, 96 palettes, 57 font pairings, 25 chart specs, 13 stack guidelines, and 50 diversified aesthetic templates."},
+            {"title": "Version 1.7.3 (Latest Release)", "desc": "Integrated UI/UX design intelligence: 57 UI styles, 96 palettes, 57 font pairings, 25 chart specs, 13 stack guidelines, 50 diversified aesthetic templates, and agent doctrine."},
             {"title": "Version 1.6.0", "desc": "Added 15 modular skills, 6 original style recipes, and published official orthotect npm package."},
             {"title": "Version 1.5.0", "desc": "Unified 5 deterministic quality gates into sub-second parallel orchestrator with JSON and Markdown reporters."},
             {"title": "Version 1.4.0", "desc": "Introduced DTCG token compiler supporting CSS variables, Tailwind @theme, and Swift/Kotlin exports."},
@@ -1568,7 +1568,7 @@ def render_template_html(item):
                 <span class="dot dot-yellow"></span>
                 <span class="dot dot-green"></span>
               </div>
-              <span class="terminal-title">bash — orthotect cli v1.7.0</span>
+              <span class="terminal-title">bash — orthotect cli v1.7.3</span>
               <span class="terminal-badge">Latency: 14ms</span>
             </div>
             <div class="terminal-content">
