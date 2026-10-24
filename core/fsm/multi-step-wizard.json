@@ -1,0 +1,60 @@
+{
+  "name": "OrthotectMultiStepWizardFSM",
+  "initialState": "step1_details",
+  "states": {
+    "step1_details": {
+      "description": "Initial input collection phase (account, project, or user details).",
+      "on": {
+        "NEXT": "step2_preferences",
+        "CANCEL": "abandoned"
+      }
+    },
+    "step2_preferences": {
+      "description": "Configuration and options customization phase.",
+      "on": {
+        "PREV": "step1_details",
+        "NEXT": "step3_verification",
+        "CANCEL": "abandoned"
+      }
+    },
+    "step3_verification": {
+      "description": "Pre-submission review and confirmation screen.",
+      "on": {
+        "PREV": "step2_preferences",
+        "SUBMIT": "submitting",
+        "CANCEL": "abandoned"
+      }
+    },
+    "submitting": {
+      "description": "Asynchronous network payload submission with pointer/keyboard double-click lockout.",
+      "isAsync": true,
+      "allowClick": false,
+      "on": {
+        "RESOLVE_SUCCESS": "completed",
+        "REJECT_ERROR": "submissionError"
+      }
+    },
+    "submissionError": {
+      "description": "Inline submission failure banner preserving all form inputs for instant user remediation.",
+      "on": {
+        "RETRY": "submitting",
+        "EDIT_DETAILS": "step1_details",
+        "EDIT_PREFERENCES": "step2_preferences",
+        "RESET": "step1_details"
+      }
+    },
+    "completed": {
+      "description": "Success confirmation view displaying generated resource identifiers and next steps.",
+      "on": {
+        "RESET": "step1_details"
+      }
+    },
+    "abandoned": {
+      "description": "Exit confirmation dialogue with draft auto-save and resume capability.",
+      "on": {
+        "RESUME": "step1_details",
+        "CONFIRM_EXIT": "step1_details"
+      }
+    }
+  }
+}

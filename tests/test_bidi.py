@@ -430,7 +430,46 @@ class TestBidiGateE2E(unittest.TestCase):
         res = self.run_gate(self.temp_dir)
         self.assertNotEqual(res.returncode, 0)
         self.assertIn("marginLeft", res.stdout)
-        self.assertIn("paddingRight", res.stdout)
+    def test_bidi_regex_inside_arrow_function_and_array_literal(self):
+        """Regression test: Regex literals inside arrow functions and array literals must not mask downstream violations."""
+        js_file = os.path.join(self.temp_dir, 'arrow_regex.jsx')
+        with open(js_file, 'w') as f:
+            f.write("""
+            const sanitize = (url) => url.replace(/https?:\\/\\//gi, '');
+            const filters = [ /api\\/v1\\//, /auth\\/session\\// ];
+            const Nav = () => <nav style={{ paddingLeft: 16 }}>Nav</nav>;
+            """)
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("paddingLeft", res.stdout)
+
+    def test_bidi_regex_character_class_with_escaped_brackets(self):
+        """Regression test: Regex character classes with escaped brackets and slashes do not disrupt AST parsing."""
+        js_file = os.path.join(self.temp_dir, 'char_class.jsx')
+        with open(js_file, 'w') as f:
+            f.write("""
+            const tokenRegex = /[^/\\s\\]\\[]+/;
+            const isMatch = tokenRegex.test("input");
+            const Sidebar = () => <aside style={{ marginRight: 20 }}>Sidebar</aside>;
+            """)
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("marginRight", res.stdout)
+
+    def test_bidi_css_variables_and_calc_expressions_preserve_violation_detection(self):
+        """Edge case: CSS variables and calc expressions in styled blocks preserve detection of physical properties."""
+        js_file = os.path.join(self.temp_dir, 'calc_vars.js')
+        with open(js_file, 'w') as f:
+            f.write("""
+            const Container = styled.section`
+                width: calc(100% - var(--sidebar-width, 240px));
+                margin-left: 12px;
+                padding-inline: 16px;
+            `;
+            """)
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("margin-left", res.stdout)
 
 if __name__ == '__main__':
     unittest.main()

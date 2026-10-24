@@ -34,7 +34,7 @@ class TestCoreSync(unittest.TestCase):
         self.assertIn('tokens', bundle)
 
         # Check all FSM files
-        for fname in ['data-table-loader.json', 'modal-dialog.json', 'button-states.json']:
+        for fname in ['data-table-loader.json', 'modal-dialog.json', 'button-states.json', 'multi-step-wizard.json']:
             self.assertIn(fname, bundle['fsm'])
             source_path = os.path.join(self.fsm_dir, fname)
             with open(source_path, 'r', encoding='utf-8') as sf:

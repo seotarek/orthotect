@@ -17,7 +17,7 @@ const fsmDir = path.join(rootDir, 'core', 'fsm');
 const tokensDir = path.join(rootDir, 'core', 'tokens');
 const outputFile = path.join(rootDir, 'docs', 'core-models.js');
 
-const fsmFiles = ['data-table-loader.json', 'modal-dialog.json', 'button-states.json'];
+const fsmFiles = ['data-table-loader.json', 'modal-dialog.json', 'button-states.json', 'multi-step-wizard.json'];
 const fsmData = {};
 
 for (const file of fsmFiles) {
