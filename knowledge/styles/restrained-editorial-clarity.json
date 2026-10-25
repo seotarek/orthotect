@@ -30,7 +30,7 @@
   "layoutRhythm": {
     "density": "comfortable",
     "gridStructure": "12-column asymmetric grid with wide margins (min 48px), offset blockquotes, and dedicated margin annotation rail",
-    "whitespaceDiscipline": "Generous vertical cadence (48px\u201396px between semantic chapters); zero cramped card containers"
+    "whitespaceDiscipline": "Generous vertical cadence (48px–96px between semantic chapters); zero cramped card containers"
   },
   "surfaceTreatment": {
     "radius": "2px to 4px subtle rounded corners; sharp architectural edges on structural panels",
@@ -71,6 +71,6 @@
     "gatesPassed": [],
     "browserVerified": false,
     "verifiedAt": "2026-10-23T04:00:00Z",
-    "revision": "v1.8.0"
+    "revision": "v1.8.1"
   }
 }

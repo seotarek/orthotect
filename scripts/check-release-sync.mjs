@@ -15,11 +15,16 @@ const ROOT = resolve(__dirname, '..');
 
 const errors = [];
 const successes = [];
+const skipped = [];
 
 function check(name, fn) {
   try {
-    fn();
-    successes.push(name);
+    const res = fn();
+    if (res && res.skipped) {
+      skipped.push({ name, reason: res.reason });
+    } else {
+      successes.push(name);
+    }
   } catch (err) {
     errors.push({ name, message: err.message });
   }
@@ -126,15 +131,13 @@ check('Git local tag existence', () => {
     }
     if (!tags.includes(expectedTag)) {
       if (process.env.CI || process.env.GITHUB_ACTIONS) {
-        console.log(`[NOTICE] Git local tags not fetched in shallow CI checkout; verified package consistency.`);
-        return;
+        return { skipped: true, reason: 'Git local tags not fetched in shallow CI checkout' };
       }
       throw new Error(`Git tag '${expectedTag}' does not exist locally. Run 'git tag ${expectedTag}' or create via gh release.`);
     }
   } catch (err) {
     if (process.env.CI || process.env.GITHUB_ACTIONS) {
-      console.log(`[NOTICE] Git tag check in CI: ${err.message}`);
-      return;
+      return { skipped: true, reason: `Git tag check in CI: ${err.message}` };
     }
     throw new Error(`Git tag check failed: ${err.message}`);
   }
@@ -177,8 +180,7 @@ check('GitHub Release publication parity', () => {
       if (process.env.CI || process.env.GITHUB_ACTIONS) {
         throw new Error(`GitHub Release '${expectedTag}' publication verification failed in CI: ${apiErr.message}`);
       }
-      console.log(`[NOTICE] Offline/sandboxed environment: GitHub Release API unreachable (${apiErr.message.split('\n')[0]})`);
-      return;
+      return { skipped: true, reason: `Offline/sandboxed environment: GitHub Release API unreachable (${apiErr.message.split('\n')[0]})` };
     }
   }
 
@@ -191,6 +193,9 @@ console.log(`\n=== Orthotect Release Synchronization Report (Target: v${canonica
 for (const s of successes) {
   console.log(`  ✓ ${s}`);
 }
+for (const k of skipped) {
+  console.log(`  ⚠ ${k.name} [UNVERIFIED: ${k.reason}]`);
+}
 
 if (errors.length > 0) {
   console.error(`\n❌ Version Parity Violations Found (${errors.length}):`);
@@ -198,6 +203,9 @@ if (errors.length > 0) {
     console.error(`  - [FAIL] ${e.name}: ${e.message}`);
   }
   process.exit(1);
+} else if (skipped.length > 0) {
+  console.log(`\n⚠ Partial Version Parity Enforced: ${successes.length} check(s) passed, ${skipped.length} check(s) unverified (network/remote verification required).\n`);
+  process.exit(0);
 } else {
   console.log(`\n✅ 100% Version Parity Enforced: Repository, Docs, Git Tags & Releases are synchronized.\n`);
   process.exit(0);

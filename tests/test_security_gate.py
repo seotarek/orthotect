@@ -397,5 +397,52 @@ function displayUserMessage() {
         findings = scan_file(fpath)
         self.assertEqual(len(findings), 0)
 
+    def test_indirect_dom_xss_mixed_expression_assignment_flagged(self):
+        content = """
+function displayUserMessage() {
+    const raw = location.search;
+    const mixed = DOMPurify.sanitize(raw) + raw;
+    document.getElementById("output").innerHTML = mixed;
+}
+"""
+        fpath = self._create_temp_file("taint_mixed.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_direct_mixed_sink_flagged(self):
+        content = """
+function displayUserMessage() {
+    const raw = location.search;
+    document.getElementById("output").innerHTML = DOMPurify.sanitize(raw) + raw;
+}
+"""
+        fpath = self._create_temp_file("taint_direct_mixed.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_reassignment_to_sanitized_clears_taint(self):
+        content = """
+function displayUserMessage() {
+    let msg = location.search;
+    msg = DOMPurify.sanitize(msg);
+    document.getElementById("output").innerHTML = msg;
+}
+"""
+        fpath = self._create_temp_file("taint_reassign_sanitized.js", content)
+        findings = scan_file(fpath)
+        self.assertEqual(len(findings), 0)
+
+    def test_indirect_dom_xss_reassignment_to_safe_static_clears_taint(self):
+        content = """
+function displayUserMessage() {
+    let raw = location.search;
+    raw = "Safe static system notification";
+    document.getElementById("output").innerHTML = raw;
+}
+"""
+        fpath = self._create_temp_file("taint_reassign_static.js", content)
+        findings = scan_file(fpath)
+        self.assertEqual(len(findings), 0)
+
 if __name__ == '__main__':
     unittest.main()

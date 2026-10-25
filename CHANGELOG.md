@@ -4,6 +4,20 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.1] - 2026-10-25
+
+### Fixed
+- **Taint Analysis Mixed-Expression Hardening (`gates/gate_security_audit.py`)**:
+  - Implemented balanced-parenthesis sanitizer masking (`mask_sanitizers`) supporting arbitrary nesting depths.
+  - Closed mixed-expression taint bypass where partially sanitized compound expressions (`DOMPurify.sanitize(raw) + raw`) bypassed detection.
+  - Added automatic taint state clearing upon variable re-assignment to fully sanitized or static values (`raw = DOMPurify.sanitize(raw)`), eliminating false positives.
+  - Added 4 new dedicated unit tests covering mixed assignments, mixed direct sinks, and reassignment clearing (expanding security suite to 39 tests).
+- **Fail-Safe Release Synchronization & Truthful Reporting (`scripts/check-release-sync.mjs`)**:
+  - Differentiated between verified, unverified (offline/sandboxed), and failed checks.
+  - Returns explicit `[UNVERIFIED]` status for remote checks when network is inaccessible, preventing false claims of 100% parity outside CI.
+- **Package Registry Parity**:
+  - Bumped version to `1.8.1` across repository, tokens, styles, docs, and lockfile to ensure published GitHub Packages artifact matches the final commit.
+
 ## [1.8.0] - 2026-10-25
 
 ### Added

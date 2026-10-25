@@ -248,12 +248,52 @@ def scan_python_ast(filepath, content):
 
     return findings
 
+def mask_sanitizers(expr):
+    """
+    Replaces properly invoked sanitizer function calls with '__SANITIZED__'
+    while correctly tracking balanced parentheses to support arbitrary nesting.
+    Recognized sanitizers: DOMPurify.sanitize, sanitize, escapeHTML, encodeURIComponent.
+    """
+    sanitizer_prefixes = ("DOMPurify.sanitize", "sanitize", "escapeHTML", "encodeURIComponent")
+    out = []
+    i = 0
+    n = len(expr)
+    while i < n:
+        matched_prefix = None
+        for prefix in sanitizer_prefixes:
+            if expr.startswith(prefix, i):
+                if i == 0 or not (expr[i - 1].isalnum() or expr[i - 1] == "_"):
+                    matched_prefix = prefix
+                    break
+        if matched_prefix:
+            j = i + len(matched_prefix)
+            while j < n and expr[j].isspace():
+                j += 1
+            if j < n and expr[j] == "(":
+                depth = 1
+                k = j + 1
+                while k < n and depth > 0:
+                    if expr[k] == "(":
+                        depth += 1
+                    elif expr[k] == ")":
+                        depth -= 1
+                    k += 1
+                if depth == 0:
+                    out.append("__SANITIZED__")
+                    i = k
+                    continue
+        out.append(expr[i])
+        i += 1
+    return "".join(out)
+
 def scan_intrafile_taint(filepath, content):
     """
     Intra-file lexical & pattern taint tracking:
     Identifies untrusted sources assigned to local variables and traces their propagation
     through variable assignments, method chains (e.g. raw.trim()), string concatenation,
     and compound expressions into dangerous sinks (e.g. innerHTML, outerHTML, document.write).
+    Properly handles mixed sanitized/unsanitized expressions and clears taint when variables
+    are reassigned to sanitized or safe values.
     """
     findings = []
     lines = content.splitlines()
@@ -263,9 +303,6 @@ def scan_intrafile_taint(filepath, content):
     )
     untrusted_source_re = re.compile(
         r'\b(?:location\.(?:search|hash|href|pathname)|document\.(?:URL|referrer|cookie)|window\.name|new\s+URLSearchParams\()'
-    )
-    sanitizer_pattern = re.compile(
-        r'\b(?:DOMPurify\.sanitize|sanitize|escapeHTML|encodeURIComponent)\s*\('
     )
     sink_pattern = re.compile(
         r'(?:\.innerHTML|\.outerHTML)\s*=\s*([^;\n]+)|document\.write(?:ln)?\s*\(\s*([^;\n]+)\s*\)'
@@ -282,55 +319,51 @@ def scan_intrafile_taint(filepath, content):
         m_sink = sink_pattern.search(line)
         if m_sink:
             sink_expr = (m_sink.group(1) or m_sink.group(2)).strip()
+            masked_sink = mask_sanitizers(sink_expr)
 
             # Check if sink directly consumes untrusted source (direct DOM XSS)
-            if untrusted_source_re.search(sink_expr):
-                if not sanitizer_pattern.search(sink_expr):
-                    findings.append((
-                        idx,
-                        "DOM XSS (Direct Sink): Direct untrusted source assigned to dangerous DOM sink without sanitization",
-                        CRITICAL,
-                        line.strip()[:80]
-                    ))
+            if untrusted_source_re.search(masked_sink):
+                findings.append((
+                    idx,
+                    "DOM XSS (Direct Sink): Direct untrusted source assigned to dangerous DOM sink without sanitization",
+                    CRITICAL,
+                    line.strip()[:80]
+                ))
             else:
-                # Check if sink consumes any tainted variable
+                # Check if sink consumes any tainted variable without sanitization
                 for tvar, sline in tainted_vars.items():
-                    if re.search(r'\b' + re.escape(tvar) + r'\b', sink_expr):
-                        # Verify whether this specific variable is wrapped in a sanitizer in the sink expression
-                        sanitized_usage = re.search(
-                            r'\b(?:DOMPurify\.sanitize|sanitize|escapeHTML|encodeURIComponent)\s*\([^)]*\b' + re.escape(tvar) + r'\b[^)]*\)',
-                            sink_expr
-                        )
-                        if not sanitized_usage:
-                            findings.append((
-                                idx,
-                                f"DOM XSS (Taint Flow): Variable '{tvar}' (tainted from line {sline}) passed to dangerous DOM sink",
-                                CRITICAL,
-                                line.strip()[:80]
-                            ))
-                            break
+                    if re.search(r'\b' + re.escape(tvar) + r'\b', masked_sink):
+                        findings.append((
+                            idx,
+                            f"DOM XSS (Taint Flow): Variable '{tvar}' (tainted from line {sline}) passed to dangerous DOM sink",
+                            CRITICAL,
+                            line.strip()[:80]
+                        ))
+                        break
 
-        # 2. Check for variable declarations and taint propagation
+        # 2. Check for variable declarations, taint propagation, or taint clearing
         m_assign = assign_pattern.search(line)
         if m_assign:
             var_name = m_assign.group(1)
             rhs = m_assign.group(2).strip()
+            masked_rhs = mask_sanitizers(rhs)
 
-            # Case A: Assigned directly from an untrusted source
-            if untrusted_source_re.search(rhs):
-                if not sanitizer_pattern.search(rhs):
-                    tainted_vars[var_name] = idx
+            # Case A: Assigned directly from an untrusted source without full sanitization
+            if untrusted_source_re.search(masked_rhs):
+                tainted_vars[var_name] = idx
             else:
                 # Case B: Propagation through method chains, string concatenation, or compound expressions
+                propagated_source_line = None
                 for tvar, sline in list(tainted_vars.items()):
-                    if re.search(r'\b' + re.escape(tvar) + r'\b', rhs):
-                        sanitized_usage = re.search(
-                            r'\b(?:DOMPurify\.sanitize|sanitize|escapeHTML|encodeURIComponent)\s*\([^)]*\b' + re.escape(tvar) + r'\b[^)]*\)',
-                            rhs
-                        )
-                        if not sanitized_usage:
-                            tainted_vars[var_name] = sline
-                            break
+                    if re.search(r'\b' + re.escape(tvar) + r'\b', masked_rhs):
+                        propagated_source_line = sline
+                        break
+
+                if propagated_source_line is not None:
+                    tainted_vars[var_name] = propagated_source_line
+                elif var_name in tainted_vars:
+                    # Variable was reassigned to a safe/sanitized value; clear its taint
+                    del tainted_vars[var_name]
 
     return findings
 
