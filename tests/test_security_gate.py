@@ -525,9 +525,7 @@ function displayUserMessage() {
 
     def test_indirect_dom_xss_verified_custom_sanitizer_permitted(self):
         content = """
-function escapeHTML(str) {
-    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
+import { escapeHTML } from 'escape-html';
 function displayUserMessage() {
     const raw = location.search;
     const safe = escapeHTML(raw);
@@ -549,6 +547,52 @@ element.innerHTML = cleaned;
         findings = scan_file(fpath)
         self.assertTrue(any("Taint Flow" in f[1] for f in findings))
 
+    def test_indirect_dom_xss_dummy_sanitizehtml_shadow_flagged(self):
+        content = """
+const sanitizeHtml = value => value;
+const raw = location.search;
+const cleaned = sanitizeHtml(raw);
+element.innerHTML = cleaned;
+"""
+        fpath = self._create_temp_file("taint_dummy_sanitizehtml.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_fake_escapehtml_dead_marker_flagged(self):
+        content = """
+function escapeHTML(value) {
+    const marker = "&lt;";
+    return value;
+}
+const raw = location.search;
+const cleaned = escapeHTML(raw);
+element.innerHTML = cleaned;
+"""
+        fpath = self._create_temp_file("taint_dead_marker.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_multi_variable_comma_declaration_flagged(self):
+        content = """
+const raw = location.search, clean = raw;
+element.innerHTML = clean;
+"""
+        fpath = self._create_temp_file("taint_multi_variable_comma.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_imported_sanitizehtml_permitted(self):
+        content = """
+import sanitizeHtml from 'sanitize-html';
+const raw = location.search;
+const cleaned = sanitizeHtml(raw);
+element.innerHTML = cleaned;
+"""
+        fpath = self._create_temp_file("taint_imported_sanitizehtml.js", content)
+        findings = scan_file(fpath)
+        self.assertEqual(len(findings), 0)
+
 if __name__ == '__main__':
     unittest.main()
+
 

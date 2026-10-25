@@ -4,6 +4,23 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.4] - 2026-10-25
+
+### Fixed
+- **Zero-Trust for In-File Function Sanitizers & Anti-Shadowing Resolver (`gates/gate_security_audit.py`)**:
+  - Completely replaced text-matching heuristics (`has_entity_escaping()`) with strict Zero-Trust: any locally declared function, variable, or class shadowing a sanitizer identifier (`sanitizeHtml`, `escapeHTML`, `DOMPurify`, etc.) is immediately disqualified from the trusted set.
+  - Bare sanitizers (`sanitizeHtml`, `escapeHTML`, `escapeHtml`) are ONLY trusted when explicitly imported from vetted packages (`sanitize-html`, `escape-html`).
+  - Base trusted sanitizers strictly scoped to audited namespaces: `DOMPurify.sanitize`, `validator.escape`, `he.encode`.
+- **Multi-Variable Comma-Separated Declarations Parser (`gates/gate_security_audit.py`)**:
+  - Added `split_comma_declarations()` with string literal, parenthesis, bracket, and brace depth tracking to decompose comma-separated declarators (e.g., `const raw = location.search, clean = raw;`).
+  - Ensures intra-statement taint propagation across intermediate variable declarations in single statements without false splits on nested expressions or object literals.
+- **Accurate SAST Scope Specification & CI Precision**:
+  - Clarified CI step description and documentation to accurately report "Eligible Application Source Files" (133 files), explicitly distinguishing scanned application source files from test fixtures, CI workflows, and non-scannable infrastructure files.
+- **Test Suite Expansion**:
+  - Added 4 new negative and positive security regression unit tests in `tests/test_security_gate.py` (total 52 tests), bringing total repository tests to **348 Automated Tests** (100% pass rate).
+- **Ecosystem Synchronization**:
+  - Synchronized version `1.8.4` across all 28 repository files, tokens, style recipes, and docs.
+
 ## [1.8.3] - 2026-10-25
 
 ### Fixed

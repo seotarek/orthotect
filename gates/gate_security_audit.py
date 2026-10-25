@@ -255,71 +255,63 @@ BASE_TRUSTED_SANITIZERS = (
     "DOMPurify.sanitize",
     "validator.escape",
     "he.encode",
-    "sanitizeHtml",
 )
 
 def resolve_trusted_sanitizers(content):
     """
     Deterministically resolves the set of trusted HTML sanitizers for a specific file.
     Guarantees:
-    1. Base trusted libraries: DOMPurify.sanitize, validator.escape, he.encode, sanitizeHtml.
-    2. encodeURI and encodeURIComponent are EXCLUDED (URI encoders, not HTML sanitizers).
-    3. Shadowing / Fake Definitions: If a file declares a local dummy definition (e.g.
-       'const escapeHTML = value => value' or 'const DOMPurify = { sanitize: x => x }'),
-       it is classified as UNTRUSTED and cannot neutralize taint.
-    4. Custom Sanitizers: 'escapeHTML' or 'escapeHtml' are trusted ONLY if they are:
-       - Explicitly imported from an external library, OR
-       - Defined locally with verified HTML entity escaping logic (e.g. &amp;, &lt;, etc.).
+    1. Base trusted libraries: DOMPurify.sanitize, validator.escape, he.encode.
+    2. Zero-Trust for In-File Definitions: Local variable/function/class declarations in the file
+       are NEVER trusted as sanitizers (an in-file custom function cannot be proven safe via regexes).
+    3. Shadowing Protection: If a library identifier ('DOMPurify', 'validator', 'he', 'sanitizeHtml', etc.)
+       is declared or shadowed locally (e.g. 'const sanitizeHtml = value => value' or 'const DOMPurify = { sanitize: ... }'),
+       it is classified as UNTRUSTED and stripped from the trusted set.
+    4. Verified Library Imports: Bare functions like 'sanitizeHtml', 'escapeHTML', 'escapeHtml'
+       are trusted ONLY when explicitly imported from their verified packages ('sanitize-html', 'escape-html').
+    5. URI Encoders Excluded: encodeURI and encodeURIComponent are NOT permitted as HTML sanitizers.
     """
     trusted = set(BASE_TRUSTED_SANITIZERS)
 
-    # 1. Check for imports of custom sanitizers (e.g. import { escapeHTML } from '...')
+    # 1. Check for verified external package imports
     import_re = re.compile(
-        r'\bimport\s+[^;]*?\b(escapeHTML|escapeHtml)\b[^;]*?from\s*["\']|'
-        r'const\s*\{[^}]*?\b(escapeHTML|escapeHtml)\b[^}]*?\}\s*=\s*require\('
+        r'\bimport\s+(?:\{[^}]*?\b(sanitizeHtml|escapeHTML|escapeHtml)\b[^}]*?\}|([a-zA-Z0-9_$]+))\s+from\s*["\']([^"\']+)["\']|'
+        r'(?:const|let|var)\s+(?:\{[^}]*?\b(sanitizeHtml|escapeHTML|escapeHtml)\b[^}]*?\}\s*=\s*require\(["\']([^"\']+)["\']|([a-zA-Z0-9_$]+)\s*=\s*require\(["\']([^"\']+)["\']\))'
     )
     for m in import_re.finditer(content):
-        name = m.group(1) or m.group(2)
-        if name:
-            trusted.add(name)
+        named = m.group(1) or m.group(4)
+        default_name = m.group(2) or m.group(5)
+        pkg = m.group(3) or m.group(6) or ''
+        
+        if 'sanitize-html' in pkg:
+            trusted.add('sanitizeHtml')
+            if default_name:
+                trusted.add(default_name)
+        if 'escape-html' in pkg:
+            trusted.add('escapeHTML')
+            trusted.add('escapeHtml')
+            if default_name:
+                trusted.add(default_name)
 
-    # 2. Check for local declarations/definitions
+    # 2. Detect ALL local in-file declarations (variables, functions, classes)
     decl_pattern = re.compile(
-        r'(?:(?:const|let|var)\s+([a-zA-Z0-9_$]+)\s*=\s*([^;\n]+)|function\s+([a-zA-Z0-9_$]+)\s*\(([^)]*)\)\s*\{([^}]*)\})'
+        r'(?:(?:const|let|var)\s+([a-zA-Z0-9_$]+)\s*=|function\s+([a-zA-Z0-9_$]+)\s*\(|class\s+([a-zA-Z0-9_$]+)\b)'
     )
-
-    def has_entity_escaping(code_str):
-        return bool(re.search(
-            r'&(?:amp|lt|gt|quot|#39|#x27);|\b(?:replace|replaceAll)\s*\(\s*\/[^\/]*[<>&][^\/]*\/|\bcreateElement\s*\(\s*["\']div["\']\s*\)',
-            code_str
-        ))
-
-    def is_dummy_func(code_str):
-        m_arrow = re.search(r'(?:\(([a-zA-Z0-9_$]+)\)|([a-zA-Z0-9_$]+))\s*=>\s*(?:\{\s*return\s+(?:\1|\2)\s*;?\s*\}|(?:\1|\2)\b)', code_str)
-        if m_arrow:
-            return True
-        m_func = re.search(r'function\s*\(\s*([a-zA-Z0-9_$]+)\s*\)\s*\{\s*return\s+\1\s*;?\s*\}', code_str)
-        if m_func:
-            return True
-        return False
-
+    local_shadows = set()
     for m in decl_pattern.finditer(content):
-        var_name = m.group(1) or m.group(3)
-        body = m.group(2) or m.group(5) or ""
+        name = m.group(1) or m.group(2) or m.group(3)
+        if name:
+            local_shadows.add(name)
 
-        if var_name in ("escapeHTML", "escapeHtml"):
-            if is_dummy_func(body) or not has_entity_escaping(body):
-                trusted.discard(var_name)
-            elif has_entity_escaping(body):
-                trusted.add(var_name)
-
-        if var_name == "DOMPurify":
-            if is_dummy_func(body) or not has_entity_escaping(body):
-                trusted.discard("DOMPurify.sanitize")
-
-        if var_name == "validator":
-            if is_dummy_func(body) or not has_entity_escaping(body):
-                trusted.discard("validator.escape")
+    # Discard any candidate shadowed locally
+    if 'DOMPurify' in local_shadows:
+        trusted.discard('DOMPurify.sanitize')
+    if 'validator' in local_shadows:
+        trusted.discard('validator.escape')
+    if 'he' in local_shadows:
+        trusted.discard('he.encode')
+    for shadow in local_shadows:
+        trusted.discard(shadow)
 
     return tuple(sorted(trusted))
 
@@ -429,6 +421,77 @@ def split_statements(line):
         statements.append(stmt)
     return statements
 
+def split_comma_declarations(stmt):
+    """
+    Expands comma-separated variable declarations (e.g. 'const raw = location.search, clean = raw')
+    into sequential sub-statements while respecting quotes, parentheses, brackets, and braces.
+    """
+    s = stmt.strip()
+    decl_prefix = ''
+    for kw in ('const ', 'let ', 'var '):
+        if s.startswith(kw):
+            decl_prefix = kw
+            s = s[len(kw):].strip()
+            break
+
+    parts = []
+    current = []
+    in_quote = None
+    escaped = False
+    paren_depth = 0
+    bracket_depth = 0
+    brace_depth = 0
+
+    for char in s:
+        if escaped:
+            current.append(char)
+            escaped = False
+            continue
+        if char == "\\":
+            current.append(char)
+            escaped = True
+            continue
+        if in_quote:
+            current.append(char)
+            if char == in_quote:
+                in_quote = None
+        elif char in ("\"", "'", "`"):
+            in_quote = char
+            current.append(char)
+        elif char == "(":
+            paren_depth += 1
+            current.append(char)
+        elif char == ")":
+            paren_depth = max(0, paren_depth - 1)
+            current.append(char)
+        elif char == "[":
+            bracket_depth += 1
+            current.append(char)
+        elif char == "]":
+            bracket_depth = max(0, bracket_depth - 1)
+            current.append(char)
+        elif char == "{":
+            brace_depth += 1
+            current.append(char)
+        elif char == "}":
+            brace_depth = max(0, brace_depth - 1)
+            current.append(char)
+        elif char == ",":
+            if paren_depth == 0 and bracket_depth == 0 and brace_depth == 0:
+                p = "".join(current).strip()
+                if p:
+                    parts.append(decl_prefix + p if decl_prefix else p)
+                current = []
+            else:
+                current.append(char)
+        else:
+            current.append(char)
+
+    p = "".join(current).strip()
+    if p:
+        parts.append(decl_prefix + p if decl_prefix else p)
+    return parts
+
 def scan_intrafile_taint(filepath, content):
     """
     Intra-file lexical & pattern taint tracking:
@@ -439,12 +502,14 @@ def scan_intrafile_taint(filepath, content):
     Key Soundness Guarantees:
     1. Sequential Statement Processing: Evaluates multiple statements on a single line in order,
        respecting semicolons inside loops and expressions.
-    2. Conservative Branch Sensitivity: Safe reassignments inside conditional blocks
+    2. Comma-Separated Declaration Processing: Expands comma-separated variable declarations
+       (const raw = location.search, clean = raw) sequentially to track taint propagation.
+    3. Conservative Branch Sensitivity: Safe reassignments inside conditional blocks
        (if/else/switch/case/catch/loops) or un-braced control statements do NOT clear taint.
-    3. Unconditional Reassignment Clearing: Taint state is cleared only when reassigned
+    4. Unconditional Reassignment Clearing: Taint state is cleared only when reassigned
        at the same lexical block depth without conditional guards.
-    4. Anti-Shadowing Sanitizer Resolution: Rejects dummy/fake sanitizers (e.g. escapeHTML = x => x)
-       and enforces verified implementations.
+    5. Zero-Trust for In-File Sanitizers: Rejects local dummy or identity definitions,
+       requiring audited external libraries or verified imports.
     """
     findings = []
     lines = content.splitlines()
@@ -476,88 +541,90 @@ def scan_intrafile_taint(filepath, content):
             continue
 
         statements = split_statements(line)
-        for stmt in statements:
-            open_braces = 0
-            close_braces = 0
-            in_q = None
-            esc = False
-            for ch in stmt:
-                if esc:
-                    esc = False
-                    continue
-                if ch == "\\":
-                    esc = True
-                    continue
-                if in_q:
-                    if ch == in_q:
-                        in_q = None
-                elif ch in ("\"", "'", "`"):
-                    in_q = ch
-                elif ch == "{":
-                    open_braces += 1
-                elif ch == "}":
-                    close_braces += 1
+        for raw_stmt in statements:
+            sub_stmts = split_comma_declarations(raw_stmt)
+            for stmt in sub_stmts:
+                open_braces = 0
+                close_braces = 0
+                in_q = None
+                esc = False
+                for ch in stmt:
+                    if esc:
+                        esc = False
+                        continue
+                    if ch == "\\":
+                        esc = True
+                        continue
+                    if in_q:
+                        if ch == in_q:
+                            in_q = None
+                    elif ch in ("\"", "'", "`"):
+                        in_q = ch
+                    elif ch == "{":
+                        open_braces += 1
+                    elif ch == "}":
+                        close_braces += 1
 
-            net_brace = open_braces - close_braces
-            is_conditional = bool(conditional_keyword_re.search(stmt)) or pending_conditional
-            if pending_conditional:
-                pending_conditional = False
+                net_brace = open_braces - close_braces
+                is_conditional = bool(conditional_keyword_re.search(stmt)) or pending_conditional
+                if pending_conditional:
+                    pending_conditional = False
 
-            if header_re.search(stmt):
-                pending_conditional = True
+                if header_re.search(stmt):
+                    pending_conditional = True
 
-            # 1. Check for dangerous sink usage
-            m_sink = sink_pattern.search(stmt)
-            if m_sink:
-                sink_expr = (m_sink.group(1) or m_sink.group(2)).strip()
-                masked_sink = mask_sanitizers(sink_expr, trusted_sanitizers)
+                # 1. Check for dangerous sink usage
+                m_sink = sink_pattern.search(stmt)
+                if m_sink:
+                    sink_expr = (m_sink.group(1) or m_sink.group(2)).strip()
+                    masked_sink = mask_sanitizers(sink_expr, trusted_sanitizers)
 
-                # Check if sink directly consumes untrusted source (direct DOM XSS)
-                if untrusted_source_re.search(masked_sink):
-                    findings.append((
-                        idx,
-                        "DOM XSS (Direct Sink): Direct untrusted source assigned to dangerous DOM sink without sanitization",
-                        CRITICAL,
-                        stmt.strip()[:80]
-                    ))
-                else:
-                    # Check if sink consumes any tainted variable without sanitization
-                    for tvar, meta in list(tainted_vars.items()):
-                        if re.search(r'\b' + re.escape(tvar) + r'\b', masked_sink):
-                            findings.append((
-                                idx,
-                                f"DOM XSS (Taint Flow): Variable '{tvar}' (tainted from line {meta['line']}) passed to dangerous DOM sink",
-                                CRITICAL,
-                                stmt.strip()[:80]
-                            ))
-                            break
+                    # Check if sink directly consumes untrusted source (direct DOM XSS)
+                    if untrusted_source_re.search(masked_sink):
+                        findings.append((
+                            idx,
+                            "DOM XSS (Direct Sink): Direct untrusted source assigned to dangerous DOM sink without sanitization",
+                            CRITICAL,
+                            stmt.strip()[:80]
+                        ))
+                    else:
+                        # Check if sink consumes any tainted variable without sanitization
+                        for tvar, meta in list(tainted_vars.items()):
+                            if re.search(r'\b' + re.escape(tvar) + r'\b', masked_sink):
+                                findings.append((
+                                    idx,
+                                    f"DOM XSS (Taint Flow): Variable '{tvar}' (tainted from line {meta['line']}) passed to dangerous DOM sink",
+                                    CRITICAL,
+                                    stmt.strip()[:80]
+                                ))
+                                break
 
-            # 2. Check for variable declarations, taint propagation, or taint clearing
-            m_assign = assign_pattern.search(stmt)
-            if m_assign:
-                var_name = m_assign.group(1)
-                rhs = m_assign.group(2).strip()
-                masked_rhs = mask_sanitizers(rhs, trusted_sanitizers)
+                # 2. Check for variable declarations, taint propagation, or taint clearing
+                m_assign = assign_pattern.search(stmt)
+                if m_assign:
+                    var_name = m_assign.group(1)
+                    rhs = m_assign.group(2).strip()
+                    masked_rhs = mask_sanitizers(rhs, trusted_sanitizers)
 
-                # Case A: Assigned directly from an untrusted source without full sanitization
-                if untrusted_source_re.search(masked_rhs):
-                    tainted_vars[var_name] = {"line": idx, "depth": brace_depth}
-                else:
-                    # Case B: Propagation through method chains, string concatenation, or compound expressions
-                    propagated_source_line = None
-                    for tvar, meta in list(tainted_vars.items()):
-                        if re.search(r'\b' + re.escape(tvar) + r'\b', masked_rhs):
-                            propagated_source_line = meta["line"]
-                            break
+                    # Case A: Assigned directly from an untrusted source without full sanitization
+                    if untrusted_source_re.search(masked_rhs):
+                        tainted_vars[var_name] = {"line": idx, "depth": brace_depth}
+                    else:
+                        # Case B: Propagation through method chains, string concatenation, or compound expressions
+                        propagated_source_line = None
+                        for tvar, meta in list(tainted_vars.items()):
+                            if re.search(r'\b' + re.escape(tvar) + r'\b', masked_rhs):
+                                propagated_source_line = meta["line"]
+                                break
 
-                    if propagated_source_line is not None:
-                        tainted_vars[var_name] = {"line": propagated_source_line, "depth": brace_depth}
-                    elif var_name in tainted_vars:
-                        # Taint is cleared ONLY on unconditional reassignments at the same or outer lexical scope
-                        if brace_depth <= tainted_vars[var_name]["depth"] and not is_conditional:
-                            del tainted_vars[var_name]
+                        if propagated_source_line is not None:
+                            tainted_vars[var_name] = {"line": propagated_source_line, "depth": brace_depth}
+                        elif var_name in tainted_vars:
+                            # Taint is cleared ONLY on unconditional reassignments at the same or outer lexical scope
+                            if brace_depth <= tainted_vars[var_name]["depth"] and not is_conditional:
+                                del tainted_vars[var_name]
 
-            brace_depth = max(0, brace_depth + net_brace)
+                brace_depth = max(0, brace_depth + net_brace)
 
     return findings
 
