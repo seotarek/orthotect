@@ -198,5 +198,25 @@ function broadcastToken(token) {
         findings = scan_file(fpath)
         self.assertTrue(any("Insecure Cross-Origin postMessage" in f[1] for f in findings))
 
+    # 10. False Positive Prevention Tests
+    def test_false_positive_static_relative_read(self):
+        content = """
+import fs from 'fs';
+const data = fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8');
+"""
+        fpath = self._create_temp_file("static_read.mjs", content)
+        findings = scan_file(fpath)
+        self.assertEqual(len(findings), 0)
+
+    def test_false_positive_python_tuple_and_list_insert(self):
+        content = """
+import sys
+keywords = ('delete', 'void', 'throw', 'yield', 'await', 'default')
+sys.path.insert(0, '/root')
+"""
+        fpath = self._create_temp_file("tuple_insert.py", content)
+        findings = scan_file(fpath)
+        self.assertEqual(len(findings), 0)
+
 if __name__ == '__main__':
     unittest.main()

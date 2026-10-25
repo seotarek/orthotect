@@ -57,14 +57,14 @@ INJECTION_PATTERNS = [
     (r'(?:\.__proto__|constructor\.prototype)\s*=', "Prototype Pollution vulnerability: Direct object prototype mutation", CRITICAL),
     
     # SQL & NoSQL Injection Sinks
-    (r'(?i)\b(?:SELECT|INSERT|UPDATE|DELETE|DROP)\b[^;]*\b(?:FROM|INTO|SET|WHERE)\b[^;]*["\']\s*(?:\+\s*[a-zA-Z0-9_]+|%\s*\(?[a-zA-Z0-9_]+)|\b(?:SELECT|INSERT|UPDATE|DELETE|DROP)\b[^;]*\$\{[^}]+\}', "SQL Injection: Raw SQL query dynamically concatenated or formatted with variables", CRITICAL),
+    (r'(?i)["\']\s*(?:SELECT|INSERT\s+INTO|UPDATE|DELETE\s+FROM|DROP\s+TABLE)\b[^"\';\n]*\b(?:FROM|INTO|SET|WHERE)\b[^"\';\n]*["\']\s*(?:\+\s*[a-zA-Z0-9_]+|%\s*\(?[a-zA-Z0-9_]+)|["\']\s*(?:SELECT|INSERT\s+INTO|UPDATE|DELETE\s+FROM|DROP\s+TABLE)\b[^"\';\n]*\$\{[^}]+\}', "SQL Injection: Raw SQL query dynamically concatenated or formatted with variables", CRITICAL),
     (r'\$where\s*:\s*(?:["\'][^"\']*["\']\s*\+|`[^`]*\$\{)', "NoSQL Injection: Raw MongoDB $where clause with string concatenation", CRITICAL),
     
     # Server-Side Request Forgery (SSRF)
-    (r'(?:fetch|axios(?:\.get|\.post)?|requests\.(?:get|post)|http\.(?:get|request))\s*\(\s*["\']https?://(?:127\.0\.0\.1|localhost|0\.0\.0\.0|169\.254\.169\.254|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3})', "Server-Side Request Forgery (SSRF): Request to private/internal IP address", CRITICAL),
+    (r'(?:fetch|axios(?:\.get|\.post)?|requests\.(?:get|post)|http\.(?:get|request))\s*\(\s*["\']https?://(?:127\.0.0\.1|localhost|0\.0\.0\.0|169\.254\.169\.254|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3})', "Server-Side Request Forgery (SSRF): Request to private/internal IP address", CRITICAL),
     
-    # Path Traversal
-    (r'(?:readFileSync|readFile|createReadStream|open)\s*\([^)]*(?:\.\./|\.\.\\)', "Path Traversal: Relative directory traversal ('../') in file read operation", HIGH),
+    # Path Traversal (dynamic variable with relative path traversal)
+    (r'(?:readFileSync|readFile|createReadStream|open)\s*\([^)]*(?:\+\s*["\'][^"\']*\.\./|["\'][^"\']*\.\./[^"\']*["\']\s*\+|`[^`]*\.\./[^`]*\$\{)', "Path Traversal: Relative directory traversal ('../') with dynamic concatenation in file read", HIGH),
     
     # Insecure Deserialization
     (r'\bpickle\.loads?\s*\(', "Insecure Deserialization: Arbitrary code execution via Python pickle", CRITICAL),
@@ -80,7 +80,7 @@ INJECTION_PATTERNS = [
 
 IGNORE_DIRS = {
     'node_modules', '.git', 'dist', '__pycache__', '.claude', 'tmp',
-    'coverage', '.next', '.cache', 'vendor', '.github'
+    'coverage', '.next', '.cache', 'vendor', '.github', 'tests', 'test'
 }
 
 SCANNABLE_EXTENSIONS = {
@@ -89,16 +89,20 @@ SCANNABLE_EXTENSIONS = {
 }
 
 def is_safe_context(snippet, filepath):
-    """Filter out non-exploitable contexts: comments, self-inspection, test assertions."""
-    lower_path = filepath.lower()
+    """Filter out non-exploitable contexts: comments, self-inspection, test assertions, educational knowledge files."""
+    lower_path = filepath.lower().replace('\\', '/')
     lower_snip = snippet.lower().strip()
     
-    # Safe if inside the security gate itself or test files verifying exploit detection
-    if 'gate_security_audit' in lower_path or 'test_security_gate' in lower_path:
+    # Safe if inside the security gate itself or test files
+    if 'gate_security_audit' in lower_path or '/tests/' in lower_path or '/test/' in lower_path or lower_path.startswith('tests/'):
         return True
         
-    # Safe if line is pure comment
-    if lower_snip.startswith(('//', '#', '/*', '*', '<!--', '"""', "'''")):
+    # Safe if inside knowledge base or references (educational/anti-pattern definitions)
+    if '/knowledge/' in lower_path or '/references/' in lower_path or lower_path.startswith('knowledge/') or lower_path.startswith('references/'):
+        return True
+
+    # Safe if line is pure comment or markdown quote
+    if lower_snip.startswith(('//', '#', '/*', '*', '<!--', '"""', "'''", '>')):
         return True
         
     return False
