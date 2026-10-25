@@ -124,6 +124,28 @@ def scan_python_ast(filepath, content):
     except SyntaxError:
         return findings
 
+    # Import tracking for YAML modules, direct function imports, and custom aliases
+    yaml_modules = {'yaml'}
+    direct_unsafe_calls = {'unsafe_load'}
+    direct_load_calls = {'load'}
+    safe_loader_names = {'SafeLoader', 'CSafeLoader'}
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name == 'yaml' and alias.asname:
+                    yaml_modules.add(alias.asname)
+        elif isinstance(node, ast.ImportFrom):
+            if node.module == 'yaml':
+                for alias in node.names:
+                    local_name = alias.asname or alias.name
+                    if alias.name == 'unsafe_load':
+                        direct_unsafe_calls.add(local_name)
+                    elif alias.name == 'load':
+                        direct_load_calls.add(local_name)
+                    elif alias.name in ('SafeLoader', 'CSafeLoader'):
+                        safe_loader_names.add(local_name)
+
     for node in ast.walk(tree):
         # 1. SQL Injection via formatted strings in cursor.execute
         if isinstance(node, ast.Call):
@@ -174,28 +196,49 @@ def scan_python_ast(filepath, content):
                         "pickle.loads(...)"
                     ))
 
-            # 4. Insecure yaml.load / yaml.unsafe_load
-            if func_name == 'unsafe_load' and isinstance(node.func, ast.Attribute):
-                if isinstance(node.func.value, ast.Name) and node.func.value.id == 'yaml':
+            # 4. Insecure yaml.load / yaml.unsafe_load (with full alias & direct import support)
+            is_yaml_call = False
+            is_unsafe_call = False
+            is_load_call = False
+
+            if isinstance(node.func, ast.Attribute):
+                if isinstance(node.func.value, ast.Name) and node.func.value.id in yaml_modules:
+                    if node.func.attr == 'unsafe_load':
+                        is_yaml_call = True
+                        is_unsafe_call = True
+                    elif node.func.attr == 'load':
+                        is_yaml_call = True
+                        is_load_call = True
+            elif isinstance(node.func, ast.Name):
+                if node.func.id in direct_unsafe_calls:
+                    is_yaml_call = True
+                    is_unsafe_call = True
+                elif node.func.id in direct_load_calls:
+                    is_yaml_call = True
+                    is_load_call = True
+
+            if is_yaml_call:
+                if is_unsafe_call:
                     findings.append((
                         node.lineno,
                         "Insecure Deserialization: yaml.unsafe_load allows arbitrary code execution",
                         CRITICAL,
-                        "yaml.unsafe_load(...)"
+                        "unsafe_load(...)"
                     ))
-            elif func_name == 'load' and isinstance(node.func, ast.Attribute):
-                if isinstance(node.func.value, ast.Name) and node.func.value.id == 'yaml':
+                elif is_load_call:
                     loader_kw = next((kw for kw in node.keywords if kw.arg == 'Loader'), None)
-                    safe_loader_names = {'SafeLoader', 'CSafeLoader'}
-                    is_safe = False
+                    loader_safe = False
                     if loader_kw:
                         val = loader_kw.value
                         if isinstance(val, ast.Name) and val.id in safe_loader_names:
-                            is_safe = True
-                        elif isinstance(val, ast.Attribute) and val.attr in safe_loader_names:
-                            is_safe = True
+                            loader_safe = True
+                        elif isinstance(val, ast.Attribute):
+                            if (isinstance(val.value, ast.Name) and 
+                                val.value.id in yaml_modules and 
+                                val.attr in safe_loader_names):
+                                loader_safe = True
 
-                    if not is_safe:
+                    if not loader_safe:
                         findings.append((
                             node.lineno,
                             "Insecure Deserialization: yaml.load without SafeLoader",
@@ -209,55 +252,85 @@ def scan_intrafile_taint(filepath, content):
     """
     Intra-file lexical & pattern taint tracking:
     Identifies untrusted sources assigned to local variables and traces their propagation
-    into dangerous sinks (e.g. innerHTML, outerHTML, document.write) within the same file.
+    through variable assignments, method chains (e.g. raw.trim()), string concatenation,
+    and compound expressions into dangerous sinks (e.g. innerHTML, outerHTML, document.write).
     """
     findings = []
     lines = content.splitlines()
 
-    source_pattern = re.compile(
-        r'(?:const|let|var)\s+([a-zA-Z0-9_]+)\s*=\s*([^;\n]+)'
+    assign_pattern = re.compile(
+        r'(?:(?:const|let|var)\s+)?([a-zA-Z0-9_]+)\s*=\s*([^;\n]+)'
     )
     untrusted_source_re = re.compile(
         r'\b(?:location\.(?:search|hash|href|pathname)|document\.(?:URL|referrer|cookie)|window\.name|new\s+URLSearchParams\()'
     )
-    sanitizer_re = re.compile(
+    sanitizer_pattern = re.compile(
         r'\b(?:DOMPurify\.sanitize|sanitize|escapeHTML|encodeURIComponent)\s*\('
     )
     sink_pattern = re.compile(
-        r'(?:\.innerHTML|\.outerHTML)\s*=\s*([a-zA-Z0-9_]+)|document\.write(?:ln)?\s*\(\s*([a-zA-Z0-9_]+)\s*\)'
+        r'(?:\.innerHTML|\.outerHTML)\s*=\s*([^;\n]+)|document\.write(?:ln)?\s*\(\s*([^;\n]+)\s*\)'
     )
 
     tainted_vars = {}
 
     for idx, line in enumerate(lines, start=1):
         stripped = line.strip()
-        if stripped.startswith(('//', '/*', '*', '#')):
+        if stripped.startswith(('//', '/*', '*', '#', '<!--')):
             continue
 
-        m_var = source_pattern.search(line)
-        if m_var:
-            var_name = m_var.group(1)
-            rhs = m_var.group(2)
-
-            if sanitizer_re.search(rhs):
-                continue
-
-            if untrusted_source_re.search(rhs):
-                tainted_vars[var_name] = idx
-            elif rhs.strip() in tainted_vars:
-                tainted_vars[var_name] = idx
-
+        # 1. Check for dangerous sink usage
         m_sink = sink_pattern.search(line)
         if m_sink:
-            sink_var = m_sink.group(1) or m_sink.group(2)
-            if sink_var and sink_var in tainted_vars:
-                source_line = tainted_vars[sink_var]
-                findings.append((
-                    idx,
-                    f"DOM XSS (Taint Flow): Variable '{sink_var}' (tainted from line {source_line}) assigned to dangerous DOM sink",
-                    CRITICAL,
-                    line.strip()[:80]
-                ))
+            sink_expr = (m_sink.group(1) or m_sink.group(2)).strip()
+
+            # Check if sink directly consumes untrusted source (direct DOM XSS)
+            if untrusted_source_re.search(sink_expr):
+                if not sanitizer_pattern.search(sink_expr):
+                    findings.append((
+                        idx,
+                        "DOM XSS (Direct Sink): Direct untrusted source assigned to dangerous DOM sink without sanitization",
+                        CRITICAL,
+                        line.strip()[:80]
+                    ))
+            else:
+                # Check if sink consumes any tainted variable
+                for tvar, sline in tainted_vars.items():
+                    if re.search(r'\b' + re.escape(tvar) + r'\b', sink_expr):
+                        # Verify whether this specific variable is wrapped in a sanitizer in the sink expression
+                        sanitized_usage = re.search(
+                            r'\b(?:DOMPurify\.sanitize|sanitize|escapeHTML|encodeURIComponent)\s*\([^)]*\b' + re.escape(tvar) + r'\b[^)]*\)',
+                            sink_expr
+                        )
+                        if not sanitized_usage:
+                            findings.append((
+                                idx,
+                                f"DOM XSS (Taint Flow): Variable '{tvar}' (tainted from line {sline}) passed to dangerous DOM sink",
+                                CRITICAL,
+                                line.strip()[:80]
+                            ))
+                            break
+
+        # 2. Check for variable declarations and taint propagation
+        m_assign = assign_pattern.search(line)
+        if m_assign:
+            var_name = m_assign.group(1)
+            rhs = m_assign.group(2).strip()
+
+            # Case A: Assigned directly from an untrusted source
+            if untrusted_source_re.search(rhs):
+                if not sanitizer_pattern.search(rhs):
+                    tainted_vars[var_name] = idx
+            else:
+                # Case B: Propagation through method chains, string concatenation, or compound expressions
+                for tvar, sline in list(tainted_vars.items()):
+                    if re.search(r'\b' + re.escape(tvar) + r'\b', rhs):
+                        sanitized_usage = re.search(
+                            r'\b(?:DOMPurify\.sanitize|sanitize|escapeHTML|encodeURIComponent)\s*\([^)]*\b' + re.escape(tvar) + r'\b[^)]*\)',
+                            rhs
+                        )
+                        if not sanitized_usage:
+                            tainted_vars[var_name] = sline
+                            break
 
     return findings
 
@@ -362,6 +435,10 @@ def main():
             "passed": passed,
             "scannedFiles": len(files_to_scan),
             "vulnerabilityCount": total_vulns,
+            "scope": {
+                "included": "Application frontend & backend source files (.py, .js, .ts, .html, .json, .env*)",
+                "excluded": "tests/, .github/, node_modules/, dist/"
+            },
             "notice": "Deterministic SAST verification passed (AST & intra-file taint analysis). Verifies static syntax, dangerous sinks, and secrets; does not replace runtime penetration testing.",
             "vulnerabilities": [
                 {
@@ -380,7 +457,8 @@ def main():
 
     if is_md:
         print(f"### 🛡️ Orthotect Cybersecurity Gate Report")
-        print(f"**Target:** `{target_dir}` | **Status:** {'✅ PASSED (Deterministic SAST)' if passed else '❌ VULNERABILITIES DETECTED'} | **Files Scanned:** {len(files_to_scan)}\n")
+        print(f"**Target:** `{target_dir}` | **Status:** {'✅ PASSED (Deterministic SAST)' if passed else '❌ VULNERABILITIES DETECTED'} | **Files Scanned:** {len(files_to_scan)}")
+        print(f"**Scope:** Application source files (.py, .js, .ts, .html, .json, .env*). Excluded: tests/, .github/, node_modules/, dist/.\n")
         if not passed:
             print("| File | Line | Severity | Vulnerability | Snippet |")
             print("| :--- | :---: | :---: | :--- | :--- |")
@@ -394,11 +472,12 @@ def main():
 
     # Standard Console ASCII Banner
     print("═══════════════════════════════════════════════════════════════")
-    print("  ORTHOTECT GATE 6: Enterprise Full-Stack Security & Threat Audit")
-    print("  Deterministic SAST & Threat Defense Protocol (OWASP / CWE)")
+    print("  ORTHOTECT GATE 6: Deterministic SAST Security & Threat Audit")
+    print("  Deterministic SAST & Dangerous Sink Inspection (OWASP / CWE)")
     print("═══════════════════════════════════════════════════════════════")
     print(f" Target Path: {target_dir}")
-    print(f" Scanned Files: {len(files_to_scan)}\n")
+    print(f" Scanned Scope: {len(files_to_scan)} application source files (.py, .js, .ts, .html, .json, .env*)")
+    print(f" Excluded Scope: Tests (tests/), CI (.github/), Vendor (node_modules/), Build (dist/)\n")
 
     if not passed:
         for fpath, vulns in file_reports.items():
@@ -411,8 +490,8 @@ def main():
         sys.exit(1)
     else:
         print(f"✅ [PASS] Zero cybersecurity vulnerabilities detected across {len(files_to_scan)} file(s)!")
-        print("   Deterministic SAST verification passed (AST & intra-file taint analysis).")
-        print("   Notice: Verifies static syntax, dangerous sinks, and secrets; does not replace runtime penetration testing.")
+        print("   Scope: Syntactic AST patterns, dangerous sink detection, and intra-file taint tracking.")
+        print("   Notice: Verifies static patterns & secrets. Does not replace dynamic runtime penetration testing or load audits.")
         sys.exit(0)
 
 if __name__ == '__main__':

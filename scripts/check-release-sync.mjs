@@ -140,11 +140,14 @@ check('Git local tag existence', () => {
   }
 });
 
-// 8. GitHub Releases API (optional in offline sandbox, required when gh is available)
+// 8. GitHub Releases API (fail-closed in CI / online environments)
 check('GitHub Release publication parity', () => {
+  const expectedTag = `v${canonicalVersion}`;
+  let verified = false;
+
+  // Try 1: gh CLI
   try {
-    const releaseOutput = execSync('gh release list -L 10', { cwd: ROOT, encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
-    const expectedTag = `v${canonicalVersion}`;
+    const releaseOutput = execSync('gh release list -L 10', { cwd: ROOT, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
     if (!releaseOutput.includes(expectedTag)) {
       throw new Error(`GitHub Release '${expectedTag}' is not published in repository releases.`);
     }
@@ -153,13 +156,34 @@ check('GitHub Release publication parity', () => {
     if (latestLine && !latestLine.includes(expectedTag)) {
       throw new Error(`GitHub Release '${expectedTag}' is published, but is not marked as Latest. Latest is: ${latestLine.trim()}`);
     }
-  } catch (err) {
-    // If gh CLI is missing or offline/sandboxed without network, record notice or rethrow if deliberate
-    if (err.message.includes('not published') || err.message.includes('not marked as Latest')) {
-      throw err;
+    verified = true;
+  } catch (ghErr) {
+    if (ghErr.message.includes('not published') || ghErr.message.includes('not marked as Latest')) {
+      throw ghErr;
     }
-    // Network sandboxing warning (non-fatal if offline)
-    console.log(`[NOTICE] GitHub CLI check skipped or offline: ${err.message.split('\n')[0]}`);
+
+    // Try 2: REST API via curl with GITHUB_TOKEN if available
+    try {
+      const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+      const headers = token ? `-H "Authorization: token ${token}"` : '';
+      const curlCmd = `curl -s -f ${headers} -H "User-Agent: Orthotect-Release-Sync" https://api.github.com/repos/seotarek/orthotect/releases/tags/${expectedTag}`;
+      const apiResp = execSync(curlCmd, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+      const releaseData = JSON.parse(apiResp);
+      if (releaseData.tag_name !== expectedTag) {
+        throw new Error(`GitHub Release '${expectedTag}' not confirmed via REST API.`);
+      }
+      verified = true;
+    } catch (apiErr) {
+      if (process.env.CI || process.env.GITHUB_ACTIONS) {
+        throw new Error(`GitHub Release '${expectedTag}' publication verification failed in CI: ${apiErr.message}`);
+      }
+      console.log(`[NOTICE] Offline/sandboxed environment: GitHub Release API unreachable (${apiErr.message.split('\n')[0]})`);
+      return;
+    }
+  }
+
+  if (!verified && (process.env.CI || process.env.GITHUB_ACTIONS)) {
+    throw new Error(`GitHub Release '${expectedTag}' is required in CI but could not be verified.`);
   }
 });
 

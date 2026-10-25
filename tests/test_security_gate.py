@@ -286,6 +286,46 @@ def load_config(text):
         findings = scan_file(fpath)
         self.assertTrue(any("without SafeLoader" in f[1] for f in findings))
 
+    def test_yaml_direct_import_unsafe_load_flagged(self):
+        content = """
+from yaml import unsafe_load
+def load_config(text):
+    return unsafe_load(text)
+"""
+        fpath = self._create_temp_file("yaml_unsafe_direct.py", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("yaml.unsafe_load" in f[1] for f in findings))
+
+    def test_yaml_alias_unsafe_load_flagged(self):
+        content = """
+import yaml as y
+def load_config(text):
+    return y.unsafe_load(text)
+"""
+        fpath = self._create_temp_file("yaml_unsafe_alias.py", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("yaml.unsafe_load" in f[1] for f in findings))
+
+    def test_yaml_direct_import_load_no_loader_flagged(self):
+        content = """
+from yaml import load
+def load_config(text):
+    return load(text)
+"""
+        fpath = self._create_temp_file("yaml_direct_no_loader.py", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("without SafeLoader" in f[1] for f in findings))
+
+    def test_yaml_alias_safe_loader_not_flagged(self):
+        content = """
+import yaml as y
+def load_config(text):
+    return y.load(text, Loader=y.SafeLoader)
+"""
+        fpath = self._create_temp_file("yaml_alias_safe.py", content)
+        findings = scan_file(fpath)
+        self.assertEqual(len(findings), 0)
+
     # 13. Intra-file Taint Tracking Tests
     def test_indirect_dom_xss_taint_propagation(self):
         content = """
@@ -307,6 +347,53 @@ function displayUserMessage() {
 }
 """
         fpath = self._create_temp_file("taint_safe.js", content)
+        findings = scan_file(fpath)
+        self.assertEqual(len(findings), 0)
+
+    def test_indirect_dom_xss_method_chain_taint(self):
+        content = """
+function displayUserMessage() {
+    const rawInput = location.search;
+    const msg = rawInput.trim().toLowerCase();
+    document.getElementById("output").innerHTML = msg;
+}
+"""
+        fpath = self._create_temp_file("taint_chain.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_direct_method_chain_to_sink(self):
+        content = """
+function displayUserMessage() {
+    const rawInput = location.search;
+    document.getElementById("output").innerHTML = rawInput.trim();
+}
+"""
+        fpath = self._create_temp_file("taint_direct_chain.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_concat_taint(self):
+        content = """
+function displayUserMessage() {
+    const rawInput = location.search;
+    const msg = "<b>Message:</b> " + rawInput;
+    document.getElementById("output").innerHTML = msg;
+}
+"""
+        fpath = self._create_temp_file("taint_concat.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_sanitized_in_chain(self):
+        content = """
+function displayUserMessage() {
+    const rawInput = location.search;
+    const msg = DOMPurify.sanitize(rawInput).trim();
+    document.getElementById("output").innerHTML = msg;
+}
+"""
+        fpath = self._create_temp_file("taint_sanitized_chain.js", content)
         findings = scan_file(fpath)
         self.assertEqual(len(findings), 0)
 

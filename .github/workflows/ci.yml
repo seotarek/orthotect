@@ -32,7 +32,7 @@ jobs:
           npm ci
           pip install -r requirements.txt
 
-      - name: Run Unit, Browser & Negative Gate Tests (323 Tests)
+      - name: Run Unit, Browser & Negative Gate Tests (331 Tests)
         run: |
           npm test
 
@@ -41,6 +41,8 @@ jobs:
           node bin/orthotect.js security .
 
       - name: Enforce Release Synchronization & Version Parity
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           node scripts/check-release-sync.mjs
 
