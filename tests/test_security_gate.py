@@ -707,6 +707,29 @@ element.innerHTML = cleaned;
         findings = scan_file(fpath)
         self.assertTrue(any("Taint Flow" in f[1] for f in findings))
 
+    def test_indirect_dom_xss_destructured_param_alias_dompurify_flagged(self):
+        content = """
+function render({ sanitizer: DOMPurify }) {
+    const raw = location.search;
+    const cleaned = DOMPurify.sanitize(raw);
+    element.innerHTML = cleaned;
+}
+"""
+        fpath = self._create_temp_file("taint_destructured_alias.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_commented_import_disqualified(self):
+        content = """
+// import sanitizeHtml from "sanitize-html";
+const raw = location.search;
+const cleaned = sanitizeHtml(raw);
+element.innerHTML = cleaned;
+"""
+        fpath = self._create_temp_file("taint_commented_import.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
 if __name__ == '__main__':
     unittest.main()
 

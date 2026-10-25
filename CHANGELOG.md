@@ -4,6 +4,22 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.7] - 2026-10-25
+
+### Fixed
+- **Destructuring Parameter Aliasing Defense (`gates/gate_security_audit.py`)**:
+  - Implemented an AST-aware parameter parser (`extract_param_bindings`) that recursively extracts all locally declared variable identifiers from JavaScript and TypeScript function signatures.
+  - Correctly resolves object destructuring property aliasing (`{ sanitizer: DOMPurify }` or `{ sanitizer: DOMPurify = defaultValue }`), identifying `DOMPurify` as the locally bound variable rather than the property key `sanitizer`.
+  - Supports nested object destructuring (`{ a: { b: DOMPurify } }`), array destructuring (`[ first, ...DOMPurify ]`), and top-level TypeScript type annotations (`cleaner: DOMPurify`), ensuring dummy parameter objects never bypass taint flow analysis.
+- **Comment-Isolated Import & Declaration Resolution (`gates/gate_security_audit.py`)**:
+  - Implemented zero-dependency `strip_code_comments(content)` to eliminate single-line (`//`), multi-line (`/* ... */`), and HTML (`<!-- ... -->`) comments while strictly preserving string literals and source newline structure.
+  - Source code is stripped of comments before analyzing external package imports (`import_re`), variable/function declarations (`decl_pattern`), object alias bindings (`alias_decl_re`), and mutation patterns (`mutation_pattern`).
+  - Commented-out import statements (e.g. `// import sanitizeHtml from "sanitize-html";`) are ignored and never falsely grant sanitizer trust to global or attacker-controlled functions.
+- **Test Suite Expansion**:
+  - Added 2 new negative regression unit tests in `tests/test_security_gate.py` (total 65 security tests), scaling total repository tests to **361 Automated Tests** (100% pass rate).
+- **Ecosystem Synchronization**:
+  - Synchronized version `1.8.7` across all 28 repository files, tokens, style recipes, and docs.
+
 ## [1.8.6] - 2026-10-25
 
 ### Fixed

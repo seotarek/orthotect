@@ -259,6 +259,218 @@ BASE_TRUSTED_SANITIZERS = (
     "he.encode",
 )
 
+def strip_code_comments(content):
+    """
+    Strips single-line (//), multi-line (/* ... */), and HTML (<!-- ... -->) comments
+    from source code while preserving line structure (newlines) and string literals.
+    """
+    out = []
+    i = 0
+    n = len(content)
+    while i < n:
+        if content[i] in ('"', "'", '`'):
+            quote = content[i]
+            out.append(quote)
+            i += 1
+            while i < n:
+                ch = content[i]
+                out.append(ch)
+                if ch == '\\':
+                    if i + 1 < n:
+                        i += 1
+                        out.append(content[i])
+                elif ch == quote:
+                    break
+                i += 1
+            i += 1
+        elif content.startswith('//', i):
+            i += 2
+            while i < n and content[i] != '\n':
+                i += 1
+        elif content.startswith('/*', i):
+            i += 2
+            while i < n and not content.startswith('*/', i):
+                if content[i] == '\n':
+                    out.append('\n')
+                i += 1
+            i += 2
+        elif content.startswith('<!--', i):
+            i += 4
+            while i < n and not content.startswith('-->', i):
+                if content[i] == '\n':
+                    out.append('\n')
+                i += 1
+            i += 3
+        else:
+            out.append(content[i])
+            i += 1
+    return "".join(out)
+
+def extract_param_bindings(params_str):
+    """
+    Extracts all bound variable identifiers from a JavaScript/TypeScript parameter list.
+    Supports simple params, default values, TypeScript type annotations,
+    rest params, object destructuring with renaming ({ prop: alias }),
+    and array destructuring ([ a, b, ...rest ]).
+    """
+    bindings = set()
+
+    params = []
+    current = []
+    brace_d = 0
+    bracket_d = 0
+    paren_d = 0
+    for char in params_str:
+        if char == "{": brace_d += 1
+        elif char == "}": brace_d -= 1
+        elif char == "[": bracket_d += 1
+        elif char == "]": bracket_d -= 1
+        elif char == "(": paren_d += 1
+        elif char == ")": paren_d -= 1
+        elif char == "," and brace_d == 0 and bracket_d == 0 and paren_d == 0:
+            params.append("".join(current).strip())
+            current = []
+            continue
+        current.append(char)
+    if current:
+        p = "".join(current).strip()
+        if p:
+            params.append(p)
+
+    def parse_binding_pattern(pat):
+        pat = pat.strip()
+        if not pat:
+            return
+        if pat.startswith("{") and pat.endswith("}"):
+            inner = pat[1:-1].strip()
+            items = []
+            c = []
+            b_d = 0
+            bk_d = 0
+            for ch in inner:
+                if ch == "{": b_d += 1
+                elif ch == "}": b_d -= 1
+                elif ch == "[": bk_d += 1
+                elif ch == "]": bk_d -= 1
+                elif ch == "," and b_d == 0 and bk_d == 0:
+                    items.append("".join(c).strip())
+                    c = []
+                    continue
+                c.append(ch)
+            if c:
+                it = "".join(c).strip()
+                if it: items.append(it)
+
+            for item in items:
+                eq_idx = -1
+                b_d = 0
+                bk_d = 0
+                for idx, ch in enumerate(item):
+                    if ch == "{": b_d += 1
+                    elif ch == "}": b_d -= 1
+                    elif ch == "[": bk_d += 1
+                    elif ch == "]": bk_d -= 1
+                    elif ch == "=" and b_d == 0 and bk_d == 0:
+                        eq_idx = idx
+                        break
+                if eq_idx != -1:
+                    item = item[:eq_idx].strip()
+
+                colon_idx = -1
+                b_d = 0
+                bk_d = 0
+                for idx, ch in enumerate(item):
+                    if ch == "{": b_d += 1
+                    elif ch == "}": b_d -= 1
+                    elif ch == "[": bk_d += 1
+                    elif ch == "]": bk_d -= 1
+                    elif ch == ":" and b_d == 0 and bk_d == 0:
+                        colon_idx = idx
+                        break
+
+                if colon_idx != -1:
+                    alias_part = item[colon_idx+1:].strip()
+                    parse_binding_pattern(alias_part)
+                else:
+                    item = item.lstrip(".")
+                    m = re.match(r"^([a-zA-Z0-9_$]+)", item)
+                    if m:
+                        bindings.add(m.group(1))
+
+        elif pat.startswith("[") and pat.endswith("]"):
+            inner = pat[1:-1].strip()
+            items = []
+            c = []
+            b_d = 0
+            bk_d = 0
+            for ch in inner:
+                if ch == "{": b_d += 1
+                elif ch == "}": b_d -= 1
+                elif ch == "[": bk_d += 1
+                elif ch == "]": bk_d -= 1
+                elif ch == "," and b_d == 0 and bk_d == 0:
+                    items.append("".join(c).strip())
+                    c = []
+                    continue
+                c.append(ch)
+            if c:
+                it = "".join(c).strip()
+                if it: items.append(it)
+            for item in items:
+                eq_idx = -1
+                b_d = 0
+                bk_d = 0
+                for idx, ch in enumerate(item):
+                    if ch == "{": b_d += 1
+                    elif ch == "}": b_d -= 1
+                    elif ch == "[": bk_d += 1
+                    elif ch == "]": bk_d -= 1
+                    elif ch == "=" and b_d == 0 and bk_d == 0:
+                        eq_idx = idx
+                        break
+                if eq_idx != -1:
+                    item = item[:eq_idx].strip()
+                item = item.lstrip(".")
+                parse_binding_pattern(item)
+        else:
+            pat = pat.lstrip(".")
+            m = re.match(r"^([a-zA-Z0-9_$]+)", pat)
+            if m:
+                bindings.add(m.group(1))
+
+    for param in params:
+        colon_idx = -1
+        b_d = 0
+        bk_d = 0
+        for idx, ch in enumerate(param):
+            if ch == "{": b_d += 1
+            elif ch == "}": b_d -= 1
+            elif ch == "[": bk_d += 1
+            elif ch == "]": bk_d -= 1
+            elif ch == ":" and b_d == 0 and bk_d == 0:
+                colon_idx = idx
+                break
+        if colon_idx != -1:
+            param = param[:colon_idx].strip()
+
+        eq_idx = -1
+        b_d = 0
+        bk_d = 0
+        for idx, ch in enumerate(param):
+            if ch == "{": b_d += 1
+            elif ch == "}": b_d -= 1
+            elif ch == "[": bk_d += 1
+            elif ch == "]": bk_d -= 1
+            elif ch == "=" and b_d == 0 and bk_d == 0:
+                eq_idx = idx
+                break
+        if eq_idx != -1:
+            param = param[:eq_idx].strip()
+
+        parse_binding_pattern(param)
+
+    return bindings
+
 def resolve_trusted_sanitizers(content):
     """
     Deterministically resolves the set of trusted HTML sanitizers for a specific file.
@@ -268,7 +480,7 @@ def resolve_trusted_sanitizers(content):
        are NEVER trusted as sanitizers (an in-file custom function cannot be proven safe via regexes).
     3. Shadowing Protection: If a library identifier ('DOMPurify', 'validator', 'he', 'sanitizeHtml', etc.)
        is declared or shadowed locally (e.g. 'const sanitizeHtml = value => value' or 'const DOMPurify = { sanitize: ... }'
-       or function/method/arrow parameter like 'function render(DOMPurify)'),
+       or function/method/arrow parameter like 'function render(DOMPurify)' or destructured alias like '{ sanitizer: DOMPurify }'),
        it is classified as UNTRUSTED and stripped from the trusted set.
     4. Object Alias & Mutation Tracking: If an alias is created to a trusted library (e.g. 'const dp = DOMPurify'),
        any mutation on that alias (e.g. 'dp.sanitize = ...' or 'Object.assign(dp, ...)') mutates the underlying
@@ -276,16 +488,21 @@ def resolve_trusted_sanitizers(content):
     5. Verified Library Imports: Bare functions like 'sanitizeHtml', 'escapeHTML', 'escapeHtml'
        are trusted ONLY when explicitly imported from their verified packages ('sanitize-html', 'escape-html')
        via exact package name matching.
-    6. URI Encoders Excluded: encodeURI and encodeURIComponent are NOT permitted as HTML sanitizers.
+    6. Comment Isolation: Imports, aliases, and declarations commented out (via // or /* */ or <!-- -->)
+       are strictly ignored and NEVER granted sanitizer trust.
+    7. URI Encoders Excluded: encodeURI and encodeURIComponent are NOT permitted as HTML sanitizers.
     """
     trusted = set(BASE_TRUSTED_SANITIZERS)
+
+    # Clean comments to prevent commented-out imports or aliases from granting trust
+    clean_content = strip_code_comments(content)
 
     # 1. Check for verified external package imports (Exact Package Name Matching)
     import_re = re.compile(
         r'\bimport\s+(?:\{([^}]*)\}|([a-zA-Z0-9_$]+))\s+from\s*["\']([^"\']+)["\']|'
         r'(?:const|let|var)\s+(?:\{([^}]*)\}\s*=\s*require\(["\']([^"\']+)["\']\)|([a-zA-Z0-9_$]+)\s*=\s*require\(["\']([^"\']+)["\']\))'
     )
-    for m in import_re.finditer(content):
+    for m in import_re.finditer(clean_content):
         named_clause = m.group(1) or m.group(4)
         default_name = m.group(2) or m.group(6)
         pkg = m.group(3) or m.group(5) or m.group(7) or ''
@@ -326,7 +543,7 @@ def resolve_trusted_sanitizers(content):
         r'(?:(?:const|let|var)\s+)?([a-zA-Z0-9_$]+)\s*=\s*([a-zA-Z0-9_$]+)\s*(?:;|\n|//|/\*|$)'
     )
     for _ in range(3):
-        for m in alias_decl_re.finditer(content):
+        for m in alias_decl_re.finditer(clean_content):
             lhs = m.group(1)
             rhs = m.group(2)
             if rhs in ('DOMPurify', 'validator', 'he'):
@@ -349,11 +566,11 @@ def resolve_trusted_sanitizers(content):
     )
 
     local_shadows = set()
-    for m in decl_pattern.finditer(content):
+    for m in decl_pattern.finditer(clean_content):
         name = m.group(1) or m.group(2) or m.group(3)
         if name:
             local_shadows.add(name)
-    for m in mutation_pattern.finditer(content):
+    for m in mutation_pattern.finditer(clean_content):
         name = next((g for g in m.groups() if g is not None), None)
         if name:
             local_shadows.add(name)
@@ -363,10 +580,10 @@ def resolve_trusted_sanitizers(content):
         alias_names = list(alias_map.keys())
         alias_mut_pattern = re.compile(
             r'\b(' + '|'.join(re.escape(a) for a in alias_names) + r')(?:\.[a-zA-Z0-9_$]+|\[[^\]]+\])\s*='
-            r'|\b(?:window|globalThis|global)\.(' + '|'.join(re.escape(a) for a in alias_names) + r')(?:\.[a-zA-Z0-9_$]+|\[[^\]]+\])\s*='
+            r'|\b(?:window|globalThis|global)\.(' + '|'.join(re.escape(a) for a in alias_names) + r')(?:\.[a-zA-Z0-9_$]+|\[[^\]]+\])?\s*='
             r'|\bObject\.(?:assign|defineProperty|defineProperties)\s*\(\s*(?:(?:window|globalThis|global)\.)?(' + '|'.join(re.escape(a) for a in alias_names) + r')\b'
         )
-        for m in alias_mut_pattern.finditer(content):
+        for m in alias_mut_pattern.finditer(clean_content):
             matched_alias = next((g for g in m.groups() if g is not None), None)
             if matched_alias and matched_alias in alias_map:
                 root_obj = alias_map[matched_alias]
@@ -380,19 +597,17 @@ def resolve_trusted_sanitizers(content):
         re.compile(r'\b(?:constructor|[a-zA-Z0-9_$]+)\s*\(([^)]*)\)\s*\{'),
     ]
     single_arrow = re.compile(r'(?:\basync\s+)?\b([a-zA-Z0-9_$]+)\s*=>')
-    for m in single_arrow.finditer(content):
+    for m in single_arrow.finditer(clean_content):
         name = m.group(1)
         if name in target_names:
             local_shadows.add(name)
 
     for pat in param_patterns:
-        for m in pat.finditer(content):
+        for m in pat.finditer(clean_content):
             params_str = m.group(1)
-            for param in params_str.split(','):
-                lhs = param.split('=')[0].split(':')[0]
-                for id_name in re.findall(r'\b([a-zA-Z0-9_$]+)\b', lhs):
-                    if id_name in target_names:
-                        local_shadows.add(id_name)
+            for bound_id in extract_param_bindings(params_str):
+                if bound_id in target_names:
+                    local_shadows.add(bound_id)
 
     # Discard any candidate shadowed or mutated locally
     if 'DOMPurify' in local_shadows:
