@@ -4,6 +4,19 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.2] - 2026-10-25
+
+### Fixed
+- **Branch-Aware Taint Flow Tracking (`gates/gate_security_audit.py`)**:
+  - Implemented conservative branch sensitivity: safe variable reassignments inside conditional blocks (`if`, `else`, `switch`, `case`, `catch`, loops) do NOT clear taint, preventing false negatives on conditional paths (`if (cond) { msg = "safe"; }`).
+  - Added sequential statement parsing (`split_statements`) to accurately evaluate multiple statements on a single line separated by semicolons (`const raw = location.search; element.innerHTML = raw;`).
+  - Narrowed trusted sanitizer whitelist to proven HTML sanitizers (`DOMPurify.sanitize`, `escapeHTML`, `encodeURIComponent`, `validator.escape`, `he.encode`), eliminating false trust on custom objects or bare methods (`validator.sanitize`).
+  - Expanded security suite to 43 automated unit tests and repository total to **339 tests** (100% pass rate).
+- **Exit Code 2 for Unverified Release Checks (`scripts/check-release-sync.mjs`)**:
+  - Updated release synchronization script to exit with code `2` when remote publication checks cannot be verified in offline/sandboxed environments, preventing automated pipelines from misinterpreting unverified runs as exit code 0.
+- **Ecosystem Synchronization**:
+  - Bumped version to `1.8.2` across package metadata, tokens, styles, docs, and lockfile to ensure synchronized publication on GitHub Packages.
+
 ## [1.8.1] - 2026-10-25
 
 ### Fixed

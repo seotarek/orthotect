@@ -205,7 +205,7 @@ if (errors.length > 0) {
   process.exit(1);
 } else if (skipped.length > 0) {
   console.log(`\n⚠ Partial Version Parity Enforced: ${successes.length} check(s) passed, ${skipped.length} check(s) unverified (network/remote verification required).\n`);
-  process.exit(0);
+  process.exit(2);
 } else {
   console.log(`\n✅ 100% Version Parity Enforced: Repository, Docs, Git Tags & Releases are synchronized.\n`);
   process.exit(0);

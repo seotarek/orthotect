@@ -444,5 +444,53 @@ function displayUserMessage() {
         findings = scan_file(fpath)
         self.assertEqual(len(findings), 0)
 
+    def test_indirect_dom_xss_conditional_reassignment_does_not_clear_taint(self):
+        content = """
+function displayUserMessage() {
+    let msg = location.search;
+    if (window.someFlag) {
+        msg = "Safe string";
+    }
+    document.getElementById("output").innerHTML = msg;
+}
+"""
+        fpath = self._create_temp_file("taint_conditional.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_untrusted_custom_sanitizer_flagged(self):
+        content = """
+function displayUserMessage() {
+    const raw = location.search;
+    const cleaned = validator.sanitize(raw);
+    document.getElementById("output").innerHTML = cleaned;
+}
+"""
+        fpath = self._create_temp_file("taint_untrusted_sanitizer.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_single_line_assignment_and_sink_flagged(self):
+        content = """
+function displayUserMessage() {
+    const raw = location.search; document.getElementById("output").innerHTML = raw;
+}
+"""
+        fpath = self._create_temp_file("taint_single_line.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_trusted_validator_escape_permitted(self):
+        content = """
+function displayUserMessage() {
+    const raw = location.search;
+    const safe = validator.escape(raw);
+    document.getElementById("output").innerHTML = safe;
+}
+"""
+        fpath = self._create_temp_file("taint_validator_escape.js", content)
+        findings = scan_file(fpath)
+        self.assertEqual(len(findings), 0)
+
 if __name__ == '__main__':
     unittest.main()

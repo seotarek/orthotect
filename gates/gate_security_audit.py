@@ -248,21 +248,32 @@ def scan_python_ast(filepath, content):
 
     return findings
 
+TRUSTED_SANITIZERS = (
+    "DOMPurify.sanitize",
+    "escapeHTML",
+    "escapeHtml",
+    "encodeURIComponent",
+    "encodeURI",
+    "validator.escape",
+    "he.encode",
+    "sanitizeHtml",
+)
+
 def mask_sanitizers(expr):
     """
-    Replaces properly invoked sanitizer function calls with '__SANITIZED__'
+    Replaces properly invoked trusted HTML sanitizer function calls with '__SANITIZED__'
     while correctly tracking balanced parentheses to support arbitrary nesting.
-    Recognized sanitizers: DOMPurify.sanitize, sanitize, escapeHTML, encodeURIComponent.
+    Strictly checks boundaries so methods on untrusted objects (e.g. validator.sanitize)
+    or bare custom functions are NOT falsely trusted.
     """
-    sanitizer_prefixes = ("DOMPurify.sanitize", "sanitize", "escapeHTML", "encodeURIComponent")
     out = []
     i = 0
     n = len(expr)
     while i < n:
         matched_prefix = None
-        for prefix in sanitizer_prefixes:
+        for prefix in TRUSTED_SANITIZERS:
             if expr.startswith(prefix, i):
-                if i == 0 or not (expr[i - 1].isalnum() or expr[i - 1] == "_"):
+                if i == 0 or not (expr[i - 1].isalnum() or expr[i - 1] in ("_", "$", ".")):
                     matched_prefix = prefix
                     break
         if matched_prefix:
@@ -286,14 +297,57 @@ def mask_sanitizers(expr):
         i += 1
     return "".join(out)
 
+def split_statements(line):
+    """
+    Splits a single source line into sequential statements separated by ';'
+    while preserving semicolons inside string literals ('...', \"...\", `...`).
+    """
+    statements = []
+    current = []
+    in_quote = None
+    escaped = False
+    for char in line:
+        if escaped:
+            current.append(char)
+            escaped = False
+            continue
+        if char == "\\":
+            current.append(char)
+            escaped = True
+            continue
+        if in_quote:
+            current.append(char)
+            if char == in_quote:
+                in_quote = None
+        elif char in ("\"", "'", "`"):
+            in_quote = char
+            current.append(char)
+        elif char == ";":
+            stmt = "".join(current).strip()
+            if stmt:
+                statements.append(stmt)
+            current = []
+        else:
+            current.append(char)
+    stmt = "".join(current).strip()
+    if stmt:
+        statements.append(stmt)
+    return statements
+
 def scan_intrafile_taint(filepath, content):
     """
     Intra-file lexical & pattern taint tracking:
     Identifies untrusted sources assigned to local variables and traces their propagation
     through variable assignments, method chains (e.g. raw.trim()), string concatenation,
     and compound expressions into dangerous sinks (e.g. innerHTML, outerHTML, document.write).
-    Properly handles mixed sanitized/unsanitized expressions and clears taint when variables
-    are reassigned to sanitized or safe values.
+
+    Key Soundness Guarantees:
+    1. Sequential Statement Processing: Evaluates multiple statements on a single line in order.
+    2. Conservative Branch Sensitivity: Safe reassignments inside conditional blocks
+       (if/else/switch/case/catch/loops) do NOT clear taint, preventing false negatives.
+    3. Unconditional Reassignment Clearing: Taint state is cleared only when reassigned
+       at the same lexical block depth without conditional guards.
+    4. Strict Sanitizer Whitelist: Avoids false positives on bare 'sanitize' or custom objects.
     """
     findings = []
     lines = content.splitlines()
@@ -307,63 +361,97 @@ def scan_intrafile_taint(filepath, content):
     sink_pattern = re.compile(
         r'(?:\.innerHTML|\.outerHTML)\s*=\s*([^;\n]+)|document\.write(?:ln)?\s*\(\s*([^;\n]+)\s*\)'
     )
+    conditional_keyword_re = re.compile(
+        r'\b(?:if|else|switch|case|catch|while|for)\b'
+    )
 
     tainted_vars = {}
+    brace_depth = 0
 
     for idx, line in enumerate(lines, start=1):
         stripped = line.strip()
         if stripped.startswith(('//', '/*', '*', '#', '<!--')):
             continue
 
-        # 1. Check for dangerous sink usage
-        m_sink = sink_pattern.search(line)
-        if m_sink:
-            sink_expr = (m_sink.group(1) or m_sink.group(2)).strip()
-            masked_sink = mask_sanitizers(sink_expr)
+        statements = split_statements(line)
+        for stmt in statements:
+            # Track braces inside statement
+            open_braces = 0
+            close_braces = 0
+            in_q = None
+            esc = False
+            for ch in stmt:
+                if esc:
+                    esc = False
+                    continue
+                if ch == "\\":
+                    esc = True
+                    continue
+                if in_q:
+                    if ch == in_q:
+                        in_q = None
+                elif ch in ("\"", "'", "`"):
+                    in_q = ch
+                elif ch == "{":
+                    open_braces += 1
+                elif ch == "}":
+                    close_braces += 1
 
-            # Check if sink directly consumes untrusted source (direct DOM XSS)
-            if untrusted_source_re.search(masked_sink):
-                findings.append((
-                    idx,
-                    "DOM XSS (Direct Sink): Direct untrusted source assigned to dangerous DOM sink without sanitization",
-                    CRITICAL,
-                    line.strip()[:80]
-                ))
-            else:
-                # Check if sink consumes any tainted variable without sanitization
-                for tvar, sline in tainted_vars.items():
-                    if re.search(r'\b' + re.escape(tvar) + r'\b', masked_sink):
-                        findings.append((
-                            idx,
-                            f"DOM XSS (Taint Flow): Variable '{tvar}' (tainted from line {sline}) passed to dangerous DOM sink",
-                            CRITICAL,
-                            line.strip()[:80]
-                        ))
-                        break
+            net_brace = open_braces - close_braces
+            is_conditional = bool(conditional_keyword_re.search(stmt))
 
-        # 2. Check for variable declarations, taint propagation, or taint clearing
-        m_assign = assign_pattern.search(line)
-        if m_assign:
-            var_name = m_assign.group(1)
-            rhs = m_assign.group(2).strip()
-            masked_rhs = mask_sanitizers(rhs)
+            # 1. Check for dangerous sink usage
+            m_sink = sink_pattern.search(stmt)
+            if m_sink:
+                sink_expr = (m_sink.group(1) or m_sink.group(2)).strip()
+                masked_sink = mask_sanitizers(sink_expr)
 
-            # Case A: Assigned directly from an untrusted source without full sanitization
-            if untrusted_source_re.search(masked_rhs):
-                tainted_vars[var_name] = idx
-            else:
-                # Case B: Propagation through method chains, string concatenation, or compound expressions
-                propagated_source_line = None
-                for tvar, sline in list(tainted_vars.items()):
-                    if re.search(r'\b' + re.escape(tvar) + r'\b', masked_rhs):
-                        propagated_source_line = sline
-                        break
+                # Check if sink directly consumes untrusted source (direct DOM XSS)
+                if untrusted_source_re.search(masked_sink):
+                    findings.append((
+                        idx,
+                        "DOM XSS (Direct Sink): Direct untrusted source assigned to dangerous DOM sink without sanitization",
+                        CRITICAL,
+                        stmt.strip()[:80]
+                    ))
+                else:
+                    # Check if sink consumes any tainted variable without sanitization
+                    for tvar, meta in list(tainted_vars.items()):
+                        if re.search(r'\b' + re.escape(tvar) + r'\b', masked_sink):
+                            findings.append((
+                                idx,
+                                f"DOM XSS (Taint Flow): Variable '{tvar}' (tainted from line {meta['line']}) passed to dangerous DOM sink",
+                                CRITICAL,
+                                stmt.strip()[:80]
+                            ))
+                            break
 
-                if propagated_source_line is not None:
-                    tainted_vars[var_name] = propagated_source_line
-                elif var_name in tainted_vars:
-                    # Variable was reassigned to a safe/sanitized value; clear its taint
-                    del tainted_vars[var_name]
+            # 2. Check for variable declarations, taint propagation, or taint clearing
+            m_assign = assign_pattern.search(stmt)
+            if m_assign:
+                var_name = m_assign.group(1)
+                rhs = m_assign.group(2).strip()
+                masked_rhs = mask_sanitizers(rhs)
+
+                # Case A: Assigned directly from an untrusted source without full sanitization
+                if untrusted_source_re.search(masked_rhs):
+                    tainted_vars[var_name] = {"line": idx, "depth": brace_depth}
+                else:
+                    # Case B: Propagation through method chains, string concatenation, or compound expressions
+                    propagated_source_line = None
+                    for tvar, meta in list(tainted_vars.items()):
+                        if re.search(r'\b' + re.escape(tvar) + r'\b', masked_rhs):
+                            propagated_source_line = meta["line"]
+                            break
+
+                    if propagated_source_line is not None:
+                        tainted_vars[var_name] = {"line": propagated_source_line, "depth": brace_depth}
+                    elif var_name in tainted_vars:
+                        # Taint is cleared ONLY on unconditional reassignments at the same or outer lexical scope
+                        if brace_depth <= tainted_vars[var_name]["depth"] and not is_conditional:
+                            del tainted_vars[var_name]
+
+            brace_depth = max(0, brace_depth + net_brace)
 
     return findings
 

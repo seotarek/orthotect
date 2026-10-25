@@ -19,7 +19,7 @@ Orthotect is an enterprise-grade interface engineering platform and deterministi
 python3 gates/run_all_gates.py docs
 python3 gates/run_all_gates.py examples/golden-showcase
 
-# Run the complete test suite (skills validation, 335 unit tests, and 6 gates)
+# Run the complete test suite (skills validation, 339 unit tests, and 6 gates)
 npm test
 
 # Run Python unit tests only
