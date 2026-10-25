@@ -17,6 +17,8 @@ Load the matching reference guide before architecting, auditing, or refactoring:
 
 | Topic | Reference File | Covers |
 |---|---|---|
+| Frontend Threat Defense | [frontend-security.md](references/frontend-security.md) | Client-side DOM XSS, prototype pollution, CSP directives, postMessage origin checks, token isolation |
+| Backend & API Hardening | [backend-security.md](references/backend-security.md) | Parameterized SQL/NoSQL queries, SSRF IP filtering & DNS resolution, safe subprocesses, timing attacks |
 | OWASP Top 10 Defenses | [owasp-top-10.md](references/owasp-top-10.md) | In-depth breakdown with vulnerable vs secure patterns across Node.js and Python |
 | Injection Vectors | [injection-vectors.md](references/injection-vectors.md) | SQLi, NoSQLi, OS Command Injection, SSTI, Prototype Pollution, DOM XSS, SSRF |
 | Production Checklist | [security-checklist.md](references/security-checklist.md) | Pre-deployment hardening checklist: Headers, Cookies, Secrets, CSP, HSTS |
