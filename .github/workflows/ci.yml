@@ -32,9 +32,17 @@ jobs:
           npm ci
           pip install -r requirements.txt
 
-      - name: Run Unit, Browser & Negative Gate Tests (225+ Tests)
+      - name: Run Unit, Browser & Negative Gate Tests (323 Tests)
         run: |
           npm test
+
+      - name: Run Enterprise SAST Security Audit on Entire Repository
+        run: |
+          node bin/orthotect.js security .
+
+      - name: Enforce Release Synchronization & Version Parity
+        run: |
+          node scripts/check-release-sync.mjs
 
       - name: Verify Knowledge Base Schema & Search Quality Benchmark (32 Queries)
         run: |

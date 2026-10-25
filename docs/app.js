@@ -1,5 +1,5 @@
 /**
- * ORTHOTECT v1.7.4 — Skill Studio & Interactive Demonstration Platform
+ * ORTHOTECT v1.8.0 — Skill Studio & Interactive Demonstration Platform
  * 100% Client-Side | Zero Bloat | True Bidirectional Runtime
  */
 
@@ -222,7 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================================================================
   const bidiDict = {
     en: {
-      brandDesc: "v1.7.4",
+      brandDesc: "v1.8.0",
       navHome: "Home",
       navCatalog: "Skill Catalog",
       navPlayground: "Playground",
@@ -272,15 +272,15 @@ document.addEventListener("DOMContentLoaded", () => {
       galleryTitle: "Examples Gallery",
       gallerySub: "Explore downloadable, pre-certified production components built to Orthotect standards. Each example includes design tokens, FSM models, test coverage, and one-click source downloads.",
       gatesPill: "Deterministic Quality Assurance",
-      gatesTitle: "The 5 Quality Gates Specification",
+      gatesTitle: "The 6 Quality Gates Specification",
       gatesSub: "Transparent, evidence-based engineering breakdown of what each gate validates, its limitations, file targets, and corresponding test suites.",
       installPill: "Developer Tooling & CLI",
       installTitle: "Installation & CLI Usage",
       installSub: "Orthotect provides zero-config command line tools to scaffold, compile, and verify projects deterministically in local environments and GitHub Actions CI.",
-      footerCopy: "Orthotect v1.7.4 © 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok."
+      footerCopy: "Orthotect v1.8.0 © 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok."
     },
     ar: {
-      brandDesc: "v1.7.4",
+      brandDesc: "v1.8.0",
       navHome: "الرئيسية",
       navCatalog: "كتالوج المهارات",
       navPlayground: "المختبر التفاعلي",
@@ -330,12 +330,12 @@ document.addEventListener("DOMContentLoaded", () => {
       galleryTitle: "معرض الأمثلة المعتمدة",
       gallerySub: "استكشف مكونات إنتاجية قابلة للتنزيل مبنية وفق معايير أورثوتكت، تشمل توكنز التصميم ونماذج FSM والاختبارات.",
       gatesPill: "ضمان الجودة الحتمي",
-      gatesTitle: "مواصفة بوابات الجودة الخمس",
+      gatesTitle: "مواصفة بوابات الجودة الست",
       gatesSub: "تشريح هندسي شفاف ومبني على الأدلة لما تفحصه كل بوابة وحدودها والملفات المستهدفة والاختبارات المرتبطة بها.",
       installPill: "أدوات المطور وسطر الأوامر",
       installTitle: "التثبيت وأوامر الاستخدام",
       installSub: "يوفر أورثوتكت أدوات سطر أوامر خفيفة لتهيئة المشاريع وترجمة التوكنز وفحص الكود حتميًا في البيئة المحلية وسير العمل CI.",
-      footerCopy: "أورثوتكت v1.7.4 © 2026. معتمد لوكلاء البرمجة الذاتية: Antigravity وClaude Code وCursor وCodex وGrok."
+      footerCopy: "أورثوتكت v1.8.0 © 2026. معتمد لوكلاء البرمجة الذاتية: Antigravity وClaude Code وCursor وCodex وGrok."
     }
   };
 

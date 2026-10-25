@@ -4,6 +4,28 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2026-10-25
+
+### Added
+- **Gate 6: Enterprise Full-Stack Cybersecurity & Threat Audit (`gates/gate_security_audit.py`)**:
+  - Zero-dependency AST and lexical SAST scanner enforcing OWASP Top 10 and CWE Top 25 defenses across Python and Node.js.
+  - Detects SQLi, OS Command Injection, NoSQL Injection, SSTI, DOM XSS, Prototype Pollution, Insecure PostMessage, and SSRF.
+  - Features recursive environment file scanning (`.env`, `.env.local`, `.env.production`) and intra-file lexical taint tracking.
+  - Dedicated CLI command: `npx orthotect security [path]`.
+- **Skill 22: Autonomous Security Defense (`skills/orthotect-security`)**:
+  - Full Agent Skills Specification compliance with deep reference guides (`owasp-top-10.md`, `injection-vectors.md`, `security-checklist.md`, `frontend-security.md`, `backend-security.md`).
+- **Universal Vercel Skills Manifest (`skills.sh.json`)**:
+  - Added official Vercel Skills CLI package distribution defining 9 curated skill bundles for `npx skills add seotarek/orthotect`.
+- **Law 8: Zero-Trust Cybersecurity Defense in `AGENTS.md`**:
+  - Added mandatory security defense law to the core Interface Engineering Laws.
+- **Architectural Superiority Whitepaper (`ARCHITECTURAL_SUPERIORITY.md`)**:
+  - 16-dimensional benchmark analyzing Orthotect vs. Anthropic Superpowers, Vercel skills.sh, UX/UI Expert Skills, and Prompt-only Skills.
+
+### Changed
+- Refactored YAML deserialization checks to AST-based inspection verifying `Loader=SafeLoader` or `yaml.SafeLoader` with zero false positives.
+- Calibrated security report assertions to reflect exact static analysis boundaries and intra-file taint tracking.
+- Expanded automated unit test suite to 323 passing tests.
+
 ## [1.7.4] - 2026-10-24
 
 ### Added

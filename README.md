@@ -3,8 +3,8 @@
 > **The Deterministic Interface Engineering & Runtime Gate Architecture for AI Coding Agents**  
 > Enforcing mathematical token standards, WCAG 2.2 AAA accessibility, CSS logical properties, and finite state machines across Claude Code, Cursor, OpenAI Codex, Grok Build, and Google Antigravity.
 
-[![Version](https://img.shields.io/badge/version-1.7.4_Latest-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.7.4)
-[![Tests Passing](https://img.shields.io/badge/tests-296_passed-22c55e?style=for-the-badge)](https://github.com/seotarek/orthotect/actions)
+[![Version](https://img.shields.io/badge/version-1.8.0_Latest-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.8.0)
+[![Tests Passing](https://img.shields.io/badge/tests-323_passed-22c55e?style=for-the-badge)](https://github.com/seotarek/orthotect/actions)
 [![Deterministic Gates](https://img.shields.io/badge/Quality_Gates-6%2F6_Deterministic-14b8a6?style=for-the-badge)](#-installation-quickstart--deterministic-quality-gates)
 [![WCAG 2.2 AAA](https://img.shields.io/badge/WCAG_2.2-Contrast_Matrix_(AAA%2FAA)-a855f7?style=for-the-badge)](#)
 [![BiDi Logical](https://img.shields.io/badge/BiDi-100%25_CSS_Logical-f97316?style=for-the-badge)](#)
@@ -16,7 +16,7 @@
 </p>
 
 > **Live Interactive Showcase & Playground:** [https://seotarek.github.io/orthotect/](https://seotarek.github.io/orthotect/)  
-> **Engineering Whitepapers:** [Architectural Superiority (ARCHITECTURAL_SUPERIORITY.md)](ARCHITECTURAL_SUPERIORITY.md) | [Competitor Teardown (COMPETITORS.md)](COMPETITORS.md) | [The 7 Laws Manifesto (MANIFESTO.md)](MANIFESTO.md) | [Contributing Guide (CONTRIBUTING.md)](CONTRIBUTING.md) | [Changelog (CHANGELOG.md)](CHANGELOG.md)
+> **Engineering Whitepapers:** [Architectural Superiority (ARCHITECTURAL_SUPERIORITY.md)](ARCHITECTURAL_SUPERIORITY.md) | [Competitor Teardown (COMPETITORS.md)](COMPETITORS.md) | [The 8 Laws Manifesto (MANIFESTO.md)](MANIFESTO.md) | [Contributing Guide (CONTRIBUTING.md)](CONTRIBUTING.md) | [Changelog (CHANGELOG.md)](CHANGELOG.md)
 
 Orthotect is an enterprise-grade interface engineering runtime built to enforce **deterministic architectural quality gates, automated code review audit, state machine rigor, and aesthetic diversification** onto autonomous AI coding agents (Antigravity CLI `agy`, Claude Code, Cursor Agent, OpenAI Codex, and Grok Build). 
 
@@ -117,7 +117,7 @@ orthotect/
 │   ├── validate-skills.mjs       # Agent Skills specification validator
 │   ├── package_skills.py         # Deterministic cross-agent skill packager & security scanner
 │   └── check-package-metadata.mjs# Synchronized package version & lockfile guard
-└── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (313 Tests)
+└── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (323 Tests)
 ```
 
 ---
@@ -244,7 +244,7 @@ Orthotect provides a deterministic harness across the entire coding agent spectr
                            ▼
 ┌────────────────────────────────────────────────────────┐
 │  4. DETERMINISTIC RUNTIME GATES                        │
-│  WCAG 2.2 AAA Contrast · BiDi · FSM · Slop · DOM CLS   │
+│  WCAG 2.2 AAA Contrast · BiDi · FSM · Slop · DOM · SAST│
 │  Exit 0 = Land & Ship  |  Exit 1 = Halt & Fix Line     │
 └────────────────────────────────────────────────────────┘
 ```
@@ -264,11 +264,11 @@ To prevent version discrepancies between npm packages, local source code, docume
 npm run check:release-sync            # Verifies package.json, lockfile, CLI banner, tokens, styles, docs & git tags match
 ```
 
-Whenever a new version is tagged, GitHub Actions validates all 296 unit and integration tests, executes all 5 gates, and publishes synchronized releases simultaneously.
+Whenever a new version is tagged, GitHub Actions validates all 323 unit and integration tests, executes all 6 gates, and publishes synchronized releases simultaneously.
 
 ---
 
-## 📜 The 7 Non-Negotiable Laws
+## 📜 The 8 Non-Negotiable Laws
 
 Read the complete manifesto in [MANIFESTO.md](MANIFESTO.md).
 
@@ -279,6 +279,7 @@ Read the complete manifesto in [MANIFESTO.md](MANIFESTO.md).
 5. **Layout Stability:** Media assets must allocate dimensions before render; DOM nesting must not exceed 32 nodes.
 6. **Token Purity:** Hardcoded styling values are banned; all properties resolve to W3C DTCG 3-tier tokens.
 7. **Anti-Slop:** Banned raw emoji icons in controls, banned generic indigo-purple gradients, zero untokenized styles.
+8. **Zero-Trust Cybersecurity Defense:** Full-stack components, endpoints, and client sinks must be hardened against injection (SQLi, Command Injection, NoSQL, SSTI), DOM XSS, SSRF, prototype pollution, and credential exposure.
 
 ---
 

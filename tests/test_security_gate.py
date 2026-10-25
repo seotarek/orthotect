@@ -218,5 +218,97 @@ sys.path.insert(0, '/root')
         findings = scan_file(fpath)
         self.assertEqual(len(findings), 0)
 
+    # 11. Environment File (.env) Scanning Tests
+    def test_env_files_detected_in_directory_scan(self):
+        env_path = self._create_temp_file(".env", 'SECRET_KEY = "prod_secret_849204820482048204820"\n')
+        env_local_path = self._create_temp_file(".env.local", 'AUTH_TOKEN = "production_key_99999999999999999999"\n')
+        env_prod_path = self._create_temp_file(".env.production", 'API_KEY = "test_secret_key_abcdef1234567890123456"\n')
+
+        # Test scan_file directly
+        self.assertTrue(len(scan_file(env_path)) > 0)
+        self.assertTrue(len(scan_file(env_local_path)) > 0)
+        self.assertTrue(len(scan_file(env_prod_path)) > 0)
+
+        # Test directory discovery logic
+        from gates.gate_security_audit import is_scannable_file
+        self.assertTrue(is_scannable_file(".env"))
+        self.assertTrue(is_scannable_file(".env.local"))
+        self.assertTrue(is_scannable_file(".env.production"))
+
+    # 12. YAML Deserialization Tests (Safe vs Unsafe)
+    def test_yaml_safe_loader_not_flagged(self):
+        content = """
+import yaml
+def load_config(text):
+    return yaml.load(text, Loader=yaml.SafeLoader)
+"""
+        fpath = self._create_temp_file("yaml_safe.py", content)
+        findings = scan_file(fpath)
+        self.assertEqual(len(findings), 0)
+
+    def test_yaml_safe_loader_direct_import_not_flagged(self):
+        content = """
+from yaml import load, SafeLoader
+def load_config(text):
+    return load(text, Loader=SafeLoader)
+"""
+        fpath = self._create_temp_file("yaml_safe_direct.py", content)
+        findings = scan_file(fpath)
+        self.assertEqual(len(findings), 0)
+
+    def test_yaml_unsafe_load_flagged(self):
+        content = """
+import yaml
+def load_config(text):
+    return yaml.unsafe_load(text)
+"""
+        fpath = self._create_temp_file("yaml_unsafe.py", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("yaml.unsafe_load" in f[1] for f in findings))
+
+    def test_yaml_load_no_loader_flagged(self):
+        content = """
+import yaml
+def load_config(text):
+    return yaml.load(text)
+"""
+        fpath = self._create_temp_file("yaml_no_loader.py", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("without SafeLoader" in f[1] for f in findings))
+
+    def test_yaml_load_unsafe_loader_flagged(self):
+        content = """
+import yaml
+def load_config(text):
+    return yaml.load(text, Loader=yaml.Loader)
+"""
+        fpath = self._create_temp_file("yaml_unsafe_loader.py", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("without SafeLoader" in f[1] for f in findings))
+
+    # 13. Intra-file Taint Tracking Tests
+    def test_indirect_dom_xss_taint_propagation(self):
+        content = """
+function displayUserMessage() {
+    const rawInput = location.search;
+    const msg = rawInput;
+    document.getElementById("output").innerHTML = msg;
+}
+"""
+        fpath = self._create_temp_file("taint_xss.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_sanitized_flow(self):
+        content = """
+function displayUserMessage() {
+    const rawInput = DOMPurify.sanitize(location.search);
+    document.getElementById("output").innerHTML = rawInput;
+}
+"""
+        fpath = self._create_temp_file("taint_safe.js", content)
+        findings = scan_file(fpath)
+        self.assertEqual(len(findings), 0)
+
 if __name__ == '__main__':
     unittest.main()

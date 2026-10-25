@@ -68,7 +68,8 @@ INJECTION_PATTERNS = [
     
     # Insecure Deserialization
     (r'\bpickle\.loads?\s*\(', "Insecure Deserialization: Arbitrary code execution via Python pickle", CRITICAL),
-    (r'\byaml\.(?:load|unsafe_load)\s*\([^)]*(?!Loader\s*=\s*(?:SafeLoader|yaml\.SafeLoader|CSafeLoader))', "Insecure YAML Deserialization: yaml.load without SafeLoader", HIGH),
+    (r'\byaml\.unsafe_load\s*\(', "Insecure Deserialization: yaml.unsafe_load allows arbitrary code execution", CRITICAL),
+    (r'\byaml\.load\s*\([^)]*Loader\s*=\s*(?:yaml\.)?(?:Loader|FullLoader|UnsafeLoader)', "Insecure YAML Deserialization: yaml.load with unsafe Loader", HIGH),
     
     # Weak Cryptography
     (r'\bcrypto\.createCipher\s*\(', "Weak Cryptography: Deprecated crypto.createCipher (uses insecure ECB mode without IV)", HIGH),
@@ -85,8 +86,16 @@ IGNORE_DIRS = {
 
 SCANNABLE_EXTENSIONS = {
     '.py', '.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs',
-    '.vue', '.svelte', '.html', '.htm', '.php', '.sql', '.json', '.env'
+    '.vue', '.svelte', '.html', '.htm', '.php', '.sql', '.json'
 }
+
+def is_scannable_file(filename):
+    """Detect if a file is eligible for SAST scanning, including dotfiles (.env, .env.local, .env.production)."""
+    lower = filename.lower()
+    if lower == '.env' or lower.startswith('.env.'):
+        return True
+    ext = os.path.splitext(filename)[1].lower()
+    return ext in SCANNABLE_EXTENSIONS
 
 def is_safe_context(snippet, filepath):
     """Filter out non-exploitable contexts: comments, self-inspection, test assertions, educational knowledge files."""
@@ -165,17 +174,90 @@ def scan_python_ast(filepath, content):
                         "pickle.loads(...)"
                     ))
 
-            # 4. Insecure yaml.load without Loader
-            if func_name == 'load' and isinstance(node.func, ast.Attribute):
+            # 4. Insecure yaml.load / yaml.unsafe_load
+            if func_name == 'unsafe_load' and isinstance(node.func, ast.Attribute):
                 if isinstance(node.func.value, ast.Name) and node.func.value.id == 'yaml':
-                    has_loader = any(kw.arg == 'Loader' for kw in node.keywords)
-                    if not has_loader and len(node.args) < 2:
+                    findings.append((
+                        node.lineno,
+                        "Insecure Deserialization: yaml.unsafe_load allows arbitrary code execution",
+                        CRITICAL,
+                        "yaml.unsafe_load(...)"
+                    ))
+            elif func_name == 'load' and isinstance(node.func, ast.Attribute):
+                if isinstance(node.func.value, ast.Name) and node.func.value.id == 'yaml':
+                    loader_kw = next((kw for kw in node.keywords if kw.arg == 'Loader'), None)
+                    safe_loader_names = {'SafeLoader', 'CSafeLoader'}
+                    is_safe = False
+                    if loader_kw:
+                        val = loader_kw.value
+                        if isinstance(val, ast.Name) and val.id in safe_loader_names:
+                            is_safe = True
+                        elif isinstance(val, ast.Attribute) and val.attr in safe_loader_names:
+                            is_safe = True
+
+                    if not is_safe:
                         findings.append((
                             node.lineno,
                             "Insecure Deserialization: yaml.load without SafeLoader",
                             HIGH,
                             "yaml.load(...)"
                         ))
+
+    return findings
+
+def scan_intrafile_taint(filepath, content):
+    """
+    Intra-file lexical & pattern taint tracking:
+    Identifies untrusted sources assigned to local variables and traces their propagation
+    into dangerous sinks (e.g. innerHTML, outerHTML, document.write) within the same file.
+    """
+    findings = []
+    lines = content.splitlines()
+
+    source_pattern = re.compile(
+        r'(?:const|let|var)\s+([a-zA-Z0-9_]+)\s*=\s*([^;\n]+)'
+    )
+    untrusted_source_re = re.compile(
+        r'\b(?:location\.(?:search|hash|href|pathname)|document\.(?:URL|referrer|cookie)|window\.name|new\s+URLSearchParams\()'
+    )
+    sanitizer_re = re.compile(
+        r'\b(?:DOMPurify\.sanitize|sanitize|escapeHTML|encodeURIComponent)\s*\('
+    )
+    sink_pattern = re.compile(
+        r'(?:\.innerHTML|\.outerHTML)\s*=\s*([a-zA-Z0-9_]+)|document\.write(?:ln)?\s*\(\s*([a-zA-Z0-9_]+)\s*\)'
+    )
+
+    tainted_vars = {}
+
+    for idx, line in enumerate(lines, start=1):
+        stripped = line.strip()
+        if stripped.startswith(('//', '/*', '*', '#')):
+            continue
+
+        m_var = source_pattern.search(line)
+        if m_var:
+            var_name = m_var.group(1)
+            rhs = m_var.group(2)
+
+            if sanitizer_re.search(rhs):
+                continue
+
+            if untrusted_source_re.search(rhs):
+                tainted_vars[var_name] = idx
+            elif rhs.strip() in tainted_vars:
+                tainted_vars[var_name] = idx
+
+        m_sink = sink_pattern.search(line)
+        if m_sink:
+            sink_var = m_sink.group(1) or m_sink.group(2)
+            if sink_var and sink_var in tainted_vars:
+                source_line = tainted_vars[sink_var]
+                findings.append((
+                    idx,
+                    f"DOM XSS (Taint Flow): Variable '{sink_var}' (tainted from line {source_line}) assigned to dangerous DOM sink",
+                    CRITICAL,
+                    line.strip()[:80]
+                ))
 
     return findings
 
@@ -218,6 +300,13 @@ def scan_file(filepath):
             if not is_safe_context(snippet, filepath):
                 findings.append((line_no, label, severity, snippet))
 
+    # 4. Intra-file Taint Flow Analysis
+    if any(filepath.endswith(ext) for ext in ('.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs', '.vue', '.svelte', '.html')):
+        taint_findings = scan_intrafile_taint(filepath, content)
+        for line_no, label, severity, snippet in taint_findings:
+            if not is_safe_context(snippet, filepath):
+                findings.append((line_no, label, severity, snippet))
+
     # Deduplicate findings by line and label
     deduped = []
     seen = set()
@@ -253,8 +342,7 @@ def main():
         for root, dirs, files in os.walk(target_dir):
             dirs[:] = [d for d in dirs if d not in IGNORE_DIRS]
             for file in files:
-                ext = os.path.splitext(file)[1]
-                if ext in SCANNABLE_EXTENSIONS:
+                if is_scannable_file(file):
                     files_to_scan.append(os.path.join(root, file))
 
     total_vulns = 0
@@ -274,6 +362,7 @@ def main():
             "passed": passed,
             "scannedFiles": len(files_to_scan),
             "vulnerabilityCount": total_vulns,
+            "notice": "Deterministic SAST verification passed (AST & intra-file taint analysis). Verifies static syntax, dangerous sinks, and secrets; does not replace runtime penetration testing.",
             "vulnerabilities": [
                 {
                     "file": fpath,
@@ -291,7 +380,7 @@ def main():
 
     if is_md:
         print(f"### 🛡️ Orthotect Cybersecurity Gate Report")
-        print(f"**Target:** `{target_dir}` | **Status:** {'✅ CERTIFIED SECURE' if passed else '❌ VULNERABILITIES DETECTED'} | **Files Scanned:** {len(files_to_scan)}\n")
+        print(f"**Target:** `{target_dir}` | **Status:** {'✅ PASSED (Deterministic SAST)' if passed else '❌ VULNERABILITIES DETECTED'} | **Files Scanned:** {len(files_to_scan)}\n")
         if not passed:
             print("| File | Line | Severity | Vulnerability | Snippet |")
             print("| :--- | :---: | :---: | :--- | :--- |")
@@ -299,6 +388,8 @@ def main():
                 rel = os.path.relpath(fpath, target_dir)
                 for line, label, sev, snip in vulns:
                     print(f"| `{rel}` | {line} | **{sev}** | {label} | `{snip}` |")
+        else:
+            print("> **Scope Notice:** Deterministic SAST verification passed (AST & intra-file taint analysis). Verifies static syntax, dangerous sinks, and secrets. Does not replace dynamic runtime penetration testing, DAST, or manual security review.\n")
         sys.exit(0 if passed else 1)
 
     # Standard Console ASCII Banner
@@ -320,7 +411,8 @@ def main():
         sys.exit(1)
     else:
         print(f"✅ [PASS] Zero cybersecurity vulnerabilities detected across {len(files_to_scan)} file(s)!")
-        print("   OWASP Top 10, CWE Top 25, and injection defenses 100% verified.")
+        print("   Deterministic SAST verification passed (AST & intra-file taint analysis).")
+        print("   Notice: Verifies static syntax, dangerous sinks, and secrets; does not replace runtime penetration testing.")
         sys.exit(0)
 
 if __name__ == '__main__':

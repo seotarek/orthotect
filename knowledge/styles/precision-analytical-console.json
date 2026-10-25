@@ -30,7 +30,7 @@
   "layoutRhythm": {
     "density": "compact",
     "gridStructure": "16-column dense data grid with 8px gutters; collapsible telemetry rails and fixed-height scrollable log streams",
-    "whitespaceDiscipline": "Calibrated tight spacing (4px–8px padding inside data cells, 16px between macro widgets)"
+    "whitespaceDiscipline": "Calibrated tight spacing (4px\u20138px padding inside data cells, 16px between macro widgets)"
   },
   "surfaceTreatment": {
     "radius": "0px to 2px sharp precision edges; absolutely no pill-shaped buttons in data tables",
@@ -38,7 +38,7 @@
     "depthElevation": "Flat planar surfaces with 1px border separation; zero drop shadows to maintain razor-sharp pixel boundary alignment"
   },
   "componentGuidelines": {
-    "primaryActionStyle": "Compact rectangular buttons with mono hotkey indicators (e.g., [⌘K], [R]) and tactile pressed state",
+    "primaryActionStyle": "Compact rectangular buttons with mono hotkey indicators (e.g., [\u2318K], [R]) and tactile pressed state",
     "cardStructure": "Self-contained metric cards with inline SVG sparklines, status pills, and delta indicators",
     "tablePresentation": "Dense data grid with sticky headers, column sorting indicators, hover crosshairs, and monospaced alignment"
   },
@@ -77,6 +77,6 @@
     ],
     "browserVerified": false,
     "verifiedAt": "2026-10-23T04:00:00Z",
-    "revision": "v1.7.4"
+    "revision": "v1.8.0"
   }
 }
