@@ -22,12 +22,18 @@
     "gate:fsm": "python3 gates/gate_fsm_integrity.py",
     "gate:slop": "python3 gates/gate_no_slop.py",
     "gate:cwv": "node gates/gate_cwv_budget.mjs",
+    "gate:security": "python3 gates/gate_security_audit.py",
     "compile:tokens": "node bin/orthotect.js compile core/tokens --out examples/golden-showcase/tokens.css",
     "sync:core": "node scripts/sync-core-data.mjs"
   },
   "keywords": [
     "ai-agents",
     "agent-skills",
+    "skills-sh",
+    "cybersecurity",
+    "sast",
+    "owasp",
+    "vulnerability-scanner",
     "claude-code",
     "cursor",
     "cursor-agent",

@@ -47,7 +47,7 @@ All agents operating in or on Orthotect must follow this five-stage progression:
 
 ---
 
-## 📜 3. The 7 Non-Negotiable Laws of Interface Engineering
+## 📜 3. The 8 Non-Negotiable Laws of High-Integrity Engineering
 
 1. **Verification Protocol**: Never declare a metric, contrast score, or pass claim without executing deterministic gates on actual files.
 2. **Directional Neutrality**: Physical coordinates (`left`, `right`, `margin-left`, `padding-right`, `float`) are banned. Modern CSS Logical Properties are mandatory.
@@ -56,6 +56,7 @@ All agents operating in or on Orthotect must follow this five-stage progression:
 5. **Layout Stability**: Media assets must allocate dimensions before render (`width` + `height` or `aspect-ratio`); DOM nesting depth must not exceed 32 nodes.
 6. **Token Purity**: Zero hardcoded hex colors or arbitrary values; all properties resolve to W3C DTCG 3-tier tokens (`:root` light and `[data-theme="dark"]`).
 7. **Anti-Slop Defense**: Zero AI indigo-purple gradients, zero raw emoji controls, zero untokenized styles.
+8. **Zero-Trust Cybersecurity Defense**: Full-stack components, endpoints, and client sinks must be hardened against injection (SQLi, Command Injection, NoSQL, SSTI), DOM XSS, SSRF, prototype pollution, and credential exposure. SAST gates run fail-closed with zero external dependencies.
 
 ---
 

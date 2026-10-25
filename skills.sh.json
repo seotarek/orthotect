@@ -1,0 +1,82 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Deterministic Quality Gates & Verification",
+      "description": "Objective, zero-dependency quality gate runners, in-place auto-healing, and Git pre-commit enforcement.",
+      "skills": [
+        "orthotect-gates",
+        "orthotect-auto-fix",
+        "orthotect-hooks",
+        "orthotect-visual-qa"
+      ]
+    },
+    {
+      "title": "Enterprise Cybersecurity & Threat Defense",
+      "description": "Full-stack static analysis (SAST) detecting OWASP Top 10, CWE Top 25, SQLi, Command Injection, DOM XSS, SSRF, and credential leakage.",
+      "skills": [
+        "orthotect-security"
+      ]
+    },
+    {
+      "title": "Interface Doctrine & UI/UX Intelligence",
+      "description": "Foundational architectural laws, 19-dimensional design reasoning, and style recipe curation.",
+      "skills": [
+        "orthotect-doctrine",
+        "orthotect-uiux"
+      ]
+    },
+    {
+      "title": "DTCG Design Tokens & Multi-Brand Systems",
+      "description": "W3C DTCG 3-tier token compilation, multi-brand theme governance, and accessible fluid typography.",
+      "skills": [
+        "orthotect-tokens",
+        "orthotect-design-systems",
+        "orthotect-typography"
+      ]
+    },
+    {
+      "title": "Component Contracts & Formal State Machines",
+      "description": "Accessible WAI-ARIA component contracts across all 8 states, with graph-reachable FSM deadlock and race defense.",
+      "skills": [
+        "orthotect-components",
+        "orthotect-fsm",
+        "orthotect-forms"
+      ]
+    },
+    {
+      "title": "Accessibility & True Directional Symmetry",
+      "description": "Mathematical WCAG 2.2 AAA/AA relative luminance contrast auditing and 100% CSS Logical Properties for bidirectional RTL/LTR interfaces.",
+      "skills": [
+        "orthotect-accessibility",
+        "orthotect-bidi"
+      ]
+    },
+    {
+      "title": "High-Density Consoles & Telemetry",
+      "description": "Ergonomic operations consoles, tabular numeric data displays, and zero-layout-shift inline SVG sparklines.",
+      "skills": [
+        "orthotect-dashboard",
+        "orthotect-data-viz"
+      ]
+    },
+    {
+      "title": "Adaptive Layout, Motion & Context Optimization",
+      "description": "Responsive bento grids, spring-physics motion tokens, and token-preserving context window AST skeletons.",
+      "skills": [
+        "orthotect-responsive",
+        "orthotect-motion",
+        "orthotect-context"
+      ]
+    },
+    {
+      "title": "Conversion Engineering & Technical SEO",
+      "description": "High-integrity conversion rate optimization (CRO) and semantic Schema.org JSON-LD multi-entity @graph structured data.",
+      "skills": [
+        "orthotect-cro",
+        "orthotect-schema"
+      ]
+    }
+  ]
+}

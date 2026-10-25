@@ -19,7 +19,7 @@ Orthotect is an enterprise-grade interface engineering platform and deterministi
 python3 gates/run_all_gates.py docs
 python3 gates/run_all_gates.py examples/golden-showcase
 
-# Run the complete test suite (skills validation, 275 unit tests, and gates)
+# Run the complete test suite (skills validation, 313 unit tests, and 6 gates)
 npm test
 
 # Run Python unit tests only
@@ -29,7 +29,7 @@ npm run test:unit
 
 ### Skills Specification & Packaging
 ```bash
-# Validate all 18 installed skills against the Agent Skills specification
+# Validate all 22 installed skills against the Agent Skills specification
 npm run validate:skills
 
 # Build reproducible, security-scanned ZIP packages with SHA-256 manifest
@@ -44,6 +44,7 @@ npm run check:package-metadata
 # Inspect environment and verify target project
 bin/orthotect.js doctor
 bin/orthotect.js verify ./docs
+bin/orthotect.js security ./docs
 
 # Compile W3C DTCG tokens into pure CSS Custom Properties
 bin/orthotect.js compile core/tokens --out dist/tokens.css

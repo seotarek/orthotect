@@ -16,7 +16,7 @@
 </p>
 
 > **Live Interactive Showcase & Playground:** [https://seotarek.github.io/orthotect/](https://seotarek.github.io/orthotect/)  
-> **Engineering Whitepapers:** [Competitor Teardown (COMPETITORS.md)](COMPETITORS.md) | [The 7 Laws Manifesto (MANIFESTO.md)](MANIFESTO.md) | [Contributing Guide (CONTRIBUTING.md)](CONTRIBUTING.md) | [Changelog (CHANGELOG.md)](CHANGELOG.md)
+> **Engineering Whitepapers:** [Architectural Superiority (ARCHITECTURAL_SUPERIORITY.md)](ARCHITECTURAL_SUPERIORITY.md) | [Competitor Teardown (COMPETITORS.md)](COMPETITORS.md) | [The 7 Laws Manifesto (MANIFESTO.md)](MANIFESTO.md) | [Contributing Guide (CONTRIBUTING.md)](CONTRIBUTING.md) | [Changelog (CHANGELOG.md)](CHANGELOG.md)
 
 Orthotect is an enterprise-grade interface engineering runtime built to enforce **deterministic architectural quality gates, automated code review audit, state machine rigor, and aesthetic diversification** onto autonomous AI coding agents (Antigravity CLI `agy`, Claude Code, Cursor Agent, OpenAI Codex, and Grok Build). 
 
