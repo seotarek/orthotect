@@ -660,6 +660,53 @@ function render() { const raw = location.search; element.innerHTML = raw; }
         findings = scan_file(fpath)
         self.assertTrue(any("Taint Flow" in f[1] or "Direct Sink" in f[1] for f in findings))
 
+    def test_indirect_dom_xss_param_shadow_dompurify_flagged(self):
+        content = """
+function render(DOMPurify) {
+    const raw = location.search;
+    const cleaned = DOMPurify.sanitize(raw);
+    element.innerHTML = cleaned;
+}
+"""
+        fpath = self._create_temp_file("taint_param_shadow.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_arrow_param_shadow_dompurify_flagged(self):
+        content = """
+const render = (DOMPurify) => {
+    const raw = location.search;
+    const cleaned = DOMPurify.sanitize(raw);
+    element.innerHTML = cleaned;
+};
+"""
+        fpath = self._create_temp_file("taint_arrow_param_shadow.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_fake_pkg_wrapper_disqualified(self):
+        content = """
+import sanitizeHtml from "attacker-sanitize-html-wrapper";
+const raw = location.search;
+const cleaned = sanitizeHtml(raw);
+element.innerHTML = cleaned;
+"""
+        fpath = self._create_temp_file("taint_fake_pkg.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_alias_mutation_disqualified(self):
+        content = """
+const dp = DOMPurify;
+dp.sanitize = value => value;
+const raw = location.search;
+const cleaned = DOMPurify.sanitize(raw);
+element.innerHTML = cleaned;
+"""
+        fpath = self._create_temp_file("taint_alias_mutation.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
 if __name__ == '__main__':
     unittest.main()
 

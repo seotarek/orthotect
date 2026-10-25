@@ -267,45 +267,87 @@ def resolve_trusted_sanitizers(content):
     2. Zero-Trust for In-File Definitions: Local variable/function/class declarations in the file
        are NEVER trusted as sanitizers (an in-file custom function cannot be proven safe via regexes).
     3. Shadowing Protection: If a library identifier ('DOMPurify', 'validator', 'he', 'sanitizeHtml', etc.)
-       is declared or shadowed locally (e.g. 'const sanitizeHtml = value => value' or 'const DOMPurify = { sanitize: ... }'),
+       is declared or shadowed locally (e.g. 'const sanitizeHtml = value => value' or 'const DOMPurify = { sanitize: ... }'
+       or function/method/arrow parameter like 'function render(DOMPurify)'),
        it is classified as UNTRUSTED and stripped from the trusted set.
-    4. Verified Library Imports: Bare functions like 'sanitizeHtml', 'escapeHTML', 'escapeHtml'
-       are trusted ONLY when explicitly imported from their verified packages ('sanitize-html', 'escape-html').
-    5. URI Encoders Excluded: encodeURI and encodeURIComponent are NOT permitted as HTML sanitizers.
+    4. Object Alias & Mutation Tracking: If an alias is created to a trusted library (e.g. 'const dp = DOMPurify'),
+       any mutation on that alias (e.g. 'dp.sanitize = ...' or 'Object.assign(dp, ...)') mutates the underlying
+       library at runtime, immediately disqualifying the root library from the trusted set.
+    5. Verified Library Imports: Bare functions like 'sanitizeHtml', 'escapeHTML', 'escapeHtml'
+       are trusted ONLY when explicitly imported from their verified packages ('sanitize-html', 'escape-html')
+       via exact package name matching.
+    6. URI Encoders Excluded: encodeURI and encodeURIComponent are NOT permitted as HTML sanitizers.
     """
     trusted = set(BASE_TRUSTED_SANITIZERS)
 
-    # 1. Check for verified external package imports
+    # 1. Check for verified external package imports (Exact Package Name Matching)
     import_re = re.compile(
-        r'\bimport\s+(?:\{[^}]*?\b(sanitizeHtml|escapeHTML|escapeHtml)\b[^}]*?\}|([a-zA-Z0-9_$]+))\s+from\s*["\']([^"\']+)["\']|'
-        r'(?:const|let|var)\s+(?:\{[^}]*?\b(sanitizeHtml|escapeHTML|escapeHtml)\b[^}]*?\}\s*=\s*require\(["\']([^"\']+)["\']|([a-zA-Z0-9_$]+)\s*=\s*require\(["\']([^"\']+)["\']\))'
+        r'\bimport\s+(?:\{([^}]*)\}|([a-zA-Z0-9_$]+))\s+from\s*["\']([^"\']+)["\']|'
+        r'(?:const|let|var)\s+(?:\{([^}]*)\}\s*=\s*require\(["\']([^"\']+)["\']\)|([a-zA-Z0-9_$]+)\s*=\s*require\(["\']([^"\']+)["\']\))'
     )
     for m in import_re.finditer(content):
-        named = m.group(1) or m.group(4)
-        default_name = m.group(2) or m.group(5)
-        pkg = m.group(3) or m.group(6) or ''
-        
-        if 'sanitize-html' in pkg:
-            trusted.add('sanitizeHtml')
-            if default_name:
-                trusted.add(default_name)
-        if 'escape-html' in pkg:
-            trusted.add('escapeHTML')
-            trusted.add('escapeHtml')
-            if default_name:
-                trusted.add(default_name)
+        named_clause = m.group(1) or m.group(4)
+        default_name = m.group(2) or m.group(6)
+        pkg = m.group(3) or m.group(5) or m.group(7) or ''
 
-    # 2. Detect ALL local in-file declarations (variables, functions, classes)
+        if pkg == 'sanitize-html':
+            if default_name:
+                trusted.add(default_name)
+            if named_clause:
+                for part in named_clause.split(','):
+                    part = part.strip()
+                    m_as = re.search(r'\bsanitizeHtml\s+as\s+([a-zA-Z0-9_$]+)', part)
+                    m_colon = re.search(r'\bsanitizeHtml\s*:\s*([a-zA-Z0-9_$]+)', part)
+                    if m_as:
+                        trusted.add(m_as.group(1))
+                    elif m_colon:
+                        trusted.add(m_colon.group(1))
+                    elif re.search(r'\bsanitizeHtml\b', part):
+                        trusted.add('sanitizeHtml')
+
+        elif pkg == 'escape-html':
+            if default_name:
+                trusted.add(default_name)
+            if named_clause:
+                for part in named_clause.split(','):
+                    part = part.strip()
+                    m_as = re.search(r'\b(?:escapeHTML|escapeHtml)\s+as\s+([a-zA-Z0-9_$]+)', part)
+                    m_colon = re.search(r'\b(?:escapeHTML|escapeHtml)\s*:\s*([a-zA-Z0-9_$]+)', part)
+                    if m_as:
+                        trusted.add(m_as.group(1))
+                    elif m_colon:
+                        trusted.add(m_colon.group(1))
+                    elif re.search(r'\b(escapeHTML|escapeHtml)\b', part):
+                        trusted.add(re.search(r'\b(escapeHTML|escapeHtml)\b', part).group(1))
+
+    # 2. Track Aliases to Trusted Libraries (DOMPurify, validator, he)
+    alias_map = {}
+    alias_decl_re = re.compile(
+        r'(?:(?:const|let|var)\s+)?([a-zA-Z0-9_$]+)\s*=\s*([a-zA-Z0-9_$]+)\s*(?:;|\n|//|/\*|$)'
+    )
+    for _ in range(3):
+        for m in alias_decl_re.finditer(content):
+            lhs = m.group(1)
+            rhs = m.group(2)
+            if rhs in ('DOMPurify', 'validator', 'he'):
+                if lhs != rhs:
+                    alias_map[lhs] = rhs
+            elif rhs in alias_map:
+                if lhs != rhs:
+                    alias_map[lhs] = alias_map[rhs]
+
+    # 3. Detect ALL local in-file declarations (variables, functions, classes)
     decl_pattern = re.compile(
         r'(?:(?:const|let|var)\s+([a-zA-Z0-9_$]+)\s*=|function\s+([a-zA-Z0-9_$]+)\s*\(|class\s+([a-zA-Z0-9_$]+)\b)'
     )
-    # Detect property mutations, reassignments, or Object.assign/defineProperty on trusted libraries or methods
-    # e.g. DOMPurify.sanitize =, DOMPurify["sanitize"] =, DOMPurify =, Object.assign(DOMPurify, ...)
+    # Direct mutations on root libraries
+    root_targets = ['DOMPurify', 'validator', 'he', 'sanitizeHtml', 'escapeHTML', 'escapeHtml']
     mutation_pattern = re.compile(
-        r'\b(DOMPurify|validator|he|sanitizeHtml|escapeHTML|escapeHtml)(?:\.[a-zA-Z0-9_$]+|\[[^\]]+\])?\s*='
-        r'|\b(?:window|globalThis|global)\.(DOMPurify|validator|he|sanitizeHtml|escapeHTML|escapeHtml)(?:\.[a-zA-Z0-9_$]+|\[[^\]]+\])?\s*='
-        r'|\bObject\.(?:assign|defineProperty|defineProperties)\s*\(\s*(?:(?:window|globalThis|global)\.)?(DOMPurify|validator|he|sanitizeHtml|escapeHTML|escapeHtml)\b'
+        r'\b(' + '|'.join(root_targets) + r')(?:\.[a-zA-Z0-9_$]+|\[[^\]]+\])?\s*='
+        r'|\b(?:window|globalThis|global)\.(' + '|'.join(root_targets) + r')(?:\.[a-zA-Z0-9_$]+|\[[^\]]+\])?\s*='
+        r'|\bObject\.(?:assign|defineProperty|defineProperties)\s*\(\s*(?:(?:window|globalThis|global)\.)?(' + '|'.join(root_targets) + r')\b'
     )
+
     local_shadows = set()
     for m in decl_pattern.finditer(content):
         name = m.group(1) or m.group(2) or m.group(3)
@@ -315,6 +357,42 @@ def resolve_trusted_sanitizers(content):
         name = next((g for g in m.groups() if g is not None), None)
         if name:
             local_shadows.add(name)
+
+    # 4. Check for mutations on aliases of trusted libraries
+    if alias_map:
+        alias_names = list(alias_map.keys())
+        alias_mut_pattern = re.compile(
+            r'\b(' + '|'.join(re.escape(a) for a in alias_names) + r')(?:\.[a-zA-Z0-9_$]+|\[[^\]]+\])\s*='
+            r'|\b(?:window|globalThis|global)\.(' + '|'.join(re.escape(a) for a in alias_names) + r')(?:\.[a-zA-Z0-9_$]+|\[[^\]]+\])\s*='
+            r'|\bObject\.(?:assign|defineProperty|defineProperties)\s*\(\s*(?:(?:window|globalThis|global)\.)?(' + '|'.join(re.escape(a) for a in alias_names) + r')\b'
+        )
+        for m in alias_mut_pattern.finditer(content):
+            matched_alias = next((g for g in m.groups() if g is not None), None)
+            if matched_alias and matched_alias in alias_map:
+                root_obj = alias_map[matched_alias]
+                local_shadows.add(root_obj)
+
+    # 5. Parameter Shadowing Protection (functions, methods, arrow functions)
+    target_names = set(root_targets) | {name for name in trusted if '.' not in name}
+    param_patterns = [
+        re.compile(r'\bfunction\s*\*?(?:\s+[a-zA-Z0-9_$]+)?\s*\(([^)]*)\)'),
+        re.compile(r'\(([^)]*)\)\s*=>'),
+        re.compile(r'\b(?:constructor|[a-zA-Z0-9_$]+)\s*\(([^)]*)\)\s*\{'),
+    ]
+    single_arrow = re.compile(r'(?:\basync\s+)?\b([a-zA-Z0-9_$]+)\s*=>')
+    for m in single_arrow.finditer(content):
+        name = m.group(1)
+        if name in target_names:
+            local_shadows.add(name)
+
+    for pat in param_patterns:
+        for m in pat.finditer(content):
+            params_str = m.group(1)
+            for param in params_str.split(','):
+                lhs = param.split('=')[0].split(':')[0]
+                for id_name in re.findall(r'\b([a-zA-Z0-9_$]+)\b', lhs):
+                    if id_name in target_names:
+                        local_shadows.add(id_name)
 
     # Discard any candidate shadowed or mutated locally
     if 'DOMPurify' in local_shadows:

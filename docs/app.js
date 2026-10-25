@@ -1,5 +1,5 @@
 /**
- * ORTHOTECT v1.8.5 — Skill Studio & Interactive Demonstration Platform
+ * ORTHOTECT v1.8.6 — Skill Studio & Interactive Demonstration Platform
  * 100% Client-Side | Zero Bloat | True Bidirectional Runtime
  */
 
@@ -222,7 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================================================================
   const bidiDict = {
     en: {
-      brandDesc: "v1.8.5",
+      brandDesc: "v1.8.6",
       navHome: "Home",
       navCatalog: "Skill Catalog",
       navPlayground: "Playground",
@@ -277,10 +277,10 @@ document.addEventListener("DOMContentLoaded", () => {
       installPill: "Developer Tooling & CLI",
       installTitle: "Installation & CLI Usage",
       installSub: "Orthotect provides zero-config command line tools to scaffold, compile, and verify projects deterministically in local environments and GitHub Actions CI.",
-      footerCopy: "Orthotect v1.8.5 © 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok."
+      footerCopy: "Orthotect v1.8.6 © 2026. Certified for Autonomous Coding Agents: Antigravity, Claude Code, Cursor, Codex, Grok."
     },
     ar: {
-      brandDesc: "v1.8.5",
+      brandDesc: "v1.8.6",
       navHome: "الرئيسية",
       navCatalog: "كتالوج المهارات",
       navPlayground: "المختبر التفاعلي",
@@ -335,7 +335,7 @@ document.addEventListener("DOMContentLoaded", () => {
       installPill: "أدوات المطور وسطر الأوامر",
       installTitle: "التثبيت وأوامر الاستخدام",
       installSub: "يوفر أورثوتكت أدوات سطر أوامر خفيفة لتهيئة المشاريع وترجمة التوكنز وفحص الكود حتميًا في البيئة المحلية وسير العمل CI.",
-      footerCopy: "أورثوتكت v1.8.5 © 2026. معتمد لوكلاء البرمجة الذاتية: Antigravity وClaude Code وCursor وCodex وGrok."
+      footerCopy: "أورثوتكت v1.8.6 © 2026. معتمد لوكلاء البرمجة الذاتية: Antigravity وClaude Code وCursor وCodex وGrok."
     }
   };
 

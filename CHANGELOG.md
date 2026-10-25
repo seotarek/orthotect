@@ -4,6 +4,24 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.6] - 2026-10-25
+
+### Fixed
+- **Function and Method Parameter Shadowing Defense (`gates/gate_security_audit.py`)**:
+  - Implemented parameter extraction across function declarations (`function [name](params)`), methods (`method(params) {`), constructors (`constructor(params) {`), parenthesized arrow functions (`(params) =>`), and bare single-argument arrow functions (`param =>`).
+  - Added parameter shadowing detection for all base sanitizer names and imported aliases. If a parameter shares the name of a sanitizer (`DOMPurify`, `validator`, `he`, `sanitizeHtml`, `escapeHTML`, `escapeHtml`), it creates a local lexical binding that shadows outer/global objects; the scanner now immediately disqualifies the affected sanitizer from the file's trusted set under the file-level zero-trust rule.
+- **Exact Package Name Import Matching (`gates/gate_security_audit.py`)**:
+  - Upgraded `import_re` and package resolution from substring checking (`if 'sanitize-html' in pkg:`) to strict exact equality (`pkg == 'sanitize-html'` and `pkg == 'escape-html'`).
+  - Added full support for named alias clauses (e.g. `import { sanitizeHtml as clean } from 'sanitize-html'` and `const { sanitizeHtml: clean } = require('sanitize-html')`).
+  - Malicious, typosquatted, or wrapper packages (e.g. `"attacker-sanitize-html-wrapper"`, `"evil-escape-html-backdoor"`) are rejected and assigned zero sanitizer trust.
+- **Object Aliasing and Property Mutation Tracking (`gates/gate_security_audit.py`)**:
+  - Implemented alias declaration tracking (`(?:(?:const|let|var)\s+)?([a-zA-Z0-9_$]+)\s*=\s*([a-zA-Z0-9_$]+)\s*(?:;|\n|//|/\*|$)`) with iterative multi-level transitive resolution for trusted libraries (`DOMPurify`, `validator`, `he`).
+  - Added alias mutation detection (`alias.prop = ...`, `alias['prop'] = ...`, `Object.assign(alias, ...)`, `Object.defineProperty(alias, ...)`). When an alias is mutated, the underlying root library is mutated in the JavaScript runtime; the analyzer now disqualifies the root library from `trusted`, catching evasive DOM XSS attacks.
+- **Test Suite Expansion**:
+  - Added 4 new negative regression unit tests in `tests/test_security_gate.py` (total 63 security tests), scaling total repository tests to **359 Automated Tests** (100% pass rate).
+- **Ecosystem Synchronization**:
+  - Synchronized version `1.8.6` across all 28 repository files, tokens, style recipes, and docs.
+
 ## [1.8.5] - 2026-10-25
 
 ### Fixed
