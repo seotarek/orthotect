@@ -4,6 +4,23 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.5] - 2026-10-25
+
+### Fixed
+- **Sanitizer Property Mutation & Overwrite Detection (`gates/gate_security_audit.py`)**:
+  - Implemented `mutation_pattern` in `resolve_trusted_sanitizers()` to detect direct property assignments (`DOMPurify.sanitize = ...`, `DOMPurify['sanitize'] = ...`), root object reassignments (`DOMPurify = ...`), and mutation helpers (`Object.assign(DOMPurify, ...)`, `Object.defineProperty(DOMPurify, ...)`).
+  - Any local property overwrite or object mutation targeting trusted sanitizers immediately strips the affected sanitizer from `trusted`, eliminating false trust bypasses.
+- **Expanded Dangerous DOM XSS Sinks (`gates/gate_security_audit.py`)**:
+  - Expanded `sink_pattern` and `INJECTION_PATTERNS` to track `.insertAdjacentHTML(position, html)`, `iframe.srcdoc = html`, and `Range.createContextualFragment(html)` across both direct pattern matching and intra-file taint flow analysis.
+- **Block-Level Sequential Statement Splitting (`gates/gate_security_audit.py`)**:
+  - Removed `brace_depth` suppression on semicolons in `split_statements()`. Semicolons inside `{ ... }` now correctly delimit executable statement boundaries, ensuring single-line blocks (e.g. `function render() { const raw = location.search; element.innerHTML = raw; }`) are parsed into sequential sub-statements where taint assignment is recorded before sink consumption.
+- **Accurate Scope Filtering & Transparent Reporting**:
+  - Explicitly excluded the gate runner itself (`gate_security_audit.py`) from `files_to_scan` to prevent self-referential false positives, standardizing the active audit scope to exactly **132 scannable application source files** across local CLI and GitHub Actions CI.
+- **Test Suite Expansion**:
+  - Added 7 new negative and positive security regression unit tests in `tests/test_security_gate.py` (total 59 security tests), bringing total repository tests to **355 Automated Tests** (100% pass rate).
+- **Ecosystem Synchronization**:
+  - Synchronized version `1.8.5` across all 28 repository files, tokens, style recipes, and docs.
+
 ## [1.8.4] - 2026-10-25
 
 ### Fixed

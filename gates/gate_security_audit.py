@@ -45,7 +45,9 @@ INJECTION_PATTERNS = [
     (r'\bnew\s+Function\s*\([^)]*[\$\+\`]', "Unsafe Dynamic Function constructor execution with dynamic input", HIGH),
     
     # DOM XSS & Client-Side Sinks
-    (r'\.(?:innerHTML|outerHTML)\s*=\s*[^;\n]*(?:location\.(?:search|hash|href|pathname)|document\.(?:URL|referrer)|window\.name|prompt\()', "DOM XSS: Direct assignment of un-sanitized URL/location source to innerHTML/outerHTML", CRITICAL),
+    (r'\.(?:innerHTML|outerHTML|srcdoc)\s*=\s*[^;\n]*(?:location\.(?:search|hash|href|pathname)|document\.(?:URL|referrer)|window\.name|prompt\()', "DOM XSS: Direct assignment of un-sanitized URL/location source to DOM HTML sink", CRITICAL),
+    (r'\.insertAdjacentHTML\s*\([^,]+,\s*[^)]*(?:location\.(?:search|hash|href|pathname)|document\.(?:URL|referrer)|window\.name|prompt\()', "DOM XSS: Direct un-sanitized source passed to insertAdjacentHTML()", CRITICAL),
+    (r'\bcreateContextualFragment\s*\([^)]*(?:location\.(?:search|hash|href|pathname)|document\.(?:URL|referrer)|window\.name|prompt\()', "DOM XSS: Direct un-sanitized source passed to createContextualFragment()", CRITICAL),
     (r'\bdocument\.write(?:ln)?\s*\([^)]*[\$\+\`]', "DOM XSS: document.write() with dynamic input", HIGH),
     (r'dangerouslySetInnerHTML\s*=\s*\{\{\s*__html\s*:\s*(?!DOMPurify|sanitize|escape)[a-zA-Z0-9_.]+\s*\}\}', "React DOM XSS: dangerouslySetInnerHTML without DOMPurify/sanitize", HIGH),
     (r'\bv-html\s*=\s*["\'](?!sanitize|DOMPurify|escape)[a-zA-Z0-9_.]+["\']', "Vue DOM XSS: v-html directive without HTML sanitization", HIGH),
@@ -297,13 +299,24 @@ def resolve_trusted_sanitizers(content):
     decl_pattern = re.compile(
         r'(?:(?:const|let|var)\s+([a-zA-Z0-9_$]+)\s*=|function\s+([a-zA-Z0-9_$]+)\s*\(|class\s+([a-zA-Z0-9_$]+)\b)'
     )
+    # Detect property mutations, reassignments, or Object.assign/defineProperty on trusted libraries or methods
+    # e.g. DOMPurify.sanitize =, DOMPurify["sanitize"] =, DOMPurify =, Object.assign(DOMPurify, ...)
+    mutation_pattern = re.compile(
+        r'\b(DOMPurify|validator|he|sanitizeHtml|escapeHTML|escapeHtml)(?:\.[a-zA-Z0-9_$]+|\[[^\]]+\])?\s*='
+        r'|\b(?:window|globalThis|global)\.(DOMPurify|validator|he|sanitizeHtml|escapeHTML|escapeHtml)(?:\.[a-zA-Z0-9_$]+|\[[^\]]+\])?\s*='
+        r'|\bObject\.(?:assign|defineProperty|defineProperties)\s*\(\s*(?:(?:window|globalThis|global)\.)?(DOMPurify|validator|he|sanitizeHtml|escapeHTML|escapeHtml)\b'
+    )
     local_shadows = set()
     for m in decl_pattern.finditer(content):
         name = m.group(1) or m.group(2) or m.group(3)
         if name:
             local_shadows.add(name)
+    for m in mutation_pattern.finditer(content):
+        name = next((g for g in m.groups() if g is not None), None)
+        if name:
+            local_shadows.add(name)
 
-    # Discard any candidate shadowed locally
+    # Discard any candidate shadowed or mutated locally
     if 'DOMPurify' in local_shadows:
         trusted.discard('DOMPurify.sanitize')
     if 'validator' in local_shadows:
@@ -360,8 +373,9 @@ def split_statements(line):
     """
     Splits a single source line into sequential statements separated by ';'
     while preserving semicolons inside string literals ('...', \"...\", `...`)
-    and inside parentheses '()', brackets '[]', and braces '{}'.
-    Specifically prevents splitting inside 'for (let i = 0; i < n; i++)'.
+    and inside parentheses '()' and brackets '[]'.
+    Specifically prevents splitting inside 'for (let i = 0; i < n; i++)' while
+    correctly splitting multiple statements inside block bodies '{ stmt1; stmt2; }'.
     """
     statements = []
     current = []
@@ -369,7 +383,6 @@ def split_statements(line):
     escaped = False
     paren_depth = 0
     bracket_depth = 0
-    brace_depth = 0
 
     for char in line:
         if escaped:
@@ -399,14 +412,8 @@ def split_statements(line):
         elif char == "]":
             bracket_depth = max(0, bracket_depth - 1)
             current.append(char)
-        elif char == "{":
-            brace_depth += 1
-            current.append(char)
-        elif char == "}":
-            brace_depth = max(0, brace_depth - 1)
-            current.append(char)
         elif char == ";":
-            if paren_depth == 0 and bracket_depth == 0 and brace_depth == 0:
+            if paren_depth == 0 and bracket_depth == 0:
                 stmt = "".join(current).strip()
                 if stmt:
                     statements.append(stmt)
@@ -521,7 +528,9 @@ def scan_intrafile_taint(filepath, content):
         r'\b(?:location\.(?:search|hash|href|pathname)|document\.(?:URL|referrer|cookie)|window\.name|new\s+URLSearchParams\()'
     )
     sink_pattern = re.compile(
-        r'(?:\.innerHTML|\.outerHTML)\s*=\s*([^;\n]+)|document\.write(?:ln)?\s*\(\s*([^;\n]+)\s*\)'
+        r'(?:\.(?:innerHTML|outerHTML|srcdoc))\s*=\s*([^;\n]+)|'
+        r'(?:\bdocument\.write(?:ln)?|\bcreateContextualFragment)\s*\(\s*([^;\n]+)\s*\)|'
+        r'\.insertAdjacentHTML\s*\([^,]+,\s*([^;\n]+)\s*\)'
     )
     conditional_keyword_re = re.compile(
         r'\b(?:if|else|switch|case|catch|while|for)\b'
@@ -576,7 +585,7 @@ def scan_intrafile_taint(filepath, content):
                 # 1. Check for dangerous sink usage
                 m_sink = sink_pattern.search(stmt)
                 if m_sink:
-                    sink_expr = (m_sink.group(1) or m_sink.group(2)).strip()
+                    sink_expr = (m_sink.group(1) or m_sink.group(2) or m_sink.group(3)).strip()
                     masked_sink = mask_sanitizers(sink_expr, trusted_sanitizers)
 
                     # Check if sink directly consumes untrusted source (direct DOM XSS)
@@ -709,8 +718,9 @@ def main():
         for root, dirs, files in os.walk(target_dir):
             dirs[:] = [d for d in dirs if d not in IGNORE_DIRS]
             for file in files:
-                if is_scannable_file(file):
-                    files_to_scan.append(os.path.join(root, file))
+                full_p = os.path.join(root, file)
+                if is_scannable_file(file) and os.path.abspath(full_p) != os.path.abspath(__file__):
+                    files_to_scan.append(full_p)
 
     total_vulns = 0
     file_reports = {}
@@ -731,7 +741,7 @@ def main():
             "vulnerabilityCount": total_vulns,
             "scope": {
                 "included": "Application frontend & backend source files (.py, .js, .ts, .html, .json, .env*)",
-                "excluded": "tests/, .github/, node_modules/, dist/"
+                "excluded": "tests/, .github/, node_modules/, dist/, gate_security_audit.py (scanner engine)"
             },
             "notice": "Deterministic SAST verification passed (AST & intra-file taint analysis). Verifies static syntax, dangerous sinks, and secrets; does not replace runtime penetration testing.",
             "vulnerabilities": [
@@ -752,7 +762,7 @@ def main():
     if is_md:
         print(f"### 🛡️ Orthotect Cybersecurity Gate Report")
         print(f"**Target:** `{target_dir}` | **Status:** {'✅ PASSED (Deterministic SAST)' if passed else '❌ VULNERABILITIES DETECTED'} | **Files Scanned:** {len(files_to_scan)}")
-        print(f"**Scope:** Application source files (.py, .js, .ts, .html, .json, .env*). Excluded: tests/, .github/, node_modules/, dist/.\n")
+        print(f"**Scope:** Application source files (.py, .js, .ts, .html, .json, .env*). Excluded: tests/, .github/, node_modules/, dist/, gate_security_audit.py (scanner engine).\n")
         if not passed:
             print("| File | Line | Severity | Vulnerability | Snippet |")
             print("| :--- | :---: | :---: | :--- | :--- |")
@@ -771,7 +781,7 @@ def main():
     print("═══════════════════════════════════════════════════════════════")
     print(f" Target Path: {target_dir}")
     print(f" Scanned Scope: {len(files_to_scan)} application source files (.py, .js, .ts, .html, .json, .env*)")
-    print(f" Excluded Scope: Tests (tests/), CI (.github/), Vendor (node_modules/), Build (dist/)\n")
+    print(f" Excluded Scope: Tests (tests/), CI (.github/), Vendor (node_modules/), Build (dist/), Scanner Engine (gate_security_audit.py)\n")
 
     if not passed:
         for fpath, vulns in file_reports.items():

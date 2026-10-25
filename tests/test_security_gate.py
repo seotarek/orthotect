@@ -592,6 +592,74 @@ element.innerHTML = cleaned;
         findings = scan_file(fpath)
         self.assertEqual(len(findings), 0)
 
+    def test_indirect_dom_xss_dompurify_property_assignment_shadow_flagged(self):
+        content = """
+DOMPurify.sanitize = value => value;
+const raw = location.search;
+const cleaned = DOMPurify.sanitize(raw);
+element.innerHTML = cleaned;
+"""
+        fpath = self._create_temp_file("taint_dompurify_prop_assign.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_dompurify_bracket_assignment_shadow_flagged(self):
+        content = """
+DOMPurify["sanitize"] = value => value;
+const raw = location.search;
+const cleaned = DOMPurify.sanitize(raw);
+element.innerHTML = cleaned;
+"""
+        fpath = self._create_temp_file("taint_dompurify_bracket_assign.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_object_assign_sanitizer_mutation_flagged(self):
+        content = """
+Object.assign(DOMPurify, { sanitize: value => value });
+const raw = location.search;
+const cleaned = DOMPurify.sanitize(raw);
+element.innerHTML = cleaned;
+"""
+        fpath = self._create_temp_file("taint_object_assign_sanitizer.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_insert_adjacent_html_flagged(self):
+        content = """
+const raw = location.search;
+element.insertAdjacentHTML("beforeend", raw);
+"""
+        fpath = self._create_temp_file("taint_insert_adjacent_html.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] or "Direct Sink" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_srcdoc_sink_flagged(self):
+        content = """
+const raw = location.search;
+iframe.srcdoc = raw;
+"""
+        fpath = self._create_temp_file("taint_srcdoc.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] or "Direct Sink" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_create_contextual_fragment_flagged(self):
+        content = """
+const raw = location.search;
+range.createContextualFragment(raw);
+"""
+        fpath = self._create_temp_file("taint_create_contextual_fragment.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] or "Direct Sink" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_single_line_function_block_taint_flow_flagged(self):
+        content = """
+function render() { const raw = location.search; element.innerHTML = raw; }
+"""
+        fpath = self._create_temp_file("taint_single_line_block.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] or "Direct Sink" in f[1] for f in findings))
+
 if __name__ == '__main__':
     unittest.main()
 
