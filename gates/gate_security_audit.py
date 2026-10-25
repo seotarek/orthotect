@@ -81,7 +81,8 @@ INJECTION_PATTERNS = [
 
 IGNORE_DIRS = {
     'node_modules', '.git', 'dist', '__pycache__', '.claude', 'tmp',
-    'coverage', '.next', '.cache', 'vendor', '.github', 'tests', 'test'
+    'coverage', '.next', '.cache', 'vendor', '.github', 'tests', 'test',
+    '.agents'
 }
 
 SCANNABLE_EXTENSIONS = {
@@ -91,6 +92,8 @@ SCANNABLE_EXTENSIONS = {
 
 def is_scannable_file(filename):
     """Detect if a file is eligible for SAST scanning, including dotfiles (.env, .env.local, .env.production)."""
+    if filename in ('skills-lock.json',):
+        return False
     lower = filename.lower()
     if lower == '.env' or lower.startswith('.env.'):
         return True
@@ -248,30 +251,94 @@ def scan_python_ast(filepath, content):
 
     return findings
 
-TRUSTED_SANITIZERS = (
+BASE_TRUSTED_SANITIZERS = (
     "DOMPurify.sanitize",
-    "escapeHTML",
-    "escapeHtml",
-    "encodeURIComponent",
-    "encodeURI",
     "validator.escape",
     "he.encode",
     "sanitizeHtml",
 )
 
-def mask_sanitizers(expr):
+def resolve_trusted_sanitizers(content):
+    """
+    Deterministically resolves the set of trusted HTML sanitizers for a specific file.
+    Guarantees:
+    1. Base trusted libraries: DOMPurify.sanitize, validator.escape, he.encode, sanitizeHtml.
+    2. encodeURI and encodeURIComponent are EXCLUDED (URI encoders, not HTML sanitizers).
+    3. Shadowing / Fake Definitions: If a file declares a local dummy definition (e.g.
+       'const escapeHTML = value => value' or 'const DOMPurify = { sanitize: x => x }'),
+       it is classified as UNTRUSTED and cannot neutralize taint.
+    4. Custom Sanitizers: 'escapeHTML' or 'escapeHtml' are trusted ONLY if they are:
+       - Explicitly imported from an external library, OR
+       - Defined locally with verified HTML entity escaping logic (e.g. &amp;, &lt;, etc.).
+    """
+    trusted = set(BASE_TRUSTED_SANITIZERS)
+
+    # 1. Check for imports of custom sanitizers (e.g. import { escapeHTML } from '...')
+    import_re = re.compile(
+        r'\bimport\s+[^;]*?\b(escapeHTML|escapeHtml)\b[^;]*?from\s*["\']|'
+        r'const\s*\{[^}]*?\b(escapeHTML|escapeHtml)\b[^}]*?\}\s*=\s*require\('
+    )
+    for m in import_re.finditer(content):
+        name = m.group(1) or m.group(2)
+        if name:
+            trusted.add(name)
+
+    # 2. Check for local declarations/definitions
+    decl_pattern = re.compile(
+        r'(?:(?:const|let|var)\s+([a-zA-Z0-9_$]+)\s*=\s*([^;\n]+)|function\s+([a-zA-Z0-9_$]+)\s*\(([^)]*)\)\s*\{([^}]*)\})'
+    )
+
+    def has_entity_escaping(code_str):
+        return bool(re.search(
+            r'&(?:amp|lt|gt|quot|#39|#x27);|\b(?:replace|replaceAll)\s*\(\s*\/[^\/]*[<>&][^\/]*\/|\bcreateElement\s*\(\s*["\']div["\']\s*\)',
+            code_str
+        ))
+
+    def is_dummy_func(code_str):
+        m_arrow = re.search(r'(?:\(([a-zA-Z0-9_$]+)\)|([a-zA-Z0-9_$]+))\s*=>\s*(?:\{\s*return\s+(?:\1|\2)\s*;?\s*\}|(?:\1|\2)\b)', code_str)
+        if m_arrow:
+            return True
+        m_func = re.search(r'function\s*\(\s*([a-zA-Z0-9_$]+)\s*\)\s*\{\s*return\s+\1\s*;?\s*\}', code_str)
+        if m_func:
+            return True
+        return False
+
+    for m in decl_pattern.finditer(content):
+        var_name = m.group(1) or m.group(3)
+        body = m.group(2) or m.group(5) or ""
+
+        if var_name in ("escapeHTML", "escapeHtml"):
+            if is_dummy_func(body) or not has_entity_escaping(body):
+                trusted.discard(var_name)
+            elif has_entity_escaping(body):
+                trusted.add(var_name)
+
+        if var_name == "DOMPurify":
+            if is_dummy_func(body) or not has_entity_escaping(body):
+                trusted.discard("DOMPurify.sanitize")
+
+        if var_name == "validator":
+            if is_dummy_func(body) or not has_entity_escaping(body):
+                trusted.discard("validator.escape")
+
+    return tuple(sorted(trusted))
+
+def mask_sanitizers(expr, trusted_sanitizers=None):
     """
     Replaces properly invoked trusted HTML sanitizer function calls with '__SANITIZED__'
     while correctly tracking balanced parentheses to support arbitrary nesting.
     Strictly checks boundaries so methods on untrusted objects (e.g. validator.sanitize)
     or bare custom functions are NOT falsely trusted.
     """
+    if trusted_sanitizers is None:
+        trusted_sanitizers = BASE_TRUSTED_SANITIZERS
+
     out = []
     i = 0
     n = len(expr)
     while i < n:
         matched_prefix = None
-        for prefix in TRUSTED_SANITIZERS:
+        for prefix in trusted_sanitizers:
             if expr.startswith(prefix, i):
                 if i == 0 or not (expr[i - 1].isalnum() or expr[i - 1] in ("_", "$", ".")):
                     matched_prefix = prefix
@@ -300,12 +367,18 @@ def mask_sanitizers(expr):
 def split_statements(line):
     """
     Splits a single source line into sequential statements separated by ';'
-    while preserving semicolons inside string literals ('...', \"...\", `...`).
+    while preserving semicolons inside string literals ('...', \"...\", `...`)
+    and inside parentheses '()', brackets '[]', and braces '{}'.
+    Specifically prevents splitting inside 'for (let i = 0; i < n; i++)'.
     """
     statements = []
     current = []
     in_quote = None
     escaped = False
+    paren_depth = 0
+    bracket_depth = 0
+    brace_depth = 0
+
     for char in line:
         if escaped:
             current.append(char)
@@ -322,13 +395,35 @@ def split_statements(line):
         elif char in ("\"", "'", "`"):
             in_quote = char
             current.append(char)
+        elif char == "(":
+            paren_depth += 1
+            current.append(char)
+        elif char == ")":
+            paren_depth = max(0, paren_depth - 1)
+            current.append(char)
+        elif char == "[":
+            bracket_depth += 1
+            current.append(char)
+        elif char == "]":
+            bracket_depth = max(0, bracket_depth - 1)
+            current.append(char)
+        elif char == "{":
+            brace_depth += 1
+            current.append(char)
+        elif char == "}":
+            brace_depth = max(0, brace_depth - 1)
+            current.append(char)
         elif char == ";":
-            stmt = "".join(current).strip()
-            if stmt:
-                statements.append(stmt)
-            current = []
+            if paren_depth == 0 and bracket_depth == 0 and brace_depth == 0:
+                stmt = "".join(current).strip()
+                if stmt:
+                    statements.append(stmt)
+                current = []
+            else:
+                current.append(char)
         else:
             current.append(char)
+
     stmt = "".join(current).strip()
     if stmt:
         statements.append(stmt)
@@ -342,12 +437,14 @@ def scan_intrafile_taint(filepath, content):
     and compound expressions into dangerous sinks (e.g. innerHTML, outerHTML, document.write).
 
     Key Soundness Guarantees:
-    1. Sequential Statement Processing: Evaluates multiple statements on a single line in order.
+    1. Sequential Statement Processing: Evaluates multiple statements on a single line in order,
+       respecting semicolons inside loops and expressions.
     2. Conservative Branch Sensitivity: Safe reassignments inside conditional blocks
-       (if/else/switch/case/catch/loops) do NOT clear taint, preventing false negatives.
+       (if/else/switch/case/catch/loops) or un-braced control statements do NOT clear taint.
     3. Unconditional Reassignment Clearing: Taint state is cleared only when reassigned
        at the same lexical block depth without conditional guards.
-    4. Strict Sanitizer Whitelist: Avoids false positives on bare 'sanitize' or custom objects.
+    4. Anti-Shadowing Sanitizer Resolution: Rejects dummy/fake sanitizers (e.g. escapeHTML = x => x)
+       and enforces verified implementations.
     """
     findings = []
     lines = content.splitlines()
@@ -364,9 +461,14 @@ def scan_intrafile_taint(filepath, content):
     conditional_keyword_re = re.compile(
         r'\b(?:if|else|switch|case|catch|while|for)\b'
     )
+    header_re = re.compile(
+        r'^(?:for|if|while)\s*\([^)]*\)\s*$|^else\s*$'
+    )
 
+    trusted_sanitizers = resolve_trusted_sanitizers(content)
     tainted_vars = {}
     brace_depth = 0
+    pending_conditional = False
 
     for idx, line in enumerate(lines, start=1):
         stripped = line.strip()
@@ -375,7 +477,6 @@ def scan_intrafile_taint(filepath, content):
 
         statements = split_statements(line)
         for stmt in statements:
-            # Track braces inside statement
             open_braces = 0
             close_braces = 0
             in_q = None
@@ -398,13 +499,18 @@ def scan_intrafile_taint(filepath, content):
                     close_braces += 1
 
             net_brace = open_braces - close_braces
-            is_conditional = bool(conditional_keyword_re.search(stmt))
+            is_conditional = bool(conditional_keyword_re.search(stmt)) or pending_conditional
+            if pending_conditional:
+                pending_conditional = False
+
+            if header_re.search(stmt):
+                pending_conditional = True
 
             # 1. Check for dangerous sink usage
             m_sink = sink_pattern.search(stmt)
             if m_sink:
                 sink_expr = (m_sink.group(1) or m_sink.group(2)).strip()
-                masked_sink = mask_sanitizers(sink_expr)
+                masked_sink = mask_sanitizers(sink_expr, trusted_sanitizers)
 
                 # Check if sink directly consumes untrusted source (direct DOM XSS)
                 if untrusted_source_re.search(masked_sink):
@@ -431,7 +537,7 @@ def scan_intrafile_taint(filepath, content):
             if m_assign:
                 var_name = m_assign.group(1)
                 rhs = m_assign.group(2).strip()
-                masked_rhs = mask_sanitizers(rhs)
+                masked_rhs = mask_sanitizers(rhs, trusted_sanitizers)
 
                 # Case A: Assigned directly from an untrusted source without full sanitization
                 if untrusted_source_re.search(masked_rhs):

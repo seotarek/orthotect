@@ -30,7 +30,7 @@
   "layoutRhythm": {
     "density": "comfortable",
     "gridStructure": "Clean, predictable single-column or 2-column linear layouts; unambiguous visual reading flow",
-    "whitespaceDiscipline": "Wide touch targets (minimum 48×48px); generous margins separating clickable interactive elements"
+    "whitespaceDiscipline": "Wide touch targets (minimum 48\u00d748px); generous margins separating clickable interactive elements"
   },
   "surfaceTreatment": {
     "radius": "2px to 4px slight rounding or crisp 0px corners for maximum border contrast",
@@ -77,6 +77,6 @@
     ],
     "browserVerified": true,
     "verifiedAt": "2026-10-23T04:00:00Z",
-    "revision": "v1.8.2"
+    "revision": "v1.8.3"
   }
 }

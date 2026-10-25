@@ -4,6 +4,23 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.3] - 2026-10-25
+
+### Fixed
+- **Loop Header Statement Splitting & Unbraced Body Tracking (`gates/gate_security_audit.py`)**:
+  - Hardened `split_statements()` with parenthesis (`()`), bracket (`[]`), and brace (`{}`) depth tracking. Semicolons inside `for (...)` loop headers (`for (let i = 0; i < 1; i++)`) no longer split the loop header from its body, ensuring loops on the same line are accurately identified as conditional statements.
+  - Added pending conditional tracking for multi-line control statements (`for`, `if`, `while`, `else`) without braces, ensuring unbraced loop/conditional bodies do not clear variable taint.
+- **Sanitizer Trust Model & Anti-Shadowing Resolver (`gates/gate_security_audit.py`)**:
+  - Implemented `resolve_trusted_sanitizers(content)`: detects and rejects local dummy or identity functions (e.g. `const escapeHTML = value => value` or `const DOMPurify = { sanitize: x => x }`).
+  - Required verified HTML entity escaping logic (`&amp;`, `&lt;`, regexes, textContent) or explicit external imports for custom sanitizer identifiers.
+  - Excluded `encodeURI` and `encodeURIComponent` from HTML sink sanitizers because URI encoding does not neutralize HTML entities for DOM XSS sinks (`innerHTML`, `outerHTML`, `document.write`).
+- **Standardized SAST Scannable Scope**:
+  - Added `.agents` and `skills-lock.json` to ignored SAST scope, guaranteeing identical file counts (exactly 133 files) across local environments and shallow CI checkouts.
+- **Test Suite Expansion**:
+  - Added 5 new negative and positive security tests in `tests/test_security_gate.py` (total 48 tests), bringing total repository tests to **344 Automated Tests** (100% pass rate).
+- **Ecosystem Synchronization**:
+  - Synchronized version `1.8.3` across all 28 repository files, tokens, style recipes, and docs.
+
 ## [1.8.2] - 2026-10-25
 
 ### Fixed

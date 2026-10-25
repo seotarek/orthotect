@@ -1,6 +1,6 @@
 {
   "name": "@seotarek/orthotect",
-  "version": "1.8.2",
+  "version": "1.8.3",
   "description": "The Deterministic Interface Engineering & Runtime Gate Architecture for AI Coding Agents.",
   "main": "bin/orthotect.js",
   "bin": {
@@ -97,7 +97,6 @@
     "node": ">=20.19.0",
     "python": ">=3.9.0"
   },
-
   "dependencies": {
     "parse5": "^8.0.1"
   },

@@ -492,5 +492,63 @@ function displayUserMessage() {
         findings = scan_file(fpath)
         self.assertEqual(len(findings), 0)
 
+    def test_indirect_dom_xss_for_loop_single_line_does_not_clear_taint(self):
+        content = """
+let msg = location.search; for (let i = 0; i < 1; i++) msg = "safe"; element.innerHTML = msg;
+"""
+        fpath = self._create_temp_file("taint_for_single_line.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_dummy_custom_sanitizer_flagged(self):
+        content = """
+const escapeHTML = value => value;
+const raw = location.search;
+const cleaned = escapeHTML(raw);
+element.innerHTML = cleaned;
+"""
+        fpath = self._create_temp_file("taint_dummy_sanitizer.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_encodeuri_in_html_sink_flagged(self):
+        content = """
+function displayUserMessage() {
+    const raw = location.search;
+    const cleaned = encodeURI(raw);
+    document.getElementById("output").innerHTML = cleaned;
+}
+"""
+        fpath = self._create_temp_file("taint_encodeuri.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
+    def test_indirect_dom_xss_verified_custom_sanitizer_permitted(self):
+        content = """
+function escapeHTML(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function displayUserMessage() {
+    const raw = location.search;
+    const safe = escapeHTML(raw);
+    document.getElementById("output").innerHTML = safe;
+}
+"""
+        fpath = self._create_temp_file("taint_verified_sanitizer.js", content)
+        findings = scan_file(fpath)
+        self.assertEqual(len(findings), 0)
+
+    def test_indirect_dom_xss_shadowed_dompurify_dummy_flagged(self):
+        content = """
+const DOMPurify = { sanitize: x => x };
+const raw = location.search;
+const cleaned = DOMPurify.sanitize(raw);
+element.innerHTML = cleaned;
+"""
+        fpath = self._create_temp_file("taint_shadowed_dompurify.js", content)
+        findings = scan_file(fpath)
+        self.assertTrue(any("Taint Flow" in f[1] for f in findings))
+
 if __name__ == '__main__':
     unittest.main()
+
