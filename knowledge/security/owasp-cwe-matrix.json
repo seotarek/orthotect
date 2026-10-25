@@ -1,0 +1,57 @@
+{
+  "$schema": "../schemas/knowledge-record.schema.json",
+  "id": "owasp-cwe-matrix",
+  "title": "OWASP Top 10 & CWE Top 25 Enterprise Security Matrix & Threat Defense",
+  "category": "security",
+  "summary": "Deterministic static analysis security testing (SAST) rules and threat mitigations covering SQLi, Command Injection, DOM XSS, SSRF, prototype pollution, path traversal, and credential leakage across backend and frontend stacks.",
+  "whenToUse": "Mandatory checklist during full-stack architectural design, code reviews, pre-deployment gates, and automated CI pull-request verification.",
+  "whenNotToUse": "Never bypass security checks; static analysis does not replace live runtime penetration testing or DDoS infrastructure mitigation.",
+  "rules": [
+    "CWE-89 SQL Injection: All database queries must use prepared statements with parameterized inputs. Raw string formatting or f-strings in queries are strictly forbidden.",
+    "CWE-78 Command Injection: Subprocess execution must pass arguments as discrete arrays without shell invocation (shell=False). Avoid dynamic child_process.exec.",
+    "CWE-79 Cross-Site Scripting (XSS): Dynamic user input must never be directly assigned to innerHTML, outerHTML, or document.write. Dynamic markup requires DOMPurify sanitization.",
+    "CWE-918 Server-Side Request Forgery (SSRF): Backend HTTP clients must validate URL protocols (http/https), resolve DNS, and block private or reserved IP ranges (127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.169.254).",
+    "CWE-22 Path Traversal: File read/write operations must resolve paths within a fixed base directory using canonical paths (path.resolve) and reject relative traversal (../).",
+    "CWE-798 Hardcoded Credentials: API keys, JWT tokens, AWS/GitHub/Stripe keys, and private keys must never be committed to source control; load exclusively via environment variables.",
+    "CWE-1321 Prototype Pollution: Deep merge functions must guard against __proto__, constructor, and prototype keys before object property assignment.",
+    "CWE-942 Insecure CORS: Never combine Access-Control-Allow-Origin: * with Access-Control-Allow-Credentials: true. Explicitly whitelist authenticated origins."
+  ],
+  "antiPatterns": [
+    "Interpolating variables directly into SQL queries: cursor.execute(f'SELECT * FROM users WHERE id = {user_id}')",
+    "Executing shell commands with user-controlled input: child_process.exec(`ping ${host}`)",
+    "Assigning untrusted sources (location.search, location.hash) directly to element.innerHTML",
+    "Fetching user-supplied URLs without private IP filtering, exposing cloud metadata endpoints (169.254.169.254)",
+    "Hardcoding live API keys, Stripe tokens, or private RSA keys in application source code or fixtures",
+    "Using broken hashing algorithms (MD5, SHA1) for credential verification or password storage",
+    "Disabling security headers (CSP, X-Frame-Options, HSTS) or setting wildcard CORS on authenticated APIs"
+  ],
+  "applicableStacks": [
+    "python",
+    "nodejs",
+    "typescript",
+    "javascript",
+    "express",
+    "flask",
+    "fastapi",
+    "react",
+    "vue",
+    "html"
+  ],
+  "accessibilityNotes": "Enforces digital safety, session integrity, and user data privacy without introducing intrusive modal loops or breaking assistive screen reader navigation.",
+  "provenance": "OWASP Top 10, MITRE CWE Top 25 Most Dangerous Software Weaknesses, and NIST SP 800-53 security recommendations.",
+  "verificationStatus": "VERIFIED_DETERMINISTIC",
+  "tags": [
+    "security",
+    "owasp",
+    "cwe",
+    "sast",
+    "injection",
+    "sqli",
+    "xss",
+    "ssrf",
+    "command-injection",
+    "secrets",
+    "prototype-pollution",
+    "cors"
+  ]
+}

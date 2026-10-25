@@ -21,7 +21,7 @@
   "properties": {
     "id": { "type": "string" },
     "title": { "type": "string" },
-    "category": { "type": "string", "enum": ["styles", "palettes", "typography", "components", "patterns", "ux-guidelines", "accessibility", "motion", "bidi"] },
+    "category": { "type": "string", "enum": ["styles", "palettes", "typography", "components", "patterns", "ux-guidelines", "accessibility", "motion", "bidi", "security"] },
     "summary": { "type": "string" },
     "whenToUse": { "type": "string" },
     "whenNotToUse": { "type": "string" },
