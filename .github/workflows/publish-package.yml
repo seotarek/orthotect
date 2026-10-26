@@ -74,9 +74,16 @@ jobs:
 
       - name: Publish to GitHub Packages
         if: github.event_name == 'release' && steps.check_version.outputs.already_published != 'true'
-        run: npm publish
+        run: npm publish --registry=https://npm.pkg.github.com
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to Public npmjs.org Registry
+        if: github.event_name == 'release' && env.HAS_NPM_TOKEN == 'true'
+        run: npm publish --access=public --registry=https://registry.npmjs.org
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          HAS_NPM_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
 
       - name: Manual run publication note
         if: github.event_name == 'workflow_dispatch'

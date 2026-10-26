@@ -7,7 +7,7 @@
     "orthotect": "bin/orthotect.js"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "type": "module",
   "scripts": {
