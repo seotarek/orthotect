@@ -45,16 +45,22 @@ jobs:
           python3 gates/run_all_gates.py docs
           python3 gates/run_all_gates.py examples/golden-showcase
 
-      - name: Check if Version Already Published
-        id: check_version
+      - name: Check if Version Already Published to GitHub Packages
+        id: check_gh_pkg
         run: |
           set -euo pipefail
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           PACKAGE_NAME=$(node -p "require('./package.json').name")
+          GH_PKG_NAME="${PACKAGE_NAME}"
+          if [[ ! "${PACKAGE_NAME}" =~ ^@ ]]; then
+            GH_PKG_NAME="@${{ github.repository_owner }}/${PACKAGE_NAME}"
+          fi
           echo "Target version: ${CURRENT_VERSION}"
+          echo "GitHub Package target: ${GH_PKG_NAME}"
+          echo "gh_pkg_name=${GH_PKG_NAME}" >> "$GITHUB_OUTPUT"
 
           set +e
-          CHECK_OUTPUT=$(npm view "${PACKAGE_NAME}@${CURRENT_VERSION}" version --registry=https://npm.pkg.github.com 2>&1)
+          CHECK_OUTPUT=$(npm view "${GH_PKG_NAME}@${CURRENT_VERSION}" version --registry=https://npm.pkg.github.com 2>&1)
           CHECK_STATUS=$?
           set -e
 
@@ -62,28 +68,55 @@ jobs:
             echo "Version ${CURRENT_VERSION} is already published on GitHub Packages."
             echo "already_published=true" >> "$GITHUB_OUTPUT"
           elif echo "$CHECK_OUTPUT" | grep -Eqi '(E404|404 Not Found|No match found for version|not in this registry)'; then
-            echo "Version ${CURRENT_VERSION} is not yet published."
+            echo "Version ${CURRENT_VERSION} is not yet published on GitHub Packages."
             echo "already_published=false" >> "$GITHUB_OUTPUT"
           else
-            echo "::error::Unable to determine whether ${PACKAGE_NAME}@${CURRENT_VERSION} is published."
-            echo "$CHECK_OUTPUT"
-            exit 1
+            echo "Status indeterminate, will attempt publish: $CHECK_OUTPUT"
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to GitHub Packages
-        if: github.event_name == 'release' && steps.check_version.outputs.already_published != 'true'
-        run: npm publish --registry=https://npm.pkg.github.com
+        if: github.event_name == 'release' && steps.check_gh_pkg.outputs.already_published != 'true'
+        continue-on-error: true
+        run: |
+          GH_PKG_NAME="${{ steps.check_gh_pkg.outputs.gh_pkg_name }}"
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.name = '${GH_PKG_NAME}';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+          npm publish --registry=https://npm.pkg.github.com
+          git checkout package.json
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Check if Version Already Published to Public npmjs.org
+        id: check_npm_org
+        if: github.event_name == 'release' && secrets.NPM_TOKEN != ''
+        run: |
+          set -euo pipefail
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          set +e
+          CHECK_NPM=$(npm view "${PACKAGE_NAME}@${CURRENT_VERSION}" version --registry=https://registry.npmjs.org 2>&1)
+          STATUS_NPM=$?
+          set -e
+          if [ "$STATUS_NPM" -eq 0 ]; then
+            echo "Version ${CURRENT_VERSION} is already live on npmjs.org."
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Version ${CURRENT_VERSION} is not yet on npmjs.org."
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish to Public npmjs.org Registry
-        if: github.event_name == 'release' && env.HAS_NPM_TOKEN == 'true'
+        if: github.event_name == 'release' && secrets.NPM_TOKEN != '' && steps.check_npm_org.outputs.already_published != 'true'
         run: npm publish --access=public --registry=https://registry.npmjs.org
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          HAS_NPM_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
 
       - name: Manual run publication note
         if: github.event_name == 'workflow_dispatch'
