@@ -8,7 +8,13 @@ import { spawnSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { validateSkills } from '../scripts/validate-skills.mjs';
+let validateSkills = null;
+try {
+  const mod = await import('../scripts/validate-skills.mjs');
+  validateSkills = mod.validateSkills;
+} catch (_) {
+  // Graceful fallback if scripts/ is omitted or relocated
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -20,7 +26,7 @@ const targetArg = args[1] && !args[1].startsWith('--') ? args[1] : null;
 const forceFlag = args.includes('--force');
 
 const pkgPath = path.join(rootDir, 'package.json');
-const pkgVersion = fs.existsSync(pkgPath) ? JSON.parse(fs.readFileSync(pkgPath, 'utf-8')).version : '1.8.7';
+const pkgVersion = fs.existsSync(pkgPath) ? JSON.parse(fs.readFileSync(pkgPath, 'utf-8')).version : '1.8.8';
 
 if (args.includes('--version') || args.includes('-v') || command === 'version') {
   console.log(pkgVersion);
@@ -734,6 +740,10 @@ fi
 
     if (sub === 'validate') {
       console.log("Validating all installed skills against Agent Skills Specification...\n");
+      if (!validateSkills) {
+        console.error("Validator module (scripts/validate-skills.mjs) is not available.");
+        process.exit(1);
+      }
       const res = validateSkills(skillsDir);
       for (const r of res.details) {
         if (r.errors.length > 0) {

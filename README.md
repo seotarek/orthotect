@@ -3,7 +3,7 @@
 > **The Deterministic Interface Engineering & Runtime Gate Architecture for AI Coding Agents**  
 > Enforcing mathematical token standards, WCAG 2.2 AAA accessibility, CSS logical properties, and finite state machines across Claude Code, Cursor, OpenAI Codex, Grok Build, and Google Antigravity.
 
-[![Version](https://img.shields.io/badge/version-1.8.7_Latest-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.8.7)
+[![Version](https://img.shields.io/badge/version-1.8.8_Latest-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.8.8)
 [![Tests Passing](https://img.shields.io/badge/tests-361_passed-22c55e?style=for-the-badge)](https://github.com/seotarek/orthotect/actions)
 [![Deterministic Gates](https://img.shields.io/badge/Quality_Gates-6%2F6_Deterministic-14b8a6?style=for-the-badge)](#-installation-quickstart--deterministic-quality-gates)
 [![WCAG 2.2 AAA](https://img.shields.io/badge/WCAG_2.2-Contrast_Matrix_(AAA%2FAA)-a855f7?style=for-the-badge)](#)

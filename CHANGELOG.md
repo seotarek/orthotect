@@ -4,6 +4,16 @@ All notable changes to the Orthotect Interface Architecture are documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.8] - 2026-10-26
+
+### Fixed
+- **CLI Packaging & Resilient Dynamic Resolution (`package.json`, `bin/orthotect.js`)**:
+  - Included the `scripts` directory in `package.json` distribution files so that bundled utility scripts (such as `scripts/validate-skills.mjs`) are properly packaged into the npm tarball.
+  - Converted the static top-level import of `validateSkills` in `bin/orthotect.js` to a resilient, asynchronous dynamic import (`await import(...)`) with a graceful fallback, ensuring `npx orthotect`, `orthotect doctor`, and `--version` never throw unhandled module resolution errors in decoupled environments.
+  - Added explicit guard checks in `orthotect skills validate` to provide clear diagnostic error messaging if utility modules are relocated.
+- **Ecosystem Synchronization**:
+  - Synchronized canonical package name `orthotect` and version `1.8.8` across tokens, style recipes, docs, and test suite.
+
 ## [1.8.7] - 2026-10-25
 
 ### Fixed
