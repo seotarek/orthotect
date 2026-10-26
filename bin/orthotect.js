@@ -357,6 +357,9 @@ switch (command) {
     }
 
     console.log(`\nDoctor Status: ${hasErrors ? '❌ ISSUES DETECTED' : '✅ HEALTHY - All systems operational'}`);
+    if (!hasErrors) {
+      console.log("⭐ Enjoying Orthotect? Star the project on GitHub: https://github.com/seotarek/orthotect\n");
+    }
     if (hasErrors) process.exit(1);
     break;
   }
@@ -394,6 +397,7 @@ switch (command) {
 
     console.log(`\n🎉 Initialization Complete! Installed ${tokensCount} tokens and ${fsmCount} FSM definitions.`);
     console.log("To verify your project at any time, run: npx orthotect verify");
+    console.log("⭐ Star Orthotect on GitHub to support deterministic engineering: https://github.com/seotarek/orthotect\n");
     break;
   }
 
@@ -461,7 +465,8 @@ fi
       console.log(`✅ Orthotect Git pre-commit hook installed successfully!`);
       console.log(`   Hook location: ${path.relative(process.cwd(), hookPath)}`);
       console.log(`   All subsequent git commits will be deterministically verified.`);
-      console.log(`   To uninstall at any time: npx orthotect hooks uninstall\n`);
+      console.log(`   To uninstall at any time: npx orthotect hooks uninstall`);
+      console.log(`   ⭐ Star the project on GitHub: https://github.com/seotarek/orthotect\n`);
     } else if (action === 'uninstall') {
       if (fs.existsSync(hookPath)) {
         const currentHook = fs.readFileSync(hookPath, 'utf-8');

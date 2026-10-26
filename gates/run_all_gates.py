@@ -112,6 +112,8 @@ def main():
         print("🎉 ALL GATES PASSED! Target files verified against evaluated interface standards.\n")
         print("   Verified Standards: WCAG 2.2 Contrast, CSS Logical BiDi, FSM Integrity, Anti-Slop, DOM CLS Budget, Enterprise Security Audit.")
         print("   Notice: Verifies deterministic interface and SAST constraints; does not replace production runtime penetration testing or load audits.\n")
+        print("⭐ If Orthotect saves your UI from regressions, star the repo on GitHub:")
+        print("   https://github.com/seotarek/orthotect\n")
         sys.exit(0)
     else:
         print("🚨 BUILD FAILED! One or more objective quality gates failed.\n")

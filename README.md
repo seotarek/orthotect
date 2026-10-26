@@ -9,6 +9,7 @@
 [![WCAG 2.2 AAA](https://img.shields.io/badge/WCAG_2.2-Contrast_Matrix_(AAA%2FAA)-a855f7?style=for-the-badge)](#)
 [![BiDi Logical](https://img.shields.io/badge/BiDi-100%25_CSS_Logical-f97316?style=for-the-badge)](#)
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero_Browser_UI-0ea5e9?style=for-the-badge)](#)
+[![GitHub Stars](https://img.shields.io/github/stars/seotarek/orthotect?style=for-the-badge&logo=github&color=eab308)](https://github.com/seotarek/orthotect/stargazers)
 [![License: MIT](https://img.shields.io/badge/license-MIT-64748b?style=for-the-badge)](LICENSE)
 
 <p align="center">

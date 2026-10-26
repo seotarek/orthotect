@@ -1089,6 +1089,7 @@ def main():
         print(f"✅ [PASS] Zero cybersecurity vulnerabilities detected across {len(files_to_scan)} file(s)!")
         print("   Scope: Syntactic AST patterns, dangerous sink detection, and intra-file taint tracking.")
         print("   Notice: Verifies static patterns & secrets. Does not replace dynamic runtime penetration testing or load audits.")
+        print("⭐ If Orthotect helps secure your application, star the project: https://github.com/seotarek/orthotect\n")
         sys.exit(0)
 
 if __name__ == '__main__':
