@@ -1026,8 +1026,8 @@ TEMPLATES_SPEC = [
         "badge": "Interactive ROI",
         "icon": "credit-card",
         "saas_features": [
-            {"title": "Starter ($29/mo)", "desc": "5 developers, all 5 quality gates, CLI tools, and basic design token compiler."},
-            {"title": "Scale ($79/mo)", "desc": "25 developers, automated GitHub Actions CI runner, full 15 modular skills, and priority support."},
+            {"title": "Starter ($29/mo)", "desc": "5 developers, all 6 quality gates, CLI tools, and basic design token compiler."},
+            {"title": "Scale ($79/mo)", "desc": "25 developers, automated GitHub Actions CI runner, full 22 modular skills, and priority support."},
             {"title": "Enterprise (Custom)", "desc": "Unlimited seats, dedicated VPC deployment, custom gate rule authoring, and 99.99% SLA."},
             {"title": "Money-Back Guarantee", "desc": "30-day no questions asked refund policy if Orthotect doesn't accelerate your team's code review."}
         ]
@@ -1471,7 +1471,7 @@ SAAS_TERMINALS = {
         "lines": [
             ("✔ Orchestrator: Claude 3.7 Sonnet (Planning mode)", False),
             ("✔ Implementer: Google Antigravity agy (CLI runner)", False),
-            ("✔ Quality Gate: 5 deterministic gates executing in sandbox...", False),
+            ("✔ Quality Gate: 6 deterministic gates executing in sandbox...", False),
             ("✔ FSM Verification: 4 states, 8 transitions proven deadlock-free", False),
             ("TASK LANDED: 100% test pass rate. Zero regressions detected.", True)
         ]

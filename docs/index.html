@@ -146,7 +146,7 @@
             "name": "How do Git pre-commit hooks prevent defective UI merges?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Running `npx orthotect hooks install` installs a zero-dependency Git pre-commit hook in `.git/hooks/pre-commit`. It executes all 5 deterministic gates on staged files before allowing commits, blocking non-compliant code at the developer terminal."
+              "text": "Running `npx orthotect hooks install` installs a zero-dependency Git pre-commit hook in `.git/hooks/pre-commit`. It executes all 6 deterministic quality gates on staged files before allowing commits, blocking non-compliant code at the developer terminal."
             }
           },
           {
@@ -658,7 +658,7 @@
             <div class="section-hdr">
               <div class="section-pill" id="catalogPill">Repository Synchronized Skills</div>
               <h2 class="section-title" id="catalogTitle">Orthotect Skill Catalog</h2>
-              <p class="section-desc" id="catalogSub">Explore the 18 modular skills installed directly in skills/. Each skill provides explicit system instructions, constraints, and gate validation for autonomous coding agents.</p>
+              <p class="section-desc" id="catalogSub">Explore the 22 modular skills installed directly in skills/. Each skill provides explicit system instructions, constraints, and gate validation for autonomous coding agents.</p>
             </div>
 
             <!-- Search and Filter Bar -->
@@ -667,7 +667,7 @@
                 <input type="text" id="skillSearchInput" class="docs-modal-input" placeholder="Search skills by name, law, or keyword..." aria-label="Search Skills" style="margin: 0;" />
               </div>
               <div class="cat-filter-group" role="tablist" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <button class="cat-tab filter-pill active" data-cat="all">All Skills (15)</button>
+                <button class="cat-tab filter-pill active" data-cat="all">All Skills (22)</button>
                 <button class="cat-tab filter-pill" data-cat="architecture">Architecture</button>
                 <button class="cat-tab filter-pill" data-cat="tokens">Tokens &amp; Systems</button>
                 <button class="cat-tab filter-pill" data-cat="components">Components &amp; FSM</button>
@@ -802,7 +802,7 @@
 
                 <div class="builder-field-group">
                   <label for="sbDod" class="builder-field-lbl">Definition of Done (DoD)</label>
-                  <input type="text" id="sbDod" class="docs-modal-input" value="Zero layout shift (CLS = 0.00), keyboard sortable, all 5 quality gates pass." />
+                  <input type="text" id="sbDod" class="docs-modal-input" value="Zero layout shift (CLS = 0.00), keyboard sortable, all 6 quality gates pass." />
                 </div>
 
                 <h4 class="builder-section-subhdr">Target Agent Environments</h4>
@@ -1078,7 +1078,7 @@
 
               <div class="skill-card">
                 <h3 style="font-size: 1.1rem; margin-block-end: 0.5rem;">4. Quality Gate Verification</h3>
-                <p style="font-size: 0.85rem; color: var(--ortho-text-secondary); margin-block-end: 1rem;">Execute all 5 gates with parallel execution and zero-fallback boundaries:</p>
+                <p style="font-size: 0.85rem; color: var(--ortho-text-secondary); margin-block-end: 1rem;">Execute all 6 deterministic quality gates with parallel execution and zero-fallback boundaries:</p>
                 <pre style="background: var(--ortho-surface-2); padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.8rem; overflow-x: auto; margin-block-end: 0.5rem;"><code>orthotect verify ./src</code></pre>
                 <pre style="background: var(--ortho-surface-2); padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.8rem; overflow-x: auto; margin-block-end: 0.5rem;"><code>orthotect verify . --json</code></pre>
                 <pre style="background: var(--ortho-surface-2); padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.8rem; overflow-x: auto;"><code>orthotect verify . --md</code></pre>

@@ -61,7 +61,7 @@ The central entry point for autonomous UI/UX design and frontend interface archi
 3. **Token Binding:** Compile DTCG tokens (`node bin/orthotect.js compile`) and bind all surfaces to intent tokens.
 4. **Component Architecture:** Design components backed by FSM state contracts (`orthotect-fsm` & `orthotect-components`).
 5. **Bidirectional Symmetry:** Enforce CSS logical properties (`orthotect-bidi`).
-6. **Gate Verification:** Execute the 5 deterministic quality gates before committing.
+6. **Gate Verification:** Execute the 6 deterministic quality gates before committing.
 
 ## Querying Knowledge Base
 ```bash

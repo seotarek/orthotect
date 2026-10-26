@@ -78,7 +78,7 @@ orthotect/
 ├── docs/                    # 7-View Skill Studio Platform & Interactive Showcase (GitHub Pages)
 │   ├── index.html           # 7-view bilingual (EN/AR) interactive workbench with rich Schema.org JSON-LD
 │   ├── styles.css           # 100% CSS Logical Properties & DTCG token variables
-│   ├── app.js               # Client-side router, 18-skill catalog, playground, builder, and gate simulator
+│   ├── app.js               # Client-side router, 22-skill catalog, playground, builder, and gate simulator
 │   └── templates/           # 50 Radically Diversified Production Domain Templates (HTML/SVG/FSM)
 ├── gates/                   # Objective Deterministic Checkers (Python & Node.js)
 │   ├── gate_contrast_wcag.py     # Mathematical Relative Luminance (WCAG 2.2 AAA/AA)

@@ -26,7 +26,7 @@ Refer to the formal schema in `knowledge/schemas/design-reasoning.schema.json`:
 15. **Motion Character:** Spring physics, duration tokens, `prefers-reduced-motion` fallbacks.
 16. **Anti-Patterns to Avoid:** Banned purple AI gradients, emoji icon pollution, physical coordinates.
 17. **Implementation Stack:** Framework (HTML, React, Vue, Svelte), CSS architecture.
-18. **Verification Requirements:** Execution of all 5 deterministic quality gates.
+18. **Verification Requirements:** Execution of all 6 deterministic quality gates.
 19. **Confidence & Limitations:** Boundary checks, explicit fallback states.
 
 ## Workflow Pipeline
@@ -35,7 +35,7 @@ Refer to the formal schema in `knowledge/schemas/design-reasoning.schema.json`:
 3. **Token Binding:** Compile DTCG tokens (`node bin/orthotect.js compile`) and bind all surfaces to intent tokens.
 4. **Component Architecture:** Design components backed by FSM state contracts (`orthotect-fsm` & `orthotect-components`).
 5. **Bidirectional Symmetry:** Enforce CSS logical properties (`orthotect-bidi`).
-6. **Gate Verification:** Execute the 5 deterministic quality gates before committing.
+6. **Gate Verification:** Execute the 6 deterministic quality gates before committing.
 
 ## Querying Knowledge Base
 ```bash

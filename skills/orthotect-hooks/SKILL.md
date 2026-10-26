@@ -11,7 +11,7 @@ Use this skill when installing pre-commit hooks, configuring automated gate veri
 ## Git Pre-Commit Hook Architecture
 Orthotect ships a native, zero-dependency Git hook manager that inspects every staged file before `git commit` completes:
 - Automatically backs up foreign hooks to `pre-commit.orthotect.bak`.
-- Executes all 5 deterministic quality gates on staged changes.
+- Executes all 6 deterministic quality gates on staged changes.
 - Blocks commits with `exit 1` if WCAG contrast, BiDi properties, or FSM models fail.
 - Suggests immediate resolution via `npx orthotect verify --fix`.
 

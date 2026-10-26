@@ -41,4 +41,4 @@ npx orthotect verify src/components --fix
 
 ## Anti-Patterns
 - Manually editing dozens of physical coordinates when `--fix` executes deterministically in sub-second time.
-- Blindly committing fixes without re-running `npx orthotect verify .` to confirm all 5 gates pass.
+- Blindly committing fixes without re-running `npx orthotect verify .` to confirm all 6 gates pass.
