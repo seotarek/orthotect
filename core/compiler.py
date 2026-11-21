@@ -5,6 +5,15 @@ Compiles 3-tier DTCG tokens (primitives, semantics, motion, ergonomics)
 into production-ready CSS variables with automatic light/dark theme scopes,
 and computes mathematical WCAG 2.2 contrast ratios for paired semantic tokens.
 """
+
+# Exit-code contract (see core/exit_codes.py): 0 = PASS, 1 = rule violation
+# in the audited input, 2 = the tool could not run.
+try:
+    from core.exit_codes import EXIT_PASS, EXIT_VIOLATION, EXIT_TOOL_ERROR
+except ImportError:
+    import os as _os, sys as _sys
+    _sys.path.insert(0, _os.path.abspath(_os.path.join(_os.path.dirname(__file__), '..')))
+    from core.exit_codes import EXIT_PASS, EXIT_VIOLATION, EXIT_TOOL_ERROR
 import json
 import os
 import sys
@@ -444,7 +453,7 @@ def main():
 
     if not is_safe_output_path(output_path):
         print(f"❌ Error compiling tokens: Refusing to overwrite protected repository file: '{output_path}'", file=sys.stderr)
-        sys.exit(1)
+        sys.exit(EXIT_TOOL_ERROR)
 
     try:
         css = compile_tokens(tokens_dir)
@@ -453,7 +462,9 @@ def main():
         print(f"✅ Successfully compiled DTCG tokens from '{tokens_dir}' -> '{output_path}'")
     except Exception as e:
         print(f"❌ Error compiling tokens: {e}", file=sys.stderr)
-        sys.exit(1)
+        # Unreadable/invalid token sources or an unwritable output path: the build
+        # environment is wrong, not the caller's application code.
+        sys.exit(EXIT_TOOL_ERROR)
 
 if __name__ == '__main__':
     main()

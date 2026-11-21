@@ -39,9 +39,9 @@ User Prompt ──> LLM ──> 6 Parallel AST Gates ──> Automated --fix / F
 | **11** | **Technical SEO & Schema.org JSON-LD** | ❌ None | ❌ None | ⚠️ Metadata API (React) | ❌ None | **✅ Multi-Entity `@graph` JSON-LD Templates (Gate 5)** |
 | **12** | **Token-Optimized Context Control** | ❌ Bloats context window | ⚠️ Bounded turn advice | ❌ None | ❌ Deep markdown reading | **✅ `orthotect-context` Symbol Skeletons & Chunks** |
 | **13** | **Multi-Agent Interoperability** | ⚠️ Single agent focus | ⚠️ Claude-only | ⚠️ Next.js focus | ⚠️ Claude-optimized | **✅ 10 Agents Certified (AGY, Claude, Cursor, Codex, Grok, etc.)** |
-| **14** | **Zero External Dependencies** | ❌ N/A | ❌ N/A | ⚠️ Node CLI dependencies | ❌ Requires Playwright/Chrome | **✅ 100% Pure Python & Node Standard Libraries** |
+| **14** | **Zero External Dependencies** | ❌ N/A | ❌ N/A | ⚠️ Node CLI dependencies | ❌ Requires Playwright/Chrome | **✅ 5/6 Gates Pure Stdlib; 1 Bundled Runtime Dep (parse5)** |
 | **15** | **Production Domain Showcase** | ❌ Zero code templates | ❌ None | ⚠️ Starter repos | ⚠️ Generic components | **✅ 50 Radically Diversified Production Templates** |
-| **16** | **Automated Verification Test Suite** | ❌ Zero unit tests | ⚠️ Workflow tests | ⚠️ Package unit tests | ⚠️ 40+ unit tests | **✅ 361 Automated Tests (100% Pass Rate)** |
+| **16** | **Automated Verification Test Suite** | ❌ Zero unit tests | ⚠️ Workflow tests | ⚠️ Package unit tests | ⚠️ 40+ unit tests | **✅ 614 Automated Tests (100% Pass Rate)** |
 
 ---
 
@@ -65,11 +65,11 @@ Ad-hoc state management relies on boolean flags (`isLoading`, `hasError`) that p
 
 ### Pillar 5: Zero-Dependency Air-Gapped Operation
 Many testing tools require heavy npm dependency trees, Playwright browser binaries, or external cloud API calls.
-* **Orthotect’s Approach:** Orthotect runs 100% air-gapped on standard Python and Node.js built-ins (`ast`, `re`, `json`, `pathlib`, `crypto`). It executes in CI environments, secure container sandboxes, and developer workstations without downloading external binaries.
+* **Orthotect’s Approach:** Five of the six gates — Contrast, BiDi, FSM, Anti-Slop and Security — run on standard Python built-ins (`ast`, `re`, `json`, `pathlib`). The DOM & Layout-Shift gate is the single exception: it parses HTML through `parse5` (a WHATWG-spec tokenizer/tree builder with one transitive dependency, `entities`) so that DOM depth, node counts and CLS budgets are measured against a real HTML5 AST rather than regex guesswork. `parse5` is declared as the only runtime dependency in `package.json` and ships with the published tarball. No browsers, no cloud APIs, no network calls at verification time.
 
 ### Pillar 6: Continuous Automated Evidence
 In compliance with the Golden Law of Engineering—*evidence before assertions*—every release of Orthotect is validated across:
-- **355 automated unit, integration, and browser tests**
+- **614 automated unit, integration, and browser tests**
 - **22 Agent Skills** validated against the official Agent Skills Specification
 - **27 JSON Schema-validated knowledge records**
 - **100/100 GitHub SEO Lint score**

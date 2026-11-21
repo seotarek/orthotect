@@ -35,6 +35,10 @@ class TestHooksCli(unittest.TestCase):
             content = f.read()
         self.assertIn("npx orthotect verify", content)
         self.assertIn("pre-commit", content.lower())
+        # The hook must forward exit 2 verbatim instead of telling the developer their
+        # code failed when in fact the verifier could not run.
+        self.assertIn("exit 2", content)
+        self.assertIn("could not run", content)
 
         # 2. Uninstall hook
         res_un = subprocess.run(['node', self.orthotect_cli, 'hooks', 'uninstall', self.repo_dir], capture_output=True, text=True)
@@ -51,6 +55,8 @@ class TestHooksCli(unittest.TestCase):
         res = subprocess.run(['node', self.orthotect_cli, 'hooks', 'install', non_git], capture_output=True, text=True)
         self.assertNotEqual(res.returncode, 0)
         self.assertIn("missing .git directory", res.stderr)
+        # Not being in a git repo is an invocation/environment problem: exit 2.
+        self.assertEqual(res.returncode, 2, res.stderr)
 
 if __name__ == '__main__':
     unittest.main()

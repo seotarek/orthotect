@@ -26,11 +26,26 @@ class TestDocsBrowserPlatform(unittest.TestCase):
                 break
 
         is_ci = os.environ.get('CI') == 'true' or 'GITHUB_ACTIONS' in os.environ
+
+        # Both preconditions must be checked. A browser alone is not enough: the
+        # `node` script does `import('playwright-core')`, so a machine with Chrome
+        # installed but no `npm ci` produced a hard ERR_MODULE_NOT_FOUND failure
+        # masquerading as a broken test, instead of an actionable skip.
+        has_playwright = os.path.isdir(
+            os.path.join(self.root_dir, 'node_modules', 'playwright-core'))
+
+        missing = None
         if not self.chrome_path:
+            missing = 'Chrome/Chromium'
+        elif not has_playwright:
+            missing = 'playwright-core (run `npm ci`)'
+
+        if missing:
             if is_ci:
-                self.fail("Mandatory Browser Execution Failed: No Chrome/Chromium binary found in CI. Silent skipping prohibited.")
+                self.fail("Mandatory Browser Execution Failed: "
+                          f"{missing} unavailable in CI. Silent skipping prohibited.")
             else:
-                self.skipTest("Google Chrome / Chromium binary not found on local system")
+                self.skipTest(f"Browser verification needs {missing}")
 
     def test_docs_7_views_navigation_and_zero_console_errors(self):
         """Verify navigation across all 7 views in docs/ without any JS errors."""

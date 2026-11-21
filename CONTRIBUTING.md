@@ -9,16 +9,22 @@ Thank you for contributing to Orthotect! We maintain rigorous Google-caliber eng
 - **Python**: >= 3.10.0
 
 ### 2. Running Tests
-Before submitting any changes, you must run the full automated test suite:
+Install the declared dependencies first — `playwright-core` drives the browser tests and `parse5`
+backs the DOM gate, so a bare clone reports failures that say nothing about your change:
 ```bash
+npm ci
 npm test
 ```
-All 296+ unit, browser, AST, and integration gate tests must pass.
+All 614 unit, browser, AST, and integration gate tests must pass.
+
+Browser-backed tests need Chrome or Chromium installed. Without it they skip locally with a message
+naming what is missing; in CI they fail, because silently shrinking coverage is not acceptable there.
 
 ### 3. Running Deterministic Quality Gates
-Verify that the reference showcase satisfies all 5 objective gates:
+Verify that the reference showcase satisfies all six objective gates:
 ```bash
 npx orthotect verify examples/golden-showcase
+npx orthotect verify .            # the same six gates against Orthotect's own source
 ```
 
 ### 4. Code Standards & Invariants

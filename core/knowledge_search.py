@@ -10,6 +10,15 @@ Implements:
   5. Search quality benchmark suite computing Precision@K, Recall@K, and Mean Reciprocal Rank (MRR).
 """
 
+
+# Exit-code contract (see core/exit_codes.py): 0 = PASS, 1 = rule violation
+# in the audited input, 2 = the tool could not run.
+try:
+    from core.exit_codes import EXIT_PASS, EXIT_VIOLATION, EXIT_TOOL_ERROR
+except ImportError:
+    import os as _os, sys as _sys
+    _sys.path.insert(0, _os.path.abspath(_os.path.join(_os.path.dirname(__file__), '..')))
+    from core.exit_codes import EXIT_PASS, EXIT_VIOLATION, EXIT_TOOL_ERROR
 import json
 import os
 import sys
@@ -758,7 +767,7 @@ def main():
                 print(f"[ERROR] Schema validation failed with {len(messages)} error(s):")
                 for m in messages:
                     print(f"  • {m}")
-        sys.exit(0 if success else 1)
+        sys.exit(EXIT_PASS if success else EXIT_VIOLATION)
 
     if args.benchmark:
         try:
@@ -779,11 +788,11 @@ def main():
                 passed = metrics['mrr'] >= 0.75 and metrics['precision_at_1'] >= 0.70 and metrics['recall_at_3'] >= 0.65
                 status_str = "✅ [BENCHMARK PASSED] Search quality meets enterprise thresholds." if passed else "❌ [BENCHMARK FAILED] Below threshold."
                 print(status_str)
-                sys.exit(0 if passed else 1)
+                sys.exit(EXIT_PASS if passed else EXIT_VIOLATION)
 
         except Exception as e:
             print(f"[ERROR] Benchmark execution failed: {e}")
-            sys.exit(1)
+            sys.exit(EXIT_TOOL_ERROR)
 
     results = search_knowledge(
         query=args.query,

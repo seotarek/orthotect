@@ -7,7 +7,7 @@ This document establishes operational best practices, architecture constraints, 
 
 ## 🏛️ Repository Overview
 
-Orthotect is an enterprise-grade interface engineering platform and deterministic runtime gate architecture for autonomous AI coding agents. It enforces mathematical token contrast, CSS logical properties, formal state machines, and layout-shift budgets via AST-aware runtime gates that fail the build (`exit 1`) if standards are breached.
+Orthotect is an enterprise-grade interface engineering platform and deterministic runtime gate architecture for autonomous AI coding agents. It enforces mathematical token contrast, CSS logical properties, formal state machines, and layout-shift budgets via AST-aware runtime gates that fail the build (`exit 1`) if standards are breached, and exit `2` when the verifier itself cannot run (see `core/exit_codes.py`).
 
 ---
 
@@ -15,11 +15,11 @@ Orthotect is an enterprise-grade interface engineering platform and deterministi
 
 ### Quality Gates & Verification
 ```bash
-# Run all 5 deterministic quality gates in parallel (sub-600ms)
+# Run all 6 deterministic quality gates in parallel (sub-600ms)
 python3 gates/run_all_gates.py docs
 python3 gates/run_all_gates.py examples/golden-showcase
 
-# Run the complete test suite (skills validation, 361 unit tests, and 6 gates)
+# Run the complete test suite (skills validation, 512 unit tests, and 6 gates)
 npm test
 
 # Run Python unit tests only

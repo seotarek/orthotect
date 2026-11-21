@@ -32,9 +32,13 @@ jobs:
           npm ci
           pip install -r requirements.txt
 
-      - name: Run Unit, Browser & Negative Gate Tests (361 Tests)
+      - name: Run Unit, Browser & Negative Gate Tests (512 Tests)
         run: |
           npm test
+
+      - name: Self-Audit — All Six Gates vs. Orthotect Itself
+        run: |
+          npm run audit:self
 
       - name: Run Enterprise SAST Security Audit on 132 Eligible Application Source Files
         run: |

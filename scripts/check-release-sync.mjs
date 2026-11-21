@@ -8,6 +8,10 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync, execFileSync } from 'node:child_process';
+// Shared exit-code contract (see core/exit_codes.py). This script predated the
+// contract and used the same 0/1/2 semantics ad hoc; importing the constants keeps
+// a single definition rather than a fourth copy.
+import { EXIT_PASS, EXIT_VIOLATION, EXIT_TOOL_ERROR } from '../core/exit_codes.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -36,7 +40,8 @@ const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
 const canonicalVersion = pkg.version;
 if (!canonicalVersion) {
   console.error('CRITICAL: package.json does not define a version.');
-  process.exit(1);
+  // A malformed manifest is a broken checkout, not a parity violation.
+  process.exit(EXIT_TOOL_ERROR);
 }
 
 // 2. package-lock.json
@@ -202,11 +207,11 @@ if (errors.length > 0) {
   for (const e of errors) {
     console.error(`  - [FAIL] ${e.name}: ${e.message}`);
   }
-  process.exit(1);
+  process.exit(EXIT_VIOLATION);
 } else if (skipped.length > 0) {
   console.log(`\n⚠ Partial Version Parity Enforced: ${successes.length} check(s) passed, ${skipped.length} check(s) unverified (network/remote verification required).\n`);
-  process.exit(2);
+  process.exit(EXIT_TOOL_ERROR);
 } else {
   console.log(`\n✅ 100% Version Parity Enforced: Repository, Docs, Git Tags & Releases are synchronized.\n`);
-  process.exit(0);
+  process.exit(EXIT_PASS);
 }

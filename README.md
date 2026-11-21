@@ -4,7 +4,7 @@
 > Enforcing mathematical token standards, WCAG 2.2 AAA accessibility, CSS logical properties, and finite state machines across Claude Code, Cursor, OpenAI Codex, Grok Build, and Google Antigravity.
 
 [![Version](https://img.shields.io/badge/version-1.8.8_Latest-6366f1?style=for-the-badge)](https://github.com/seotarek/orthotect/releases/tag/v1.8.8)
-[![Tests Passing](https://img.shields.io/badge/tests-361_passed-22c55e?style=for-the-badge)](https://github.com/seotarek/orthotect/actions)
+[![Tests Passing](https://img.shields.io/badge/tests-614_passed-22c55e?style=for-the-badge)](https://github.com/seotarek/orthotect/actions)
 [![Deterministic Gates](https://img.shields.io/badge/Quality_Gates-6%2F6_Deterministic-14b8a6?style=for-the-badge)](#-installation-quickstart--deterministic-quality-gates)
 [![WCAG 2.2 AAA](https://img.shields.io/badge/WCAG_2.2-Contrast_Matrix_(AAA%2FAA)-a855f7?style=for-the-badge)](#)
 [![BiDi Logical](https://img.shields.io/badge/BiDi-100%25_CSS_Logical-f97316?style=for-the-badge)](#)
@@ -21,7 +21,7 @@
 
 Orthotect is an enterprise-grade interface engineering runtime built to enforce **deterministic architectural quality gates, automated code review audit, state machine rigor, and aesthetic diversification** onto autonomous AI coding agents (Antigravity CLI `agy`, Claude Code, Cursor Agent, OpenAI Codex, and Grok Build). 
 
-Unlike prompt-only libraries that merely request "clean modern UI", Orthotect provides a **mathematical token foundation**, **Finite State Machine (FSM) deadlock reachability**, **auto-healing in-place remediation (`--fix`)**, **technical SEO schema engineering**, **Core Web Vitals layout shift budgets**, and **AST-level quality gates** that fail the build with `exit 1` if accessibility or logical properties are breached.
+Unlike prompt-only libraries that merely request "clean modern UI", Orthotect provides a **mathematical token foundation**, **Finite State Machine (FSM) deadlock reachability**, **auto-healing in-place remediation (`--fix`)**, **technical SEO schema engineering**, **Core Web Vitals layout shift budgets**, and **AST-level quality gates** that fail the build with `exit 1` if accessibility or logical properties are breached, and `exit 2` when the verifier itself cannot run.
 
 ---
 
@@ -70,6 +70,8 @@ orthotect/
 │   ├── compiler.py          # W3C DTCG Token Compiler (:root light and [data-theme="dark"])
 │   ├── knowledge_search.py  # Zero-dependency UI/UX knowledge base search engine
 │   ├── context_optimizer.py # Token-optimizer, density profiler & semantic chunker
+│   ├── security_baseline.py # Committed, reviewable SAST allowlist (file + rule + line + justification)
+│   ├── exit_codes.py        # Exit-code contract (0 = pass, 1 = violation, 2 = tool error)
 │   ├── tokens/              # W3C DTCG 3-Tier Design Tokens (Primitives, Semantics, Motion, Ergonomics)
 │   └── fsm/                 # State Machine Specifications (Buttons, Data Tables, Modal Dialogs)
 ├── knowledge/               # UI/UX Design Intelligence & Validated Style Recipes
@@ -83,11 +85,13 @@ orthotect/
 │   └── templates/           # 50 Radically Diversified Production Domain Templates (HTML/SVG/FSM)
 ├── gates/                   # Objective Deterministic Checkers (Python & Node.js)
 │   ├── gate_contrast_wcag.py     # Mathematical Relative Luminance (WCAG 2.2 AAA/AA)
-│   ├── gate_bidi_logical.py      # Strict Enforcement of CSS Logical Properties
+│   ├── gate_bidi_logical.py      # Strict Enforcement of CSS Logical Properties (facade)
+│   ├── _bidi/                    # BiDi implementation: model, shorthand, css, js, fix, dispatch
 │   ├── gate_fsm_integrity.py     # State Machine Graph Reachability & Lock Integrity
 │   ├── gate_no_slop.py           # Lexical & Pattern Slop Inspector
 │   ├── gate_cwv_budget.mjs       # WHATWG-Compliant DOM & Layout-Shift Budget
-│   ├── gate_security_audit.py    # Enterprise SAST & OWASP/CWE Threat Defense Engine
+│   ├── gate_security_audit.py    # Enterprise SAST & OWASP/CWE Threat Defense Engine (facade)
+│   ├── _security/                # SAST implementation: patterns, ast, taint, scanner, cli
 │   └── run_all_gates.py          # Parallel Master Gate Orchestrator (ThreadPoolExecutor)
 ├── skills/                  # 22 Modular AI Agent Skills (Agent Skills Specification Compliant)
 │   ├── orthotect-doctrine        # The 7 Non-Negotiable Laws of Interface Engineering
@@ -118,7 +122,7 @@ orthotect/
 │   ├── validate-skills.mjs       # Agent Skills specification validator
 │   ├── package_skills.py         # Deterministic cross-agent skill packager & security scanner
 │   └── check-package-metadata.mjs# Synchronized package version & lockfile guard
-└── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (361 Tests)
+└── tests/                   # Comprehensive Unit, Browser & Negative Test Suite (614 Tests)
 ```
 
 ---
@@ -134,8 +138,145 @@ npx orthotect security .              # 3. Run enterprise cybersecurity & vulner
 npx orthotect hooks install           # 4. Install zero-dependency Git pre-commit hook (blocks non-compliant commits)
 npx orthotect verify ./src --json     # 5. Generate machine-readable JSON audit report
 npx orthotect verify ./src --md       # 6. Generate Markdown audit report
-npm run check:release-sync            # 7. Check version parity across package, docs, and releases
+npx orthotect verify ./src --format sarif > orthotect.sarif   # 7. GitHub Code Scanning document
+npm run check:release-sync            # 8. Check version parity across package, docs, and releases
 ```
+
+> **Dependency note.** Five of the six gates run on Python/Node built-ins alone. The DOM &
+> Layout-Shift gate parses HTML through `parse5`, the single declared runtime dependency, which
+> ships with the published package — so `npx orthotect verify .` always has it. Working from a
+> **bare checkout** of this repository instead requires one install first: `npm ci`. Without it
+> that gate exits `2` (tool error) and names the fix; it never reports a false pass, and installing
+> `parse5` in the project you are *verifying* will not help, because the import resolves from the
+> Orthotect package itself.
+
+> **Running the test suite from a checkout.** `npm ci` is a real precondition, not a formality: the
+> browser-backed tests drive `playwright-core` and the DOM gate imports `parse5`, so a bare clone
+> reports failures that say nothing about the code. After `npm ci` the suite is green. Browser
+> tests additionally need Chrome or Chromium on the machine; without it they **skip** locally with
+> a message naming what is missing, and **fail** in CI, where silently shrinking coverage is not
+> acceptable.
+
+### 🚦 Exit-Code Contract (CI Integration)
+
+Orthotect distinguishes **"your code is bad"** from **"the tool could not run"**. A gate that cannot evaluate the target never pretends the audited code failed — a distinction that matters the moment a CI pipeline has to decide whether to page an engineer or a platform owner.
+
+| Code | Meaning | What must change |
+| :---: | :--- | :--- |
+| `0` | **PASS** — every enforced rule was evaluated and satisfied | Nothing |
+| `1` | **VIOLATION** — a gate evaluated the code and found a breach | The audited code |
+| `2` | **TOOL ERROR** — a gate could not evaluate anything (missing `parse5`, absent/unparsable tokens, missing FSM specs, target path does not exist, unexpected crash) | The environment or configuration |
+
+Exit `2` outranks exit `1` when the six gates are aggregated: if any gate could not run, the remaining results are incomplete and the run cannot certify the target. Any non-zero status other than `1` or `2` (a crashed child, a signal kill) is also reported as `2`, because a gate that never completed makes no claim about the code.
+
+```bash
+npx orthotect verify .
+case $? in
+  0) echo "certified" ;;
+  1) echo "::error::quality gate violation — fix the code" ;;
+  2) echo "::error::orthotect could not run — fix the environment" ;;
+esac
+```
+
+The `--json` report carries the same information in machine-readable form, with `exitCode` at the top level and per gate:
+
+```json
+{
+  "target": "/your/project/path",
+  "allPassed": false,
+  "exitCode": 2,
+  "gates": [
+    { "name": "DOM & Layout-Shift Budget", "passed": false, "exitCode": 2, "durationMs": 12.4, "stdout": "", "stderr": "missing required package \"parse5\"" }
+  ]
+}
+```
+
+The constants live in [`core/exit_codes.py`](core/exit_codes.py) with a JavaScript mirror in [`core/exit_codes.mjs`](core/exit_codes.mjs); `tests/test_exit_codes.py` fails if the two ever drift apart.
+
+### 📡 SARIF for GitHub Code Scanning
+
+`--format sarif` emits a SARIF 2.1.0 document that GitHub Code Scanning ingests directly — all six
+gates in **one** run with a unioned rule catalogue, so each rule appears once rather than six
+times. The exit code is unchanged, so a single CI step both publishes the annotations and fails the
+build:
+
+```yaml
+- name: Orthotect quality gates
+  run: npx orthotect verify ./src --format sarif > orthotect.sarif
+
+- name: Upload SARIF
+  if: always()
+  uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: orthotect.sarif
+```
+
+Each annotation points at the real location — the offending CSS line, the offending HTML element,
+the FSM state's key, or the semantic token in `semantics.json` — and its `ruleId` matches what
+`npx orthotect explain <rule-id>` documents.
+
+Two properties are guaranteed, because both fail silently otherwise:
+
+- **A tool error is visible.** A gate that could not run records
+  `invocations[].toolExecutionNotifications` with `executionSuccessful: false`. "No findings" and
+  "no analysis" never render identically in the code-scanning UI.
+- **Every result declares a rule the driver lists.** GitHub drops a result whose `ruleId` is not in
+  `driver.rules` without any error; `core.sarif.validate_sarif` rejects such a document instead, and
+  the test suite validates every gate's output.
+
+`--sarif` is accepted as shorthand for `--format sarif`. The `security` sub-command supports both.
+
+### 🏷️ Rule-Set Versioning
+
+The rule set is versioned independently of the package. A pattern that tightens changes what a
+report says without changing any API, so a shared version number would either force a semver-major
+package release for every rule tweak or let behaviour change under a version a consumer had pinned.
+
+Every machine-readable report carries the same block:
+
+```json
+{ "rulesVersion": "1.0.0", "rulesDigest": "dcf3e9ec7c42ac44", "ruleCount": 42 }
+```
+
+| Field | Meaning |
+| :--- | :--- |
+| `rulesVersion` | Semver for the rule set. **Major** = a rule id was renamed or removed, or its meaning changed incompatibly; **minor** = a rule was added; **patch** = a pattern tightened or a citation was corrected. |
+| `rulesDigest` | SHA-256 over the rule identities (`id`, `gate`, `severity`), truncated to 16 hex characters. Two reports with the same digest used the same rules, whatever the version string says. |
+| `ruleCount` | Total rules, so a truncated or filtered registry is visible at a glance. |
+
+The digest deliberately ignores prose: correcting a summary or a citation does not move it, because
+no finding changed. It does move when a severity changes.
+
+In JSON reports it appears at the top level (`ruleSet`); in SARIF it is at
+`runs[0].tool.driver.properties`, because SARIF has no first-class slot for "the rule catalogue
+changed but the tool did not".
+
+### 🧱 Gate Implementation Layout
+
+Four of the six gates are single modules. The two largest — BiDi and the security audit — are
+packages, because each holds several genuinely separate concerns that were only ever coupled by
+being in the same file:
+
+| Gate | Implementation | Modules |
+| :--- | :--- | :--- |
+| `gate_bidi_logical.py` | `gates/_bidi/` | `_runtime` `_model` `_shorthand` `_css` `_js` `_fix` `_paths` `_dispatch` `gate` |
+| `gate_security_audit.py` | `gates/_security/` | `_runtime` `_patterns` `_ast` `_taint` `_scanner` `_cli` |
+
+The entry point for each stays at its original path and keeps its original name, so `package.json`
+scripts, `run_all_gates.py`, `bin/orthotect.js` and existing imports are unaffected. Inside a
+package, dependencies point one way — data, then semantics, then syntax, then I/O, then CLI — so
+`_security/_ast.py` can be tested without a filesystem and `_bidi/_shorthand.py` without a parser.
+
+Two details are load-bearing rather than incidental:
+
+- **`_runtime` holds the names callers reassign.** Setting `gate_bidi_logical.HAVE_TINYCSS2 = False`
+  (what the test suite does to exercise the dependency-free tokenizer) is forwarded to `_runtime`;
+  a plain re-export would rebind the facade's namespace while the scanners kept reading their own
+  copy, and the fallback would appear tested without ever running.
+- **The package directory is exempt from the security gate's own scan.** The engine necessarily
+  contains the sink patterns it hunts for. `is_engine_file()` exempts `gate_security_audit.py` and
+  everything under `gates/_security/` by path segments, so the gate passes on its own source while a
+  user file merely named `_security/` is still audited.
 
 ### ⚙️ Configuration Engine (`orthotect.config.json`)
 
@@ -158,11 +299,44 @@ Orthotect automatically discovers `orthotect.config.json` in your repository roo
     "allowCamelCase": false
   },
   "contrast": {
-    "level": "AAA",
-    "strictMode": true
+    "level": "AAA"
   }
 }
 ```
+
+Every key above is wired into the gates: `exclude` filters the scan scope, `cwv.maxDomDepth` / `cwv.maxDomNodes` set the DOM budgets (`0` disables the node budget), `bidi.allowCamelCase` relaxes the JSX/React Native property check only, and `contrast.level` escalates enforcement from AA to AAA.
+
+### 🗂️ Security Baseline (`orthotect-security-baseline.json`)
+
+The security gate has no blanket path exemptions, so a legitimate fixture — a test asserting on an XSS payload, a deliberately vulnerable example — will block the build. The supported answer is a **committed, reviewable allowlist**, not a widened scan scope:
+
+```json
+{
+  "version": 1,
+  "suppressions": [
+    {
+      "file": "tests/fixtures/xss_payload.js",
+      "rule": "DOM XSS: Direct assignment of un-sanitized URL/location source to DOM HTML sink",
+      "line": 12,
+      "justification": "Red-team fixture that asserts the detector fires on innerHTML."
+    }
+  ]
+}
+```
+
+| Field | Rule |
+| :--- | :--- |
+| `file` | Repo-relative, forward slashes, **one exact file**. Globs and absolute paths are rejected. |
+| `rule` | The exact rule label from the report. Patterns are rejected. |
+| `line` | The exact line, or `0` for "any line in this file for this rule". |
+| `justification` | Required and non-empty. This is what makes the entry reviewable. |
+
+Design guarantees, all enforced by tests:
+
+- **Scoped.** A suppression for one file never silences the same rule in another file, and a line-specific entry never silences a different line.
+- **Visible.** Suppressed findings are printed and included in the `--json` and `--md` reports with their justification. A suppression that is not shown is indistinguishable from a missed detection.
+- **Fail-closed.** A baseline that exists but cannot be parsed or validated exits `2`. The audit never proceeds on a policy it could not read.
+- **Stale entries are reported, not fatal.** An entry matching nothing is printed (and appears in `baseline.staleEntries`) but does not change the exit code — the audit still evaluated every file, so treating it as a broken environment would be dishonest, and failing on unrelated line shifts would make teams abandon the file.
 
 Illustrative Reference Verification Output (Target: `examples/golden-showcase`):
 
@@ -265,7 +439,7 @@ To prevent version discrepancies between npm packages, local source code, docume
 npm run check:release-sync            # Verifies package.json, lockfile, CLI banner, tokens, styles, docs & git tags match
 ```
 
-Whenever a new version is tagged, GitHub Actions validates all 361 unit and integration tests, executes all 6 gates, and publishes synchronized releases simultaneously.
+Whenever a new version is tagged, GitHub Actions validates all 614 unit and integration tests, executes all 6 gates, and publishes synchronized releases simultaneously.
 
 ---
 

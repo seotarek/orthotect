@@ -38,7 +38,7 @@ class TestAutoFix(unittest.TestCase):
         self.assertGreater(len(initial_viols), 0)
 
         # Apply auto-fix
-        fixed_count, details = apply_bidi_fixes_to_file(fpath)
+        fixed_count, details, remaining = apply_bidi_fixes_to_file(fpath)
         self.assertGreater(fixed_count, 0)
 
         # Verify 0 violations remain
@@ -74,7 +74,7 @@ class TestAutoFix(unittest.TestCase):
         initial_viols = scan_file(fpath)
         self.assertEqual(len(initial_viols), 1)
 
-        fixed_count, _ = apply_bidi_fixes_to_file(fpath)
+        fixed_count, _, remaining = apply_bidi_fixes_to_file(fpath)
         self.assertEqual(fixed_count, 1)
 
         with open(fpath, "r", encoding="utf-8") as f:
@@ -111,7 +111,7 @@ class TestAutoFix(unittest.TestCase):
         initial_viols = scan_file(fpath)
         self.assertGreater(len(initial_viols), 0)
 
-        fixed_count, _ = apply_bidi_fixes_to_file(fpath)
+        fixed_count, _, remaining = apply_bidi_fixes_to_file(fpath)
         self.assertGreater(fixed_count, 0)
 
         remaining = scan_file(fpath)
@@ -145,7 +145,7 @@ class TestAutoFix(unittest.TestCase):
         initial_viols = scan_file(fpath)
         self.assertGreater(len(initial_viols), 0)
 
-        fixed_count, _ = apply_bidi_fixes_to_file(fpath)
+        fixed_count, _, remaining = apply_bidi_fixes_to_file(fpath)
         self.assertGreater(fixed_count, 0)
 
         remaining = scan_file(fpath)

@@ -45,11 +45,26 @@ class TestScaffoldBrowserExecution(unittest.TestCase):
 
     def setUp(self):
         is_ci = os.environ.get('CI') == 'true' or 'GITHUB_ACTIONS' in os.environ
+
+        # Both preconditions must be checked. A browser alone is not enough: the
+        # `node` script does `import('playwright-core')`, so a machine with Chrome
+        # installed but no `npm ci` produced a hard ERR_MODULE_NOT_FOUND failure
+        # masquerading as a broken test, instead of an actionable skip.
+        has_playwright = os.path.isdir(
+            os.path.join(self.root_dir, 'node_modules', 'playwright-core'))
+
+        missing = None
         if not self.chrome_path:
+            missing = 'Chrome/Chromium'
+        elif not has_playwright:
+            missing = 'playwright-core (run `npm ci`)'
+
+        if missing:
             if is_ci:
-                self.fail("Mandatory Browser Execution Failed: No Chrome/Chromium binary found in CI. Silent skipping prohibited.")
+                self.fail("Mandatory Browser Execution Failed: "
+                          f"{missing} unavailable in CI. Silent skipping prohibited.")
             else:
-                self.skipTest("Google Chrome / Chromium binary not found on local system")
+                self.skipTest(f"Browser verification needs {missing}")
 
     def test_scaffolded_fsm_success_lifecycle_and_race_lock(self):
         """Verify scaffolded page FSM idle -> loading -> success -> idle lifecycle and double-click race lock in real Chromium."""

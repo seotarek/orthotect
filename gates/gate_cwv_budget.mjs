@@ -5,27 +5,386 @@
  */
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 
-import * as parse5 from 'parse5';
-import { loadOrthotectConfig } from '../core/config.mjs';
+let parse5 = null;
+let parse5LoadError = null;
+try {
+  parse5 = await import('parse5');
+} catch (err) {
+  parse5LoadError = err;
+}
 
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
-
-let targetDir = 'examples';
-if (isMain) {
-  console.log("═══════════════════════════════════════════════════════════════");
-  console.log("  ORTHOTECT GATE: DOM Structure & Layout-Shift Budget");
-  console.log("═══════════════════════════════════════════════════════════════");
-  targetDir = process.argv[2] || 'examples';
-  if (!fs.existsSync(targetDir)) {
-    console.error(`❌ [REJECT] Target path not found: ${targetDir}`);
-    process.exit(1);
+/**
+ * Thrown when an exported analysis function is called without the HTML parser
+ * available. Without this, a missing dependency surfaces as a TypeError on
+ * `null.parse` — a crash rather than the contract's exit 2.
+ */
+export class ParserUnavailableError extends Error {
+  constructor(cause) {
+    super('The DOM & Layout-Shift Budget gate cannot run: package "parse5" is not installed.');
+    this.name = 'ParserUnavailableError';
+    this.cause = cause;
   }
 }
 
+/**
+ * Returns the loaded parse5 module or throws ParserUnavailableError.
+ * Every analysis function funnels through this, so an absent parser can never
+ * reach `parse5.parse` and masquerade as a code defect.
+ */
+function requireParse5() {
+  if (!parse5) {
+    throw new ParserUnavailableError(parse5LoadError);
+  }
+  return parse5;
+}
+
+import { loadOrthotectConfig } from '../core/config.mjs';
+
+// Exit-code contract (see core/exit_codes.py and core/exit_codes.mjs):
+//   0 = PASS, 1 = rule violation in the audited code, 2 = the gate could not run.
+import { EXIT_PASS, EXIT_VIOLATION, EXIT_TOOL_ERROR } from '../core/exit_codes.mjs';
+
+/**
+ * The shared argument parser is loaded defensively, for the same reason `parse5`
+ * is: a missing module means the gate cannot run, which is a tool error (exit 2),
+ * never an uncaught import failure that Node reports as exit 1. A packaging fault
+ * must not masquerade as a code violation in the audited project.
+ */
+let cliArgs = null;
+let cliArgsLoadError = null;
+try {
+  cliArgs = await import('../core/cli_args.mjs');
+} catch (err) {
+  cliArgsLoadError = err;
+}
+
+// A second, private copy of the flag splitter is exactly the drift this milestone
+// removed, so there is deliberately no fallback implementation here. A missing
+// shared module is a broken installation and fails closed below as a tool error.
+const cli = cliArgs;
+
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isMain && cliArgsLoadError) {
+  console.error('');
+  console.error('❌ [REJECT] DOM & Layout-Shift Budget gate cannot run: missing module "core/cli_args.mjs".');
+  console.error(`   Cause: ${String(cliArgsLoadError.message || cliArgsLoadError).split('\n')[0]}`);
+  console.error('   Fix: reinstall Orthotect so the core/ modules ship alongside gates/.');
+  console.error('');
+  process.exit(EXIT_TOOL_ERROR);
+}
+
+if (isMain && parse5LoadError) {
+  // `parse5` is resolved from THIS file's location, i.e. from the orthotect package
+  // itself — not from the project being verified and not from the current working
+  // directory. Telling a user to `npm install parse5` in their own project therefore
+  // does nothing. The only fix that actually works is to reinstall orthotect's own
+  // dependencies, so the message names that and nothing else.
+  console.error('');
+  console.error('❌ [REJECT] DOM & Layout-Shift Budget gate cannot run: missing required package "parse5".');
+  console.error('   The gate parses HTML through the WHATWG HTML5 AST (parse5) and fails closed without it.');
+  console.error('');
+  console.error('   Cause: Node resolved "parse5" from the Orthotect package itself and did not find it.');
+  console.error('          Installing parse5 in the project you are verifying will NOT fix this, because the');
+  console.error('          import is resolved relative to this gate file, not to your project or the cwd.');
+  console.error('');
+  console.error('   Fix: reinstall Orthotect\'s own dependencies, then re-run verification.');
+  console.error('     npm install                       # inside the orthotect package directory');
+  console.error('     npx orthotect verify .            # the published package ships parse5 as a dependency');
+  console.error('');
+  if (parse5LoadError && parse5LoadError.message) {
+    console.error(`   Underlying resolver error: ${String(parse5LoadError.message).split('\n')[0]}`);
+    console.error('');
+  }
+  process.exit(EXIT_TOOL_ERROR);
+}
+
+// Declared before the argument block below: a tool error there emits a SARIF
+// document, and that document is built from these two lists.
+// SARIF 2.1.0 constants. Declared before the argument block below because a tool
+// error there emits a SARIF document, and these are read while building it.
+const SARIF_VERSION = '2.1.0';
+const SARIF_SCHEMA = 'https://json.schemastore.org/sarif-2.1.0.json';
+const TOOL_NAME = 'orthotect';
+const TOOL_URI = 'https://github.com/seotarek/orthotect';
+const ERROR_LEVEL_SEVERITIES = new Set(['CRITICAL', 'HIGH']);
+
 let checkedFiles = 0;
 let errors = [];
+let findings = [];
+
+let targetDir = 'examples';
+let asSarif = false;
+if (isMain) {
+  asSarif = sarifRequested(process.argv.slice(2));
+  // The banner is human output; the target must be resolved either way. Gating
+  // the parse on the output format would leave `--format sarif` auditing the
+  // default `examples/` directory instead of the requested one.
+  if (!asSarif) {
+    console.log("═══════════════════════════════════════════════════════════════");
+    console.log("  ORTHOTECT GATE: DOM Structure & Layout-Shift Budget");
+    console.log("═══════════════════════════════════════════════════════════════");
+  }
+  // First non-flag token, so `gate_cwv_budget.mjs --json ./src` does not treat "--json"
+  // as the directory to scan (which surfaced as a confusing "Target path not found").
+  // Shared splitter: a value bound to a value-taking flag (`--format json`) must
+  // never be mistaken for the target directory.
+  targetDir = cli.positionals(process.argv.slice(2)).at(0) || 'examples';
+  if (!fs.existsSync(targetDir)) {
+    if (asSarif) {
+      emitSarif(`Target path not found: ${targetDir}`);
+    } else {
+      console.error(`❌ [REJECT] Target path not found: ${targetDir}`);
+    }
+    process.exit(EXIT_TOOL_ERROR);
+  }
+}
+
+/**
+ * Structured mirror of `errors`, for machine-readable output.
+ *
+ * `errors` stays the console format people read; `findings` carries the same
+ * entries with a registry rule id and a source line so SARIF can annotate them.
+ * Both are appended together in `addFinding`, so the two reports can never
+ * disagree about what fired.
+ */
+
+/**
+ * Records one finding in both the console and the structured list.
+ *
+ * `body` is the message without the `file: ` prefix — SARIF carries the file in
+ * `artifactLocation`, and repeating it there makes the annotation read as
+ * "src/app.html: src/app.html: …".
+ */
+function addFinding(filePath, body, ruleId, line) {
+  errors.push(`${filePath}: ${body}`);
+  findings.push({
+    file: filePath,
+    line: Number.isInteger(line) && line > 0 ? line : 1,
+    label: body,
+    ruleId,
+  });
+}
+
+/** 1-based line number for a character offset, or 1 when the offset is unknown. */
+function lineAtOffset(content, offset) {
+  if (typeof offset !== 'number' || offset <= 0 || typeof content !== 'string') return 1;
+  return content.slice(0, offset).split('\n').length;
+}
+
+// ---------------------------------------------------------------------------
+// SARIF 2.1.0 emission
+//
+// The schema is emitted from this file rather than by shelling out to Python:
+// this gate is the only one that runs on Node, and a cross-runtime hop would add
+// a failure mode (a missing interpreter) to a gate whose whole contract is that
+// it either reports or exits 2. The shape matches core/sarif.py exactly, and
+// `tests/test_sarif.py` asserts the two agree field for field.
+// ---------------------------------------------------------------------------
+
+/** True when the caller asked for SARIF, in any of its three spellings. */
+function sarifRequested(argv) {
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i];
+    if (token === '--sarif') return true;
+    if (token === '--format' && i + 1 < argv.length) {
+      if (String(argv[i + 1]).trim().toLowerCase() === 'sarif') return true;
+    }
+    if (token.startsWith('--format=')) {
+      if (token.split('=').slice(1).join('=').trim().toLowerCase() === 'sarif') return true;
+    }
+  }
+  return false;
+}
+
+/** The package version, or '0.0.0' when the manifest is unreachable. */
+function toolVersion() {
+  try {
+    const manifest = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
+    return String(JSON.parse(fs.readFileSync(manifest, 'utf-8')).version || '0.0.0');
+  } catch (_) {
+    return '0.0.0';
+  }
+}
+
+/**
+ * Registry severities for the `dom.*` rules, read from `core/rule_registry.py`.
+ *
+ * The registry is the single source of truth for a rule's severity, and reading
+ * it rather than hardcoding a copy here is what keeps a SARIF annotation level
+ * from contradicting what `orthotect explain` prints. Failure is tolerated — a
+ * missing registry degrades the level, it does not stop the gate.
+ */
+function loadRuleSeverities() {
+  const cache = new Map();
+  try {
+    const registryPath = path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)), '..', 'core', 'rule_registry.py');
+    const source = fs.readFileSync(registryPath, 'utf-8');
+    // Each entry is a dict literal: '<id>': { ... 'severity': '<LEVEL>', ... }
+    const entryPattern = /'([a-z]+\.[a-z0-9-]+)'\s*:\s*\{([\s\S]*?)\n    \}/g;
+    let match;
+    while ((match = entryPattern.exec(source)) !== null) {
+      const severity = /'severity'\s*:\s*'([A-Z]+)'/.exec(match[2]);
+      if (severity) cache.set(match[1], severity[1]);
+    }
+  } catch (_) {
+    /* A missing registry only costs us the level mapping. */
+  }
+  return cache;
+}
+
+let ruleSeverities = null;
+
+/** Registry severity for a rule id, or null. Never throws. */
+function registrySeverity(ruleId) {
+  if (ruleSeverities === null) ruleSeverities = loadRuleSeverities();
+  const severity = ruleSeverities.get(ruleId);
+  return severity ? severity.toUpperCase() : null;
+}
+
+/**
+ * The rule-set version block, read from `core/rule_registry.py`.
+ *
+ * Emitted in the SARIF driver's `properties` so this gate's document carries the
+ * same rule-set identity as the Python gates. Absent rather than invented when
+ * the registry cannot be read — a made-up version looks pinnable and is not.
+ */
+function ruleSetMetadata() {
+  try {
+    const registryPath = path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)), '..', 'core', 'rule_registry.py');
+    const source = fs.readFileSync(registryPath, 'utf-8');
+    const version = /^RULES_VERSION\s*=\s*'([^']+)'/m.exec(source);
+    if (!version) return {};
+
+    // Each rule entry is a flat block: the id as a key, then `gate` and
+    // `severity` as string fields before the prose fields. Parsing exactly those
+    // three is what makes the digest reproducible in this language; the full
+    // Python structure is not.
+    const entries = [];
+    const entryPattern = /^    '([a-z]+\.[a-z0-9-]+)':\s*\{([\s\S]*?)^    \},?$/gm;
+    let match;
+    while ((match = entryPattern.exec(source)) !== null) {
+      const gate = /'gate'\s*:\s*'([^']+)'/.exec(match[2]);
+      const severity = /'severity'\s*:\s*'([^']+)'/.exec(match[2]);
+      if (gate && severity) {
+        entries.push(`${match[1]}|${gate[1]}|${severity[1]}`);
+      }
+    }
+    if (entries.length === 0) return {};
+    entries.sort();
+
+    const digest = crypto.createHash('sha256')
+      .update(entries.join('\n'), 'utf-8')
+      .digest('hex')
+      .slice(0, 16);
+    return { rulesVersion: version[1], rulesDigest: digest, ruleCount: entries.length };
+  } catch (_) {
+    return {};
+  }
+}
+
+/** SARIF has three levels; Orthotect has four. Map conservatively. */
+function sarifLevel(severity) {
+  return ERROR_LEVEL_SEVERITIES.has(String(severity || '').toUpperCase()) ? 'error' : 'warning';
+}
+
+/** Repo-relative, forward-slashed URI. An absolute path never attaches in GitHub. */
+function relativize(target, baseDir) {
+  try {
+    const rel = path.relative(path.resolve(baseDir || '.'), path.resolve(target));
+    return rel.split(path.sep).join('/');
+  } catch (_) {
+    return String(target).split(path.sep).join('/');
+  }
+}
+
+/** Builds the SARIF document for this gate's findings. */
+function buildSarifDocument(toolError) {
+  const rules = new Map();
+  const results = [];
+
+  for (const finding of findings) {
+    const severity = registrySeverity(finding.ruleId) || 'MEDIUM';
+    const ruleId = finding.ruleId || 'dom-cwv-budget.finding';
+    if (!rules.has(ruleId)) {
+      rules.set(ruleId, {
+        id: ruleId,
+        name: ruleId.replace(/[.\-]/g, ' ').split(' ').filter(Boolean)
+          .map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('') || 'Finding',
+        shortDescription: { text: String(finding.label) },
+        defaultConfiguration: { level: sarifLevel(severity) },
+        helpUri: `${TOOL_URI}#${ruleId}`,
+      });
+    }
+    results.push({
+      ruleId,
+      level: sarifLevel(severity),
+      message: { text: String(finding.label) },
+      locations: [{
+        physicalLocation: {
+          artifactLocation: { uri: relativize(finding.file, targetDir) },
+          region: { startLine: Math.max(Number(finding.line) || 1, 1) },
+        },
+      }],
+      properties: { severity, gate: 'gate_cwv_budget' },
+    });
+  }
+
+  const notifications = toolError
+    ? [{ level: 'error', message: { text: String(toolError) } }]
+    : [];
+
+  const driver = {
+    name: TOOL_NAME,
+    informationUri: TOOL_URI,
+    version: toolVersion(),
+    rules: Array.from(rules.keys()).sort().map(k => rules.get(k)),
+  };
+  const ruleMetadata = ruleSetMetadata();
+  if (Object.keys(ruleMetadata).length > 0) {
+    driver.properties = ruleMetadata;
+  }
+
+  return {
+    $schema: SARIF_SCHEMA,
+    version: SARIF_VERSION,
+    runs: [{
+      tool: { driver },
+      results,
+      columnKind: 'utf16CodeUnits',
+      invocations: [{
+        executionSuccessful: notifications.length === 0,
+        toolExecutionNotifications: notifications,
+      }],
+    }],
+  };
+}
+
+/** Prints this gate's SARIF document. */
+function emitSarif(toolError) {
+  process.stdout.write(JSON.stringify(buildSarifDocument(toolError), null, 2) + '\n');
+}
+
+/**
+ * Exits 2 in the requested format.
+ *
+ * A SARIF document is still emitted on a tool error, recording that the analysis
+ * did not run: an empty result set would be indistinguishable from a clean audit
+ * in the code-scanning UI.
+ */
+function emitToolError(message) {
+  if (asSarif) {
+    emitSarif(message);
+  } else {
+    console.log(`\n❌ [REJECT] ${message}`);
+  }
+  process.exit(EXIT_TOOL_ERROR);
+}
 
 /**
  * Parses raw HTML tag attribute string into an object dictionary.
@@ -430,15 +789,14 @@ export function isValidCssDimensionValue(val) {
 }
 
 /**
- * Standards-compliant HTML5 DOM depth calculator and structural validator using parse5.
- * - Handles minified and multiline HTML.
- * - Accurately accounts for HTML5 void elements, comments, scripts, styles.
- * - Rejects non-void elements with trailing solidus (e.g. <div/> is not self-closing).
- * - Detects unclosed tag syntax at EOF (<span class=).
- * - Detects unclosed non-void tags remaining at EOF (<section><p>).
- * - Detects mismatched closing tags.
+ * Returns the maximum element nesting depth of an HTML document.
+ * Delegates to analyzeDomStructure so depth and node-count budgets share one AST pass.
  */
 export function calculateMaxDomDepth(htmlContent, filePath = 'snippet') {
+  return analyzeDomStructure(htmlContent, filePath).maxDepth;
+}
+
+export function analyzeDomStructure(htmlContent, filePath = 'snippet') {
   const voidTags = new Set([
     'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
     'link', 'meta', 'param', 'source', 'track', 'wbr'
@@ -447,28 +805,28 @@ export function calculateMaxDomDepth(htmlContent, filePath = 'snippet') {
     'html', 'body', 'p', 'li', 'td', 'tr', 'dt', 'dd', 'option', 'thead', 'tbody', 'tfoot'
   ]);
 
-  // 1. WHATWG HTML5 AST parsing with parse5
+  const parser = requireParse5();
   const parseErrors = [];
-  const doc = parse5.parse(htmlContent, {
+  const doc = parser.parse(htmlContent, {
     sourceCodeLocationInfo: true,
     onParseError: (err) => parseErrors.push(err)
   });
 
   for (const pe of parseErrors) {
+    const at = lineAtOffset(htmlContent, pe.startOffset);
     if (pe.code === 'eof-in-tag' || pe.code === 'eof-before-tag-name' || pe.code === 'eof-in-attribute-value') {
-      errors.push(`${filePath}: Malformed HTML - unclosed tag opening or attribute syntax '<' at position ${pe.startOffset || 0}.`);
+      addFinding(filePath, `Malformed HTML - unclosed tag opening or attribute syntax '<' at position ${pe.startOffset || 0}.`, 'dom.unbalanced-markup', at);
     } else if (pe.code === 'non-void-html-element-start-tag-with-trailing-solidus') {
-      errors.push(`${filePath}: Malformed HTML - non-void HTML element start tag with trailing solidus (<div/> is not self-closing in HTML5).`);
+      addFinding(filePath, 'Malformed HTML - non-void HTML element start tag with trailing solidus (<div/> is not self-closing in HTML5).', 'dom.unbalanced-markup', at);
     } else if (pe.code === 'end-tag-without-matching-open-element') {
-      errors.push(`${filePath}: Malformed HTML - stray or mismatched closing tag without matching open element.`);
+      addFinding(filePath, 'Malformed HTML - stray or mismatched closing tag without matching open element.', 'dom.unbalanced-markup', at);
     } else if (pe.code === 'duplicate-attribute') {
-      errors.push(`${filePath}: Malformed HTML - duplicate attribute on element.`);
+      addFinding(filePath, 'Malformed HTML - duplicate attribute on element.', 'dom.unbalanced-markup', at);
     }
   }
 
-  // 2. Tokenizer structural stack validation for unclosed non-optional tags & mismatched tags
   const stack = [];
-  const tokenizer = new parse5.Tokenizer({}, {
+  const tokenizer = new parser.Tokenizer({}, {
     onNullCharacter: () => {},
     onWhitespaceCharacter: () => {},
     onCharacter: () => {},
@@ -481,8 +839,9 @@ export function calculateMaxDomDepth(htmlContent, filePath = 'snippet') {
     },
     onEndTag: (t) => {
       if (voidTags.has(t.tagName)) return;
+      const at = lineAtOffset(htmlContent, t.location && t.location.startOffset);
       if (stack.length === 0) {
-        errors.push(`${filePath}: Malformed HTML - stray closing tag </${t.tagName}> without open tag.`);
+        addFinding(filePath, `Malformed HTML - stray closing tag </${t.tagName}> without open tag.`, 'dom.unbalanced-markup', at);
         return;
       }
       const top = stack[stack.length - 1];
@@ -495,7 +854,7 @@ export function calculateMaxDomDepth(htmlContent, filePath = 'snippet') {
         if (stack.length > 0 && stack[stack.length - 1] === t.tagName) {
           stack.pop();
         } else {
-          errors.push(`${filePath}: Malformed HTML - mismatched closing tag </${t.tagName}>, expected </${top}>.`);
+          addFinding(filePath, `Malformed HTML - mismatched closing tag </${t.tagName}>, expected </${top}>.`, 'dom.unbalanced-markup', at);
           const idx = stack.lastIndexOf(t.tagName);
           if (idx !== -1) stack.splice(idx);
         }
@@ -508,11 +867,12 @@ export function calculateMaxDomDepth(htmlContent, filePath = 'snippet') {
 
   const unclosed = stack.filter(t => !optionalClosing.has(t));
   if (unclosed.length > 0) {
-    errors.push(`${filePath}: Malformed HTML - unclosed tag(s) remaining at end of file: <${unclosed.join('>, <')}>.`);
+    addFinding(filePath, `Malformed HTML - unclosed tag(s) remaining at end of file: <${unclosed.join('>, <')}>.`, 'dom.unbalanced-markup', 1);
   }
 
-  // 3. Iterative Tree Depth Calculation from the parsed HTML5 AST using an explicit stack
+  // Iterative Tree Traversal from the parsed HTML5 AST using an explicit stack
   let maxTreeDepth = 0;
+  let elementCount = 0;
   let nodesVisited = 0;
   const MAX_NODE_VISIT_LIMIT = 200000;
   const traversalStack = [{ node: doc, depth: 0 }];
@@ -522,12 +882,13 @@ export function calculateMaxDomDepth(htmlContent, filePath = 'snippet') {
     nodesVisited++;
 
     if (nodesVisited > MAX_NODE_VISIT_LIMIT) {
-      errors.push(`${filePath}: Resource limit exceeded during AST traversal (> ${MAX_NODE_VISIT_LIMIT} nodes visited). Adversarial DOM structure rejected.`);
+      addFinding(filePath, `Resource limit exceeded during AST traversal (> ${MAX_NODE_VISIT_LIMIT} nodes visited). Adversarial DOM structure rejected.`, 'dom.resource-limit', 1);
       break;
     }
 
     const isElem = node.nodeName && !node.nodeName.startsWith('#');
     const currentDepth = isElem ? depth + 1 : depth;
+    if (isElem) elementCount++;
 
     if (currentDepth > maxTreeDepth) {
       maxTreeDepth = currentDepth;
@@ -543,7 +904,7 @@ export function calculateMaxDomDepth(htmlContent, filePath = 'snippet') {
     }
   }
 
-  return maxTreeDepth;
+  return { maxDepth: maxTreeDepth, elementCount };
 }
 
 function findElements(rootNode, tagName) {
@@ -746,11 +1107,13 @@ function checkHtmlFile(filePath) {
   checkedFiles++;
 
   if (!content || !content.trim() || !content.replace(/<!--[\s\S]*?-->/g, '').trim()) {
-    errors.push(`${filePath}: Empty or non-scannable HTML file (empty, whitespace-only, or comment-only). Orthotect requires valid markup to verify DOM and layout budgets.`);
+    addFinding(filePath, 'Empty or non-scannable HTML file (empty, whitespace-only, or comment-only). Orthotect requires valid markup to verify DOM and layout budgets.', 'dom.empty-document', 1);
     return;
   }
 
-  const doc = parse5.parse(content);
+  // `sourceCodeLocationInfo` costs a little memory but is what lets a finding
+  // name the line of the offending element instead of defaulting to line 1.
+  const doc = requireParse5().parse(content, { sourceCodeLocationInfo: true });
   const combinedCss = extractCssRulesFromHtmlAndLinkedSheets(content, filePath);
   const orderedCssRules = parseCssOrderedRules(combinedCss);
 
@@ -826,11 +1189,12 @@ function checkHtmlFile(filePath) {
     }
 
     // Now evaluate winning cascaded values
+    const elLine = lineAtOffset(content, el.sourceCodeLocation && el.sourceCodeLocation.startOffset);
     let hasValidAspect = false;
     if (cascadedAspect) {
       hasValidAspect = isValidAspectRatioValue(cascadedAspect.val);
       if (!hasValidAspect && cascadedAspect.isInline) {
-        errors.push(`${filePath}: <${tag}> has invalid CSS aspect-ratio value in style attribute ("${cascadedAspect.val}"). Must be a positive ratio (e.g. "16/9" or "1").`);
+        addFinding(filePath, `<${tag}> has invalid CSS aspect-ratio value in style attribute ("${cascadedAspect.val}"). Must be a positive ratio (e.g. "16/9" or "1").`, 'dom.invalid-dimension', elLine);
       }
     }
 
@@ -847,15 +1211,15 @@ function checkHtmlFile(filePath) {
 
     if (!hasBothDimensions && !hasValidAspect) {
       if (cascadedWidth && cascadedHeight && (cascadedWidth.isInline || cascadedHeight.isInline)) {
-        errors.push(`${filePath}: <${tag}> has invalid non-reserving CSS dimensions in style ("width: ${cascadedWidth.val}; height: ${cascadedHeight.val}"). Must be positive dimensions with valid units.`);
+        addFinding(filePath, `<${tag}> has invalid non-reserving CSS dimensions in style ("width: ${cascadedWidth.val}; height: ${cascadedHeight.val}"). Must be positive dimensions with valid units.`, 'dom.invalid-dimension', elLine);
       } else if (attrs['data-width'] || attrs['data-height']) {
-        errors.push(`${filePath}: <${tag}> uses data-width/data-height instead of native HTML width/height attributes or CSS aspect-ratio.`);
+        addFinding(filePath, `<${tag}> uses data-width/data-height instead of native HTML width/height attributes or CSS aspect-ratio.`, 'dom.layout-shift-risk', elLine);
       } else if ('width' in attrs && !hasValidWidth && cascadedWidth && cascadedWidth.isHtmlAttr) {
-        errors.push(`${filePath}: <${tag}> has invalid width attribute value ("${attrs['width']}"). Must be a positive integer.`);
+        addFinding(filePath, `<${tag}> has invalid width attribute value ("${attrs['width']}"). Must be a positive integer.`, 'dom.invalid-dimension', elLine);
       } else if ('height' in attrs && !hasValidHeight && cascadedHeight && cascadedHeight.isHtmlAttr) {
-        errors.push(`${filePath}: <${tag}> has invalid height attribute value ("${attrs['height']}"). Must be a positive integer.`);
+        addFinding(filePath, `<${tag}> has invalid height attribute value ("${attrs['height']}"). Must be a positive integer.`, 'dom.invalid-dimension', elLine);
       } else {
-        errors.push(`${filePath}: <${tag}> tag lacks complete dimensions (requires BOTH width and height attributes, valid CSS width/height, or a valid CSS aspect-ratio property to prevent CLS layout shift).`);
+        addFinding(filePath, `<${tag}> tag lacks complete dimensions (requires BOTH width and height attributes, valid CSS width/height, or a valid CSS aspect-ratio property to prevent CLS layout shift).`, 'dom.layout-shift-risk', elLine);
       }
     }
   }
@@ -875,21 +1239,59 @@ function checkHtmlFile(filePath) {
       const isModule = sAttrs['type'] === 'module';
       const isInline = !('src' in sAttrs);
       if (!isInline && !isAsync && !isDefer && !isModule) {
-        errors.push(`${filePath}: Synchronous blocking <script> in <head> without defer/async.`);
+        addFinding(filePath, 'Synchronous blocking <script> in <head> without defer/async.', 'dom.blocking-script', lineAtOffset(content, sNode.sourceCodeLocation && sNode.sourceCodeLocation.startOffset));
       }
     }
   }
 
-  // 3. DOM nesting depth limit using parse5 AST
+  // 3. DOM nesting depth AND node-count budgets using a single parse5 AST pass
   const { config: cwvConfig } = loadOrthotectConfig(filePath);
   const maxAllowedDomDepth = cwvConfig?.cwv?.maxDomDepth ?? 32;
-  const maxDepth = calculateMaxDomDepth(content, filePath);
+  const maxAllowedDomNodes = cwvConfig?.cwv?.maxDomNodes ?? 1500;
+  const { maxDepth, elementCount } = analyzeDomStructure(content, filePath);
   if (maxDepth > maxAllowedDomDepth) {
-    errors.push(`${filePath}: Excessive DOM depth of ${maxDepth} levels (Budget max is ${maxAllowedDomDepth}).`);
+    addFinding(filePath, `Excessive DOM depth of ${maxDepth} levels (Budget max is ${maxAllowedDomDepth}).`, 'dom.excessive-depth', 1);
+  }
+  if (maxAllowedDomNodes > 0 && elementCount > maxAllowedDomNodes) {
+    addFinding(filePath, `Excessive DOM size of ${elementCount} elements (Budget max is ${maxAllowedDomNodes}). Large DOMs inflate style, layout, and memory cost.`, 'dom.excessive-nodes', 1);
   }
 }
 
-if (isMain) {
+/**
+ * Runs the gate body, translating a missing parser into the contract's exit 2.
+ * Without this, a ParserUnavailableError raised from any analysis call would
+ * surface as an unhandled rejection (Node exits 1), contradicting the contract:
+ * a gate that could not run must never look like a rule violation.
+ */
+function runMain() {
+  try {
+    runMainBody();
+  } catch (err) {
+    if (err instanceof ParserUnavailableError || (err && err.name === 'ParserUnavailableError')) {
+      console.error('');
+      console.error('❌ [REJECT] DOM & Layout-Shift Budget gate cannot run: missing required package "parse5".');
+      console.error('   Cause: Node resolved "parse5" from the Orthotect package itself and did not find it.');
+      console.error('          Installing parse5 in the project you are verifying will NOT fix this.');
+      console.error('   Fix: run `npm install` inside the orthotect package directory, then re-run verification.');
+      console.error('');
+      process.exit(EXIT_TOOL_ERROR);
+    }
+    throw err;
+  }
+}
+
+function runMainBody() {
+  if (cliArgsLoadError) {
+    // A missing shared module is a broken installation, not a finding about the
+    // audited project. Exit 2 with the cause, rather than letting an uncaught
+    // import error surface as Node's exit 1.
+    console.error('');
+    console.error('❌ [REJECT] DOM & Layout-Shift Budget gate cannot run: missing module "core/cli_args.mjs".');
+    console.error(`   Cause: ${String(cliArgsLoadError.message || cliArgsLoadError).split('\n')[0]}`);
+    console.error('   Fix: reinstall Orthotect so the core/ modules ship alongside gates/.');
+    console.error('');
+    process.exit(EXIT_TOOL_ERROR);
+  }
   const resolvedTarget = path.resolve(targetDir);
   const targetStat = fs.statSync(targetDir);
   if (targetStat.isFile() && targetDir.endsWith('.html')) {
@@ -942,19 +1344,26 @@ if (isMain) {
     scan(targetDir);
   }
 
-
   if (checkedFiles === 0) {
-    console.log(`\n❌ [REJECT] No markup (.html) files found to inspect in: ${targetDir}`);
-    console.log("   Orthotect requires markup files to verify DOM budgets and CLS avoidance.");
-    process.exit(1);
+    emitToolError('No markup (.html) files found to inspect in: ' + targetDir
+      + '. Orthotect requires markup files to verify DOM budgets and CLS avoidance.');
+  }
+
+  if (asSarif) {
+    emitSarif();
+    process.exit(errors.length === 0 ? EXIT_PASS : EXIT_VIOLATION);
   }
 
   if (errors.length === 0) {
     console.log(`\n✅ [PASS] Layout-Shift & DOM budgets passed across ${checkedFiles} file(s)!`);
-    process.exit(0);
+    process.exit(EXIT_PASS);
   } else {
     console.log(`\n❌ [REJECT] Found ${errors.length} structural budget violation(s):`);
     errors.forEach(e => console.log(`   - ${e}`));
-    process.exit(1);
+    process.exit(EXIT_VIOLATION);
   }
+}
+
+if (isMain) {
+  runMain();
 }

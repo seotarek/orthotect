@@ -127,11 +127,26 @@ class TestModalBrowserExecution(unittest.TestCase):
                 break
 
         is_ci = os.environ.get('CI') == 'true' or 'GITHUB_ACTIONS' in os.environ
+
+        # Both preconditions must be checked. A browser alone is not enough: the
+        # `node` script does `import('playwright-core')`, so a machine with Chrome
+        # installed but no `npm ci` produced a hard ERR_MODULE_NOT_FOUND failure
+        # masquerading as a broken test, instead of an actionable skip.
+        root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        has_playwright = os.path.isdir(os.path.join(root_dir, 'node_modules', 'playwright-core'))
+
+        missing = None
         if not chrome_path:
+            missing = 'Chrome/Chromium'
+        elif not has_playwright:
+            missing = 'playwright-core (run `npm ci`)'
+
+        if missing:
             if is_ci:
-                self.fail("Mandatory Browser Execution Failed: No Chrome/Chromium browser binary found in CI environment. Silent skipping is prohibited.")
+                self.fail("Mandatory Browser Execution Failed: "
+                          f"{missing} unavailable in CI environment. Silent skipping is prohibited.")
             else:
-                self.skipTest("Google Chrome binary not found on local system")
+                self.skipTest(f"Browser verification needs {missing}")
 
         test_script = f"""
         import('playwright-core').then(async ({{ chromium }}) => {{

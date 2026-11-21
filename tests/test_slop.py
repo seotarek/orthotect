@@ -25,6 +25,74 @@ class TestAntiSlopGate(unittest.TestCase):
         self.assertEqual(res.returncode, 0)
         self.assertIn("No AI Slop detected", res.stdout)
 
+    def test_anti_pattern_inside_comment_is_ignored(self):
+        """Regression: comments mentioning a removed gradient were wrongly rejected.
+        Documentation of a past violation must never fail the gate."""
+        css_file = os.path.join(self.temp_dir, 'style.css')
+        with open(css_file, 'w') as f:
+            f.write("""/* Legacy look, removed: linear-gradient(#6366f1, #a855f7) */
+/* button used to carry a raw emoji: 🚀 */
+.card { color: var(--ot-fg-default); }
+""")
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0, res.stdout)
+        self.assertIn("No AI Slop detected", res.stdout)
+
+    def test_anti_pattern_outside_comment_still_fails(self):
+        """Guard against over-correction: real slop next to a comment must still reject."""
+        css_file = os.path.join(self.temp_dir, 'style.css')
+        with open(css_file, 'w') as f:
+            f.write("""/* decorative note */
+.hero { background: linear-gradient(90deg, #6366f1, #a855f7); }
+""")
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Generic AI Purple/Indigo Gradient", res.stdout)
+
+    def test_config_exclude_is_honored(self):
+        """Regression: user-configured `exclude` globs were ignored by this gate."""
+        gen_dir = os.path.join(self.temp_dir, 'generated')
+        os.makedirs(gen_dir, exist_ok=True)
+        with open(os.path.join(gen_dir, 'bundle.css'), 'w') as f:
+            f.write('.x{background:linear-gradient(#6366f1,#a855f7);}')
+        # A clean, in-scope file keeps the scan non-empty so the gate can actually pass.
+        with open(os.path.join(self.temp_dir, 'app.css'), 'w') as f:
+            f.write('.card{color:var(--ot-fg-default);}')
+        with open(os.path.join(self.temp_dir, 'orthotect.config.json'), 'w') as f:
+            f.write('{"exclude": ["**/generated/**"]}')
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0, res.stdout)
+        self.assertIn("No AI Slop detected", res.stdout)
+
+    def test_anti_pattern_after_url_in_string_still_fails(self):
+        """Regression: `//` inside a string literal is not a comment opener.
+
+        The naive masker blanked everything after "https://" on the line, so slop
+        sharing that line passed the gate untouched (fail-open)."""
+        jsx_file = os.path.join(self.temp_dir, 'Link.tsx')
+        with open(jsx_file, 'w') as f:
+            f.write('export const L = () => <button data-doc="https://x.io">Go 🚀</button>;')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Raw Emoji in Button Icon", res.stdout)
+
+    def test_css_slop_after_url_in_string_still_fails(self):
+        css_file = os.path.join(self.temp_dir, 'url.css')
+        with open(css_file, 'w') as f:
+            f.write('.a{background-image:url("https://x.io/a.png")}\n.hero{background:linear-gradient(#6366f1,#a855f7);}\n')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Generic AI Purple/Indigo Gradient", res.stdout)
+
+    def test_comment_marker_inside_url_does_not_mask_later_lines(self):
+        """A URL in a comment must not leave the state machine stuck in 'string'."""
+        css_file = os.path.join(self.temp_dir, 'doc.css')
+        with open(css_file, 'w') as f:
+            f.write('/* see https://example.com/docs for the removed gradient */\n.bad{background:linear-gradient(#6366f1,#a855f7);}\n')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Generic AI Purple/Indigo Gradient", res.stdout)
+
     def test_ai_purple_gradient_fails(self):
         css_file = os.path.join(self.temp_dir, 'style.css')
         with open(css_file, 'w') as f:

@@ -176,6 +176,23 @@ class TestContrastGateE2E(unittest.TestCase):
     def test_browser_rendered_contrast_verification(self):
         """Browser integration test: Real browser computed styles on golden-showcase meet WCAG criteria."""
         browser_script = os.path.join(self.root_dir, 'tests', 'verify_browser_contrast.mjs')
+
+        # Fail closed in CI: a missing browser or Playwright must break the build rather than
+        # quietly shrinking coverage. Locally, skip with an actionable message.
+        has_playwright = os.path.isdir(os.path.join(self.root_dir, 'node_modules', 'playwright-core'))
+        has_browser = any(
+            os.path.exists(p) for p in (
+                os.environ.get('CHROME_BIN', ''),
+                '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser',
+                shutil.which('google-chrome') or '', shutil.which('chromium') or '',
+            )
+        )
+        if not (has_playwright and has_browser):
+            missing = 'playwright-core' if not has_playwright else 'Chrome/Chromium'
+            if os.environ.get('CI') == 'true' or 'GITHUB_ACTIONS' in os.environ:
+                self.fail(f"Mandatory browser contrast verification cannot run in CI: {missing} unavailable.")
+            self.skipTest(f"Browser contrast verification needs {missing} — run `npm ci` and install Chrome")
+
         res = subprocess.run(['node', browser_script], capture_output=True, text=True)
         self.assertEqual(res.returncode, 0, f"Browser contrast verification failed:\n{res.stdout}\n{res.stderr}")
         self.assertIn("Real browser computed-style contrast verified", res.stdout)

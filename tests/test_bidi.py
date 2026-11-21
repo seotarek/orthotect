@@ -236,6 +236,34 @@ class TestBidiScanner(unittest.TestCase):
         self.assertEqual(viols[0].name, "padding-left")
         self.assertEqual(viols[0].suggestion, "padding-inline-start")
 
+    def test_fallback_enforces_4_value_shorthand(self):
+        """Regression: the zero-dependency fallback must enforce 4-value shorthand symmetry
+        exactly like the tinycss2 path (it previously returned zero violations)."""
+        fpath = os.path.join(self.temp_dir.name, "shorthand_fallback.css")
+        with open(fpath, "w") as f:
+            f.write(".panel { margin: 10px 20px 10px 5px; }")
+        viols = scan_css_content_fallback(open(fpath).read())
+        self.assertEqual(len(viols), 1)
+        self.assertEqual(viols[0].name, "margin")
+
+    def test_important_flag_cannot_bypass_directional_check(self):
+        """Regression: `text-align: left !important` previously escaped detection because
+        the value was compared with exact equality and never stripped of `!important`."""
+        css = """
+        .a { text-align: left !important; }
+        .b { float: right!important; }
+        .c { clear: left !important; }
+        """
+        names = [v.name for v in scan_css_content_fallback(css)]
+        self.assertIn("text-align", names)
+        self.assertIn("float", names)
+        self.assertIn("clear", names)
+
+    def test_symmetric_shorthand_still_accepted_in_fallback(self):
+        """Guard against over-correction: symmetric 4-value shorthand must remain valid."""
+        css = ".panel { margin: 10px 20px 10px 20px; padding: 8px 12px 8px 12px; }"
+        self.assertEqual(scan_css_content_fallback(css), [])
+
     def test_fallback_slash_handling_and_no_infinite_loop(self):
         """Verify fallback tokenizer parses '/' (font line-height, urls, calc) without cursor stall."""
         css_with_slashes = """
@@ -511,6 +539,44 @@ class TestBidiGateE2E(unittest.TestCase):
         res = self.run_gate(self.temp_dir)
         self.assertNotEqual(res.returncode, 0)
         self.assertIn("margin-left", res.stdout)
+
+    def test_allow_camel_case_config_disables_jsx_property_check(self):
+        """
+        Regression: `bidi.allowCamelCase` was documented and deep-merged into the config
+        but never read by the gate, so React Native / JSX projects had no escape hatch
+        even though camelCase logical properties are the only legal form there.
+        """
+        jsx_file = os.path.join(self.temp_dir, 'Card.jsx')
+        with open(jsx_file, 'w') as f:
+            f.write('export const C = () => <div style={{ marginLeft: 8 }}>x</div>;')
+        with open(os.path.join(self.temp_dir, 'orthotect.config.json'), 'w') as f:
+            f.write('{"bidi": {"allowCamelCase": true}}')
+        res = self.run_gate(self.temp_dir)
+        self.assertEqual(res.returncode, 0, res.stdout)
+
+    def test_camel_case_still_rejected_without_config(self):
+        """Guard against over-correction: the default must remain strict."""
+        jsx_file = os.path.join(self.temp_dir, 'Card.jsx')
+        with open(jsx_file, 'w') as f:
+            f.write('export const C = () => <div style={{ marginLeft: 8 }}>x</div>;')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("marginInlineStart", res.stdout)
+
+    def test_allow_camel_case_does_not_weaken_css_enforcement(self):
+        """The escape hatch is JSX-only; physical CSS must still fail."""
+        jsx_file = os.path.join(self.temp_dir, 'Card.jsx')
+        with open(jsx_file, 'w') as f:
+            f.write('export const C = () => <div className="card">x</div>;')
+        css_file = os.path.join(self.temp_dir, 'style.css')
+        with open(css_file, 'w') as f:
+            f.write('.card { padding-left: 8px; }')
+        with open(os.path.join(self.temp_dir, 'orthotect.config.json'), 'w') as f:
+            f.write('{"bidi": {"allowCamelCase": true}}')
+        res = self.run_gate(self.temp_dir)
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("padding-left", res.stdout)
+
 
 if __name__ == '__main__':
     unittest.main()

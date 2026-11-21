@@ -19,11 +19,43 @@ try {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 
+// Exit-code contract (see core/exit_codes.py):
+//   0 = PASS, 1 = rule violation in the audited code, 2 = the tool could not run.
+// The CLI must never collapse a child's exit 2 into 1, or CI cannot tell a broken
+// environment from a real regression.
+const { EXIT_PASS, EXIT_VIOLATION, EXIT_TOOL_ERROR } = await import('../core/exit_codes.mjs');
+// Shared flag/positional splitter (mirrored by core/cli_args.py).
+const cliArgs = await import('../core/cli_args.mjs');
+
+/**
+ * Exits with a child process's status, preserving 0/1/2.
+ * A child killed by a signal or failing to spawn (status === null) is a tool error,
+ * not a code violation: nothing was actually evaluated.
+ */
+function exitWithChildStatus(status) {
+  if (status === null || status === undefined) process.exit(EXIT_TOOL_ERROR);
+  if (status === EXIT_PASS || status === EXIT_VIOLATION || status === EXIT_TOOL_ERROR) {
+    process.exit(status);
+  }
+  // Any other status is an unexpected crash inside the child.
+  process.exit(EXIT_TOOL_ERROR);
+}
+
 const args = process.argv.slice(2);
 const command = args[0] || 'help';
-const subCommand = args[1] && !args[1].startsWith('--') ? args[1] : null;
-const targetArg = args[1] && !args[1].startsWith('--') ? args[1] : null;
-const forceFlag = args.includes('--force');
+
+/**
+ * Flag/positional splitting lives in `core/cli_args.mjs`, shared with the gates and
+ * mirrored by `core/cli_args.py`. Keeping a private copy here is how the CLI and the
+ * gates drifted apart before: `orthotect verify --format json ./src` has to resolve
+ * the target identically in both places or the CLI reports a file the gate never saw.
+ */
+const positionals = cliArgs.positionals(args, { bareFormatTokens: ['json', 'md'] });
+// `args[0]` is the sub-command; everything after it is the sub-command's argv.
+const subCommand = positionals[1] || null;
+const targetArg = positionals[1] || null;
+const forceFlag = cliArgs.hasFlag(args, '--force');
+const outputFormat = cliArgs.resolveOutputFormat(args, { allowed: ['json', 'md', 'sarif'] });
 
 const pkgPath = path.join(rootDir, 'package.json');
 const pkgVersion = fs.existsSync(pkgPath) ? JSON.parse(fs.readFileSync(pkgPath, 'utf-8')).version : '1.8.8';
@@ -366,7 +398,7 @@ switch (command) {
     if (!hasErrors) {
       console.log("⭐ Enjoying Orthotect? Star the project on GitHub: https://github.com/seotarek/orthotect\n");
     }
-    if (hasErrors) process.exit(1);
+    if (hasErrors) process.exit(EXIT_TOOL_ERROR);
     break;
   }
 
@@ -430,7 +462,7 @@ switch (command) {
 
     if (!gitDir) {
       console.error(`❌ Error: Not a git repository (missing .git directory in ${targetDir} or its parents).`);
-      process.exit(1);
+      process.exit(EXIT_TOOL_ERROR);
     }
 
     const hooksDir = path.join(gitDir, 'hooks');
@@ -456,6 +488,13 @@ else
   npx --no-install orthotect verify . 2>/dev/null || npx orthotect verify .
 fi
 STATUS=$?
+if [ $STATUS -eq 2 ]; then
+  echo ""
+  echo "🛠️  [Orthotect] Verification could not run (exit 2)."
+  echo "💡 Action: Fix the tooling/dependency problem above (e.g. npm install), then retry."
+  echo "   This is NOT a code violation: your changes were never evaluated."
+  exit 2
+fi
 if [ $STATUS -ne 0 ]; then
   echo ""
   echo "❌ [Orthotect] Quality Gate Failed! Pre-commit verification rejected."
@@ -493,7 +532,7 @@ fi
     } else {
       console.error(`❌ Unknown hooks command: '${action}'. Expected 'install' or 'uninstall'.`);
       console.log("Usage: npx orthotect hooks <install|uninstall> [target_directory]");
-      process.exit(1);
+      process.exit(EXIT_TOOL_ERROR);
     }
     break;
   }
@@ -505,17 +544,18 @@ fi
     const targetDir = path.resolve(process.cwd(), targetArg || '.');
     if (!fs.existsSync(targetDir)) {
       console.error(`❌ Error: Target directory does not exist: ${targetDir}`);
-      process.exit(1);
+      process.exit(EXIT_TOOL_ERROR);
     }
 
     const runnerPath = path.join(rootDir, 'gates', 'run_all_gates.py');
     const runnerArgs = [runnerPath, targetDir];
 
-    if (args.includes('--json')) runnerArgs.push('--json');
-    if (args.includes('--md')) runnerArgs.push('--md');
+    if (outputFormat === 'json') runnerArgs.push('--json');
+    else if (outputFormat === 'md') runnerArgs.push('--md');
+    else if (outputFormat === 'sarif') runnerArgs.push('--format', 'sarif');
     if (args.includes('--fix')) runnerArgs.push('--fix');
 
-    if (!args.includes('--json') && !args.includes('--md')) {
+    if (!outputFormat) {
       printBanner();
       console.log(`Executing Deterministic Quality Gates on: ${targetDir}\n`);
     }
@@ -526,8 +566,23 @@ fi
     });
 
     if (result.status !== 0) {
-      process.exit(result.status || 1);
+      exitWithChildStatus(result.status);
     }
+    break;
+  }
+
+  case 'explain': {
+    const ruleArg = positionals[1] || null;
+    const explainScript = path.join(rootDir, 'core', 'rule_registry.py');
+    const explainArgs = [explainScript];
+    if (ruleArg) explainArgs.push(ruleArg);
+    if (outputFormat === 'json') explainArgs.push('--json');
+    if (outputFormat === 'md') explainArgs.push('--md');
+    const searchIdx = args.indexOf('--search');
+    if (searchIdx !== -1 && args[searchIdx + 1]) explainArgs.push('--search', args[searchIdx + 1]);
+
+    const result = spawnSync('python3', explainArgs, { stdio: 'inherit', cwd: rootDir });
+    exitWithChildStatus(result.status);
     break;
   }
 
@@ -536,16 +591,17 @@ fi
     const targetDir = path.resolve(process.cwd(), targetArg || '.');
     if (!fs.existsSync(targetDir)) {
       console.error(`❌ Error: Target directory does not exist: ${targetDir}`);
-      process.exit(1);
+      process.exit(EXIT_TOOL_ERROR);
     }
 
     const secPath = path.join(rootDir, 'gates', 'gate_security_audit.py');
     const secArgs = [secPath, targetDir];
 
-    if (args.includes('--json')) secArgs.push('--json');
-    if (args.includes('--md')) secArgs.push('--md');
+    if (outputFormat === 'json') secArgs.push('--json');
+    else if (outputFormat === 'md') secArgs.push('--md');
+    else if (outputFormat === 'sarif') secArgs.push('--format', 'sarif');
 
-    if (!args.includes('--json') && !args.includes('--md')) {
+    if (!outputFormat) {
       printBanner();
       console.log(`Executing Enterprise Cybersecurity & Threat Audit on: ${targetDir}\n`);
     }
@@ -556,7 +612,7 @@ fi
     });
 
     if (result.status !== 0) {
-      process.exit(result.status || 1);
+      exitWithChildStatus(result.status);
     }
     break;
   }
@@ -578,7 +634,7 @@ fi
     });
 
     if (result.status !== 0) {
-      process.exit(result.status || 1);
+      exitWithChildStatus(result.status);
     }
     break;
   }
@@ -591,7 +647,7 @@ fi
       cwd: rootDir
     });
     if (result.status !== 0) {
-      process.exit(result.status || 1);
+      exitWithChildStatus(result.status);
     }
     break;
   }
@@ -604,7 +660,7 @@ fi
       const outFile = args[2] ? path.resolve(process.cwd(), args[2]) : path.resolve(process.cwd(), 'tokens.css');
       const compilerScript = path.join(rootDir, 'core', 'compiler.py');
       const result = spawnSync('python3', [compilerScript, tokensDir, outFile], { stdio: 'inherit', cwd: rootDir });
-      if (result.status !== 0) process.exit(result.status || 1);
+      if (result.status !== 0) exitWithChildStatus(result.status);
     } else if (action === 'page' || action === 'recipe') {
       let recipeId = 'contemporary-product-saas';
       let outFile = null;
@@ -637,7 +693,7 @@ fi
         }
       } else {
         console.error(`Recipe '${recipeId}' not found in knowledge/styles/`);
-        process.exit(1);
+        process.exit(EXIT_TOOL_ERROR);
       }
     } else {
       console.log("Usage: orthotect design <system|page|init> [options]");
@@ -652,24 +708,24 @@ fi
 
     if (!fs.existsSync(pyScript)) {
       console.error(`❌ Context optimizer engine not found: ${pyScript}`);
-      process.exit(1);
+      process.exit(EXIT_TOOL_ERROR);
     }
 
     if (sub === 'inspect') {
       if (!target) {
         console.error("Usage: orthotect context inspect <file_or_dir> [--json]");
-        process.exit(1);
+        process.exit(EXIT_TOOL_ERROR);
       }
       const passArgs = [pyScript, 'inspect', path.resolve(process.cwd(), target)];
       if (args.includes('--json')) passArgs.push('--json');
       const proc = spawnSync('python3', passArgs, { stdio: 'inherit' });
-      process.exit(proc.status || 0);
+      exitWithChildStatus(proc.status);
     }
 
     if (sub === 'chunk') {
       if (!target) {
         console.error("Usage: orthotect context chunk <file> [--max-tokens <N>] [--json]");
-        process.exit(1);
+        process.exit(EXIT_TOOL_ERROR);
       }
       const passArgs = [pyScript, 'chunk', path.resolve(process.cwd(), target)];
       const maxIdx = args.indexOf('--max-tokens');
@@ -678,7 +734,7 @@ fi
       }
       if (args.includes('--json')) passArgs.push('--json');
       const proc = spawnSync('python3', passArgs, { stdio: 'inherit' });
-      process.exit(proc.status || 0);
+      exitWithChildStatus(proc.status);
     }
 
     if (sub === 'skeleton') {
@@ -690,7 +746,7 @@ fi
       }
       if (args.includes('--json')) passArgs.push('--json');
       const proc = spawnSync('python3', passArgs, { stdio: 'inherit' });
-      process.exit(proc.status || 0);
+      exitWithChildStatus(proc.status);
     }
 
     printBanner();
@@ -726,14 +782,14 @@ fi
       const skillName = args[2];
       if (!skillName) {
         console.error("Please specify skill name: orthotect skills show <name>");
-        process.exit(1);
+        process.exit(EXIT_TOOL_ERROR);
       }
       const sPath = path.join(skillsDir, skillName, 'SKILL.md');
       if (fs.existsSync(sPath)) {
         console.log(fs.readFileSync(sPath, 'utf-8'));
       } else {
         console.error(`Skill '${skillName}' not found in skills/`);
-        process.exit(1);
+        process.exit(EXIT_TOOL_ERROR);
       }
       break;
     }
@@ -742,7 +798,7 @@ fi
       console.log("Validating all installed skills against Agent Skills Specification...\n");
       if (!validateSkills) {
         console.error("Validator module (scripts/validate-skills.mjs) is not available.");
-        process.exit(1);
+        process.exit(EXIT_TOOL_ERROR);
       }
       const res = validateSkills(skillsDir);
       for (const r of res.details) {
@@ -757,7 +813,7 @@ fi
         }
       }
       console.log(`\nValidation: ${res.errors === 0 ? '100% PASSED' : 'FAILED'} (${res.passed} passed, ${res.warnings} warnings, ${res.errors} errors)`);
-      if (res.errors > 0) process.exit(1);
+      if (res.errors > 0) process.exit(EXIT_VIOLATION);
       break;
     }
 
@@ -795,6 +851,8 @@ fi
     console.log("  doctor                                 Check environment, gates, skills, and knowledge health");
     console.log("  verify | audit [path] [--fix] [--json] Run all 6 deterministic quality gates (with auto-healing --fix)");
     console.log("  security [path] [--json] [--md]        Run enterprise cybersecurity & vulnerability audit gate");
+    console.log("  explain <rule-id> [--json] [--md]      Show the citation and rationale behind a gate rule");
+    console.log("  explain --search <term>                Find rules by keyword (e.g. innerHTML, contrast)");
     console.log("  hooks <install|uninstall> [path]       Install or safely remove Git pre-commit quality gate hook");
     console.log("  init [path] [--force]                  Scaffold tokens, FSM specs, and AGENTS.md in target directory");
     console.log("  compile [tokens_path] [--out <file>]   Compile W3C DTCG tokens into production CSS variables");
@@ -805,6 +863,7 @@ fi
     console.log("\nExamples:");
     console.log("  npx orthotect doctor");
     console.log("  npx orthotect verify ./src --fix");
+    console.log("  npx orthotect explain bidi.physical-direction-property");
     console.log("  npx orthotect hooks install");
     console.log("  npx orthotect knowledge 'contrast' --category palettes");
     console.log("  npx orthotect skills show orthotect-uiux");

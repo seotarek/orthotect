@@ -730,6 +730,103 @@ element.innerHTML = cleaned;
         findings = scan_file(fpath)
         self.assertTrue(any("Taint Flow" in f[1] for f in findings))
 
+
+class TestSecurityScanScope(unittest.TestCase):
+    """
+    Regression suite for scan-scope trust decisions.
+
+    Historical defect: `is_safe_context` returned True for any path containing
+    `/tests/`, so application code shipped under `src/tests/` (e2e drivers, mock
+    servers, fixtures) was silently exempt from SAST. The trust rule is now narrow:
+    only the scanner engine itself and the curated knowledge/reference corpora.
+    """
+
+    DOM_XSS = """
+function renderNotice() {
+    const box = document.getElementById("notice");
+    box.innerHTML = location.search;
+}
+"""
+
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp(prefix="ortho_sec_scope_")
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def _write(self, rel_path, content):
+        path = os.path.join(self.temp_dir, rel_path)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+        return path
+
+    def _run_main(self, *argv):
+        """Invoke the gate's main() in-process and return its exit code."""
+        import sys
+        from unittest.mock import patch
+        old_argv = sys.argv
+        sys.argv = ["gate_security_audit.py", *argv]
+        try:
+            with patch("builtins.print"):
+                with self.assertRaises(SystemExit) as ctx:
+                    main()
+            return ctx.exception.code
+        finally:
+            sys.argv = old_argv
+
+    def test_tests_path_is_not_trusted_by_is_safe_context(self):
+        """A /tests/ path must not be treated as a safe context on its own."""
+        from gates.gate_security_audit import is_safe_context
+        self.assertFalse(is_safe_context("box.innerHTML = location.search;", "/app/tests/e2e.js"))
+        self.assertFalse(is_safe_context("box.innerHTML = location.search;", "tests/fixture.js"))
+        # Curated corpora and the engine itself remain exempt.
+        self.assertTrue(is_safe_context("x", "/app/knowledge/owasp.md"))
+        self.assertTrue(is_safe_context("x", "/app/references/cwe.md"))
+        self.assertTrue(is_safe_context("x", "/app/gates/gate_security_audit.py"))
+
+    def test_nested_tests_directory_is_audited(self):
+        """Application code under src/tests/ must be scanned and rejected."""
+        self._write("src/tests/e2e_driver.js", self.DOM_XSS)
+        self.assertEqual(self._run_main(self.temp_dir, "--json"), 1)
+
+    def test_root_level_tests_directory_is_still_excluded(self):
+        """Conventional repo-root test trees stay out of scope, so suites can assert on payloads."""
+        self._write("tests/payload_fixture.js", self.DOM_XSS)
+        self._write("src/app.js", "export const ok = document.getElementById('a').textContent;\n")
+        self.assertEqual(self._run_main(self.temp_dir, "--json"), 0)
+
+    def test_config_exclude_is_honored(self):
+        """Regression: user-configured `exclude` globs were ignored by this gate."""
+        self._write("generated/bundle.js", self.DOM_XSS)
+        self._write("src/app.js", "export const ok = document.getElementById('a').textContent;\n")
+        self._write("orthotect.config.json", '{"exclude": ["**/generated/**"]}')
+        self.assertEqual(self._run_main(self.temp_dir, "--json"), 0)
+
+    def test_excluded_path_outside_config_is_still_audited(self):
+        """Guard against over-correction: no config means the file is in scope."""
+        self._write("generated/bundle.js", self.DOM_XSS)
+        self.assertEqual(self._run_main(self.temp_dir, "--json"), 1)
+
+    def test_empty_target_is_tool_error_not_pass(self):
+        """
+        Regression: a directory containing zero auditable files reported
+        "✅ [PASS] Zero cybersecurity vulnerabilities detected across 0 file(s)".
+        That is the most dangerous fail-open in the suite — a green security
+        certificate for code that was never read. Zero files scanned means zero
+        rules evaluated, which is exit 2, never exit 0.
+        """
+        empty = os.path.join(self.temp_dir, 'empty')
+        os.makedirs(empty, exist_ok=True)
+        self.assertEqual(self._run_main(empty), 2)
+
+    def test_all_files_excluded_by_config_is_tool_error(self):
+        """An over-broad `exclude` must not silently reduce the audit to nothing."""
+        self._write("src/app.js", self.DOM_XSS)
+        self._write("orthotect.config.json", '{"exclude": ["**/src/**"]}')
+        self.assertEqual(self._run_main(self.temp_dir), 2)
+
+
 if __name__ == '__main__':
     unittest.main()
 

@@ -4,11 +4,25 @@ import tempfile
 import os
 import shutil
 
+
+def _parse5_installed(root_dir):
+    """The DOM gate parses through parse5, a declared runtime dependency."""
+    return os.path.isdir(os.path.join(root_dir, 'node_modules', 'parse5'))
+
+
 class TestCWVBudgetGate(unittest.TestCase):
     def setUp(self):
         self.root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         self.gate_script = os.path.join(self.root_dir, 'gates', 'gate_cwv_budget.mjs')
         self.temp_dir = tempfile.mkdtemp(prefix='cwv_test_')
+
+        # Fail closed in CI (a missing dependency must break the build, never silently
+        # reduce coverage) but skip locally, where `npm ci` may legitimately not have run.
+        if not _parse5_installed(self.root_dir):
+            if os.environ.get('CI') == 'true' or 'GITHUB_ACTIONS' in os.environ:
+                self.fail("Mandatory DOM gate tests cannot run: parse5 is not installed in CI. "
+                          "Run `npm ci` before the test step.")
+            self.skipTest("parse5 not installed — run `npm ci` to enable the DOM & CLS budget suite")
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
@@ -554,6 +568,152 @@ img { width: 0; height: 0; }
             self.assertIn("PASS", res.stdout)
         finally:
             shutil.rmtree(outside_dir, ignore_errors=True)
+
+
+class TestCWVNodeBudget(unittest.TestCase):
+    """
+    Regression suite for the `cwv.maxDomNodes` budget.
+
+    Historical defect: the config key was read into defaults and documented, but the
+    gate only ever measured nesting depth — a flat 5,000-node page passed cleanly.
+    """
+
+    def setUp(self):
+        self.root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        self.gate_script = os.path.join(self.root_dir, 'gates', 'gate_cwv_budget.mjs')
+        self.temp_dir = tempfile.mkdtemp(prefix='cwv_nodes_')
+        if not _parse5_installed(self.root_dir):
+            if os.environ.get('CI') == 'true' or 'GITHUB_ACTIONS' in os.environ:
+                self.fail("Mandatory DOM gate tests cannot run: parse5 is not installed in CI.")
+            self.skipTest("parse5 not installed — run `npm ci` to enable the DOM & CLS budget suite")
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def _write_page(self, sibling_count):
+        body = '<div class="card"><span>row</span></div>' * sibling_count
+        html = (f'<!DOCTYPE html><html><head><title>t</title></head><body>{body}</body></html>')
+        with open(os.path.join(self.temp_dir, 'index.html'), 'w') as f:
+            f.write(html)
+
+    def run_gate(self):
+        return subprocess.run(['node', self.gate_script, self.temp_dir],
+                              capture_output=True, text=True)
+
+    def test_flat_dom_exceeding_max_dom_nodes_fails(self):
+        """2 nodes per card: 400 cards = 802 elements, over a 500-node budget."""
+        self._write_page(400)
+        with open(os.path.join(self.temp_dir, 'orthotect.config.json'), 'w') as f:
+            f.write('{"cwv": {"maxDomNodes": 500}}')
+        res = self.run_gate()
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Excessive DOM size", res.stdout)
+
+    def test_flat_dom_within_budget_passes(self):
+        self._write_page(10)
+        with open(os.path.join(self.temp_dir, 'orthotect.config.json'), 'w') as f:
+            f.write('{"cwv": {"maxDomNodes": 500}}')
+        res = self.run_gate()
+        self.assertEqual(res.returncode, 0, res.stdout)
+
+    def test_default_node_budget_rejects_very_wide_dom(self):
+        """Without config the 1,500-element default must still bind."""
+        self._write_page(800)
+        res = self.run_gate()
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Excessive DOM size", res.stdout)
+
+    def test_zero_disables_node_budget(self):
+        """maxDomNodes: 0 is the documented opt-out and must not reject a wide page."""
+        self._write_page(800)
+        with open(os.path.join(self.temp_dir, 'orthotect.config.json'), 'w') as f:
+            f.write('{"cwv": {"maxDomNodes": 0}}')
+        res = self.run_gate()
+        self.assertEqual(res.returncode, 0, res.stdout)
+
+
+class TestMissingParserContract(unittest.TestCase):
+    """
+    The DOM gate must fail closed at exit 2 when its parser is absent.
+
+    Two defects are pinned here, both found while resolving P0-2:
+
+    1. The remediation message told the user to install `parse5` in the project
+       being verified. Node resolves the import relative to the gate file, so that
+       advice could never work — a user following it would loop forever.
+    2. Calling an exported analysis function without the parser raised
+       `TypeError: Cannot read properties of null (reading 'parse')` — a crash
+       reported as exit 1, i.e. a tool error masquerading as a code violation.
+    """
+
+    def setUp(self):
+        self.root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        # Mirror the real layout (gates/ + core/) so relative imports resolve, but
+        # deliberately omit node_modules so the parser is unresolvable.
+        self.sandbox = tempfile.mkdtemp(prefix='cwv_noparse5_')
+        os.makedirs(os.path.join(self.sandbox, 'gates'))
+        os.makedirs(os.path.join(self.sandbox, 'core'))
+        os.makedirs(os.path.join(self.sandbox, 'target'))
+        shutil.copy(os.path.join(self.root_dir, 'gates', 'gate_cwv_budget.mjs'),
+                    os.path.join(self.sandbox, 'gates', 'gate_cwv_budget.mjs'))
+        for name in ('config.mjs', 'exit_codes.mjs', 'cli_args.mjs'):
+            shutil.copy(os.path.join(self.root_dir, 'core', name),
+                        os.path.join(self.sandbox, 'core', name))
+        with open(os.path.join(self.sandbox, 'target', 'index.html'), 'w') as f:
+            f.write('<!DOCTYPE html><html><body><div>x</div></body></html>')
+
+    def tearDown(self):
+        shutil.rmtree(self.sandbox, ignore_errors=True)
+
+    def _run(self, *args):
+        return subprocess.run(['node', *args], capture_output=True, text=True,
+                              cwd=self.sandbox)
+
+    def test_missing_parser_exits_2_not_1(self):
+        """A gate that cannot run is a tool error, never a rule violation."""
+        res = self._run(os.path.join('gates', 'gate_cwv_budget.mjs'), 'target')
+        self.assertEqual(res.returncode, 2, res.stdout + res.stderr)
+        self.assertIn('missing required package "parse5"', res.stderr)
+
+    def test_missing_shared_arg_parser_exits_2_not_1(self):
+        """
+        A missing `core/cli_args.mjs` is a broken installation. Node would report
+        an uncaught import error as exit 1, which inverts the contract by claiming
+        the audited code violated a rule when in fact nothing was evaluated.
+        """
+        os.remove(os.path.join(self.sandbox, 'core', 'cli_args.mjs'))
+        res = self._run(os.path.join('gates', 'gate_cwv_budget.mjs'), 'target')
+        self.assertEqual(res.returncode, 2, res.stdout + res.stderr)
+        self.assertIn('cli_args.mjs', res.stderr)
+        self.assertNotIn('missing required package', res.stderr,
+                         'a missing internal module must not be reported as a missing parser')
+
+    def test_remediation_advice_does_not_send_user_to_the_wrong_directory(self):
+        """
+        Regression: the old message said to install parse5 "in the project being
+        verified", which cannot work because the import resolves from the gate file.
+        """
+        res = self._run(os.path.join('gates', 'gate_cwv_budget.mjs'), 'target')
+        self.assertEqual(res.returncode, 2)
+        self.assertIn('will NOT fix this', res.stderr)
+        self.assertIn('inside the orthotect package directory', res.stderr)
+        self.assertNotIn('Install it in the project being verified', res.stderr)
+
+    def test_missing_parser_surfaces_a_typed_error_to_library_callers(self):
+        """
+        Exported helpers must throw ParserUnavailableError rather than dereference
+        null, so an embedding caller can distinguish "no parser" from "bad HTML".
+        """
+        script = (
+            "import('./gates/gate_cwv_budget.mjs').then(m => {"
+            "  try { m.analyzeDomStructure('<div>x</div>'); console.log('NO_ERROR'); }"
+            "  catch (e) { console.log('THREW:' + e.name); }"
+            "}).catch(e => { console.log('IMPORT_FAILED:' + e.message); });"
+        )
+        res = self._run('-e', script)
+        self.assertIn('THREW:ParserUnavailableError', res.stdout,
+                      res.stdout + res.stderr)
+
 
 if __name__ == '__main__':
     unittest.main()

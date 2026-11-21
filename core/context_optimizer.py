@@ -10,6 +10,15 @@ approximations designed to run deterministically with zero runtime dependencies.
 They do not implement a full AST parser for ECMAScript/TypeScript or Python grammar.
 """
 
+
+# Exit-code contract (see core/exit_codes.py): 0 = PASS, 1 = rule violation
+# in the audited input, 2 = the tool could not run.
+try:
+    from core.exit_codes import EXIT_PASS, EXIT_VIOLATION, EXIT_TOOL_ERROR
+except ImportError:
+    import os as _os, sys as _sys
+    _sys.path.insert(0, _os.path.abspath(_os.path.join(_os.path.dirname(__file__), '..')))
+    from core.exit_codes import EXIT_PASS, EXIT_VIOLATION, EXIT_TOOL_ERROR
 import os
 import sys
 import re
@@ -870,7 +879,7 @@ def main():
                 print(f"  {f['path']} ({f['lines']} lines, ~{f['tokens']} tokens){sym_str}")
     else:
         parser.print_help()
-        sys.exit(1)
+        sys.exit(EXIT_TOOL_ERROR)
 
 if __name__ == "__main__":
     main()
