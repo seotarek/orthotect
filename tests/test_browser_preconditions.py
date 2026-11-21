@@ -104,8 +104,11 @@ class BrowserPreconditionRuntimeTest(unittest.TestCase):
             'res = unittest.TextTestRunner(verbosity=0).run(suite)\n'
             'print("RESULT", len(res.skipped), len(res.failures), len(res.errors))\n'
         ) % (ROOT_DIR, ROOT_DIR)
+        env = dict(os.environ)
+        env.pop('CI', None)
+        env.pop('GITHUB_ACTIONS', None)
         res = subprocess.run([sys.executable, '-c', probe],
-                             capture_output=True, text=True, cwd=ROOT_DIR)
+                             capture_output=True, text=True, cwd=ROOT_DIR, env=env)
         self.assertEqual(res.returncode, 0, res.stderr[-2000:])
         line = [ln for ln in res.stdout.splitlines() if ln.startswith('RESULT')][-1]
         skipped, failed, errors = (int(part) for part in line.split()[1:])
